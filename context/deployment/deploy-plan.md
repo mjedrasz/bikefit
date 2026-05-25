@@ -33,8 +33,8 @@
 | 0 | Account & Tooling Setup | Human | ✅ Done |
 | 1 | Code Change | Agent | ✅ Done |
 | 2 | Platform Configuration | Human | ✅ Done |
-| 3 | First Deploy | Human + Agent | 🔄 In progress |
-| 4 | Verification | Agent / Human | ⬜ Not started |
+| 3 | First Deploy | Human + Agent | ✅ Done |
+| 4 | Verification | Agent / Human | ✅ Done |
 
 ---
 
@@ -135,7 +135,7 @@ One file to update before any deploy can succeed.
 
 ---
 
-## Phase 3 — First Deploy 🔄
+## Phase 3 — First Deploy ✅
 
 **Owner:** Human + Agent
 
@@ -143,9 +143,9 @@ The Cloudflare Workers Builds integration auto-deploys on every push to `master`
 
 ### Auto-deploy path (preferred)
 
-- [ ] Phase 1 commit pushed to `master`
-- [ ] Build visible in Cloudflare dashboard (Workers & Pages → bikefit → Deployments)
-- [ ] Build status turns green (no red/failed state)
+- [x] Phase 1 commit pushed to `master`
+- [x] Build visible in Cloudflare dashboard (Workers & Pages → bikefit → Deployments)
+- [x] Build status turns green (no red/failed state)
 
 ### Manual deploy fallback (if Git integration is not yet set up)
 
@@ -162,17 +162,17 @@ npx wrangler deploy
 
 ---
 
-## Phase 4 — Verification ⬜
+## Phase 4 — Verification ✅
 
 **Owner:** Agent / Human
 
 Run all checks after the first successful deploy.
 
-- [ ] Cloudflare dashboard shows Worker named `bikefit` with green build status
-- [ ] `https://bikefit.<subdomain>.workers.dev` — homepage loads (SSR working)
-- [ ] `/auth/signin` — page renders without errors
-- [ ] `npx wrangler tail` — no 5xx errors during a normal visit
-- [ ] Commit pushed to `master` → new build triggered in Cloudflare dashboard (confirms Git integration is live)
+- [x] Cloudflare dashboard shows Worker named `bikefit` with green build status
+- [x] `https://bikefit.m-jedraszewski.workers.dev` — homepage loads (SSR working)
+- [x] `/auth/signin` — page renders without errors
+- [x] `npx wrangler tail` — no 5xx errors during a normal visit
+- [x] Commit pushed to `master` → new build triggered in Cloudflare dashboard (confirms Git integration is live)
 
 **Phase 4 complete when:** all five checks above are ticked.
 
