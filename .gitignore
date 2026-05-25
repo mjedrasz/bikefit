@@ -16,7 +16,7 @@ pnpm-debug.log*
 0*_0*
 CLAUDE*.md
 .claude
-context
+# context
 # environment variables
 .env
 .env.production
