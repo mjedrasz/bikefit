@@ -32,8 +32,8 @@
 |---|---|---|---|
 | 0 | Account & Tooling Setup | Human | ✅ Done |
 | 1 | Code Change | Agent | ✅ Done |
-| 2 | Platform Configuration | Human | ⬜ Not started |
-| 3 | First Deploy | Human + Agent | ⬜ Not started |
+| 2 | Platform Configuration | Human | ✅ Done |
+| 3 | First Deploy | Human + Agent | 🔄 In progress |
 | 4 | Verification | Agent / Human | ⬜ Not started |
 
 ---
@@ -99,13 +99,13 @@ One file to update before any deploy can succeed.
 ```
 
 - [x] `wrangler.jsonc` `name` field updated to `"bikefit"`
-- [ ] Change committed to `master` (or feature branch before merge)
+- [x] Change committed to `master` (or feature branch before merge)
 
 **Phase 1 complete when:** `grep '"name"' wrangler.jsonc` returns `"bikefit"`.
 
 ---
 
-## Phase 2 — Platform Configuration ⬜
+## Phase 2 — Platform Configuration ✅
 
 **Owner:** Human (Cloudflare dashboard — cannot be automated without a scoped API token)
 
@@ -122,20 +122,20 @@ One file to update before any deploy can succeed.
 5. Deployment branch: `master`
 6. Save → first build triggers automatically
 
-- [ ] GitHub account connected to Cloudflare
-- [ ] Correct repo selected
-- [ ] Build command set to `npm run build`
-- [ ] Root directory set to `bikefit`
-- [ ] `SUPABASE_URL` added as encrypted secret
-- [ ] `SUPABASE_KEY` added as encrypted secret
-- [ ] Deployment branch set to `master`
-- [ ] Configuration saved
+- [x] GitHub account connected to Cloudflare
+- [x] Correct repo selected
+- [x] Build command set to `npm run build`
+- [x] Root directory set to `bikefit`
+- [x] `SUPABASE_URL` added as encrypted secret
+- [x] `SUPABASE_KEY` added as encrypted secret
+- [x] Deployment branch set to `master`
+- [x] Configuration saved
 
 **Phase 2 complete when:** the Git integration is saved and the first automated build has been triggered in the Cloudflare dashboard.
 
 ---
 
-## Phase 3 — First Deploy ⬜
+## Phase 3 — First Deploy 🔄
 
 **Owner:** Human + Agent
 
