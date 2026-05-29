@@ -361,14 +361,14 @@ Apply the migration against the local Supabase instance and perform a final end-
 
 #### Automated
 
-- [x] 3.1 `supabase db reset` applies with zero errors
-- [x] 3.2 `supabase db diff --schema public` returns no diff
-- [x] 3.3 `npm run typecheck` passes
+- [x] 3.1 `supabase db reset` applies with zero errors — 4db2a70
+- [x] 3.2 `supabase db diff --schema public` returns no diff — 4db2a70
+- [x] 3.3 `npm run typecheck` passes — 4db2a70
 
 #### Manual
 
-- [x] 3.4 Insert without `user_id` rejected by NOT NULL constraint
-- [x] 3.5 Invalid status value rejected by CHECK constraint
-- [x] 3.6 No `video` or `video_data` column exists in Studio Table Editor
-- [x] 3.7 Three policies visible in Studio (sessions_select_own, sessions_insert_own, results_select_own)
-- [x] 3.8 `analysis_results` has no INSERT policy for `authenticated` role
+- [x] 3.4 Insert without `user_id` rejected by NOT NULL constraint — 4db2a70
+- [x] 3.5 Invalid status value rejected by CHECK constraint — 4db2a70
+- [x] 3.6 No `video` or `video_data` column exists in Studio Table Editor — 4db2a70
+- [x] 3.7 Three policies visible in Studio (sessions_select_own, sessions_insert_own, results_select_own) — 4db2a70
+- [x] 3.8 `analysis_results` has no INSERT policy for `authenticated` role — 4db2a70

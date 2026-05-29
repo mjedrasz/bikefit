@@ -1,7 +1,7 @@
 ---
 change_id: db-schema-and-privacy-design
 title: Db schema and privacy design
-status: implementing
+status: implemented
 created: 2026-05-26
 updated: 2026-05-29
 archived_at: null
