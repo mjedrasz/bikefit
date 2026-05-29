@@ -125,7 +125,6 @@ One file to update before any deploy can succeed.
 - [x] GitHub account connected to Cloudflare
 - [x] Correct repo selected
 - [x] Build command set to `npm run build`
-- [x] Root directory set to `bikefit`
 - [x] `SUPABASE_URL` added as encrypted secret
 - [x] `SUPABASE_KEY` added as encrypted secret
 - [x] Deployment branch set to `master`
