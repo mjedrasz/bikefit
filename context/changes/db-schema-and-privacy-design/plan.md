@@ -338,24 +338,24 @@ Apply the migration against the local Supabase instance and perform a final end-
 
 #### Automated
 
-- [x] 1.1 `supabase db reset` applies cleanly with no errors
-- [x] 1.2 `supabase db diff --schema public` shows expected tables
+- [x] 1.1 `supabase db reset` applies cleanly with no errors — 680b2ad
+- [x] 1.2 `supabase db diff --schema public` shows expected tables — 680b2ad
 
 #### Manual
 
-- [x] 1.3 Supabase Studio shows both tables with correct columns and types
-- [x] 1.4 RLS enabled on both tables; three policies visible, no extras
-- [x] 1.5 No raw video column exists on any table
+- [x] 1.3 Supabase Studio shows both tables with correct columns and types — 680b2ad
+- [x] 1.4 RLS enabled on both tables; three policies visible, no extras — 680b2ad
+- [x] 1.5 No raw video column exists on any table — 680b2ad
 
 ### Phase 2: TypeScript Entity Types
 
 #### Automated
 
-- [ ] 2.1 `npm run typecheck` passes with no errors
+- [x] 2.1 `npm run typecheck` passes with no errors
 
 #### Manual
 
-- [ ] 2.2 `src/types.ts` is sole source of truth for entity types; no inline duplicates in `src/`
+- [x] 2.2 `src/types.ts` is sole source of truth for entity types; no inline duplicates in `src/`
 
 ### Phase 3: Apply Migration and Validate Locally
 
