@@ -1,0 +1,1 @@
+-- seed.sql intentionally empty: no seed data required for this schema foundation
