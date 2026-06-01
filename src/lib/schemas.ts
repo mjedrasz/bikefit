@@ -18,6 +18,7 @@ export const resultsPayloadSchema = z.discriminatedUnion("error", [
     error: z.literal(false).optional(),
     recommendations: z.array(recommendationSchema),
     body_angles: z.array(bodyAngleSchema),
+    raw_llm_response: z.string().optional(),
   }),
   z.object({
     error: z.literal(true),

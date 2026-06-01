@@ -290,8 +290,8 @@ verifies ownership, and transitions the session to its terminal state.
 
 #### Manual
 
-- [ ] 3.3 POST valid results payload to processing session → status completed, analysis_results row exists
-- [ ] 3.4 POST error payload to processing session → status failed, error_message set
-- [ ] 3.5 POST malformed payload → 400 with Zod error details
-- [ ] 3.6 POST to queued (not started) session → 409
-- [ ] 3.7 POST from different user for same session → 404
+- [x] 3.3 POST valid results payload to processing session → status completed, analysis_results row exists
+- [x] 3.4 POST error payload to processing session → status failed, error_message set
+- [x] 3.5 POST malformed payload → 400 with Zod error details
+- [x] 3.6 POST to queued (not started) session → 409
+- [x] 3.7 POST from different user for same session → 404
