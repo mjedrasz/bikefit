@@ -285,13 +285,13 @@ verifies ownership, and transitions the session to its terminal state.
 
 #### Automated
 
-- [x] 3.1 npm run typecheck — passes
-- [x] 3.2 npm run lint — passes
+- [x] 3.1 npm run typecheck — passes — 6c2161e
+- [x] 3.2 npm run lint — passes — 6c2161e
 
 #### Manual
 
-- [x] 3.3 POST valid results payload to processing session → status completed, analysis_results row exists
-- [x] 3.4 POST error payload to processing session → status failed, error_message set
-- [x] 3.5 POST malformed payload → 400 with Zod error details
-- [x] 3.6 POST to queued (not started) session → 409
-- [x] 3.7 POST from different user for same session → 404
+- [x] 3.3 POST valid results payload to processing session → status completed, analysis_results row exists — 6c2161e
+- [x] 3.4 POST error payload to processing session → status failed, error_message set — 6c2161e
+- [x] 3.5 POST malformed payload → 400 with Zod error details — 6c2161e
+- [x] 3.6 POST to queued (not started) session → 409 — 6c2161e
+- [x] 3.7 POST from different user for same session → 404 — 6c2161e
