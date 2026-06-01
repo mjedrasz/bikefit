@@ -271,22 +271,22 @@ verifies ownership, and transitions the session to its terminal state.
 
 #### Automated
 
-- [x] 2.1 npm run typecheck — passes on both new routes
-- [x] 2.2 npm run lint — passes
+- [x] 2.1 npm run typecheck — passes on both new routes — c6cb684
+- [x] 2.2 npm run lint — passes — c6cb684
 
 #### Manual
 
-- [x] 2.3 GET /api/sessions/:id returns { status, updated_at } for own session
-- [x] 2.4 GET /api/sessions/:id returns 404 for another user's session
-- [x] 2.5 POST /api/sessions/:id/start flips queued → processing; returns { ok: true }
-- [x] 2.6 POST /api/sessions/:id/start on already-processing session returns 409
+- [x] 2.3 GET /api/sessions/:id returns { status, updated_at } for own session — c6cb684
+- [x] 2.4 GET /api/sessions/:id returns 404 for another user's session — c6cb684
+- [x] 2.5 POST /api/sessions/:id/start flips queued → processing; returns { ok: true } — c6cb684
+- [x] 2.6 POST /api/sessions/:id/start on already-processing session returns 409 — c6cb684
 
 ### Phase 3: Results Submission Endpoint
 
 #### Automated
 
-- [ ] 3.1 npm run typecheck — passes
-- [ ] 3.2 npm run lint — passes
+- [x] 3.1 npm run typecheck — passes
+- [x] 3.2 npm run lint — passes
 
 #### Manual
 
