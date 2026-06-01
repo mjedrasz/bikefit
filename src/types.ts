@@ -1,4 +1,4 @@
-export type SessionStatus = 'queued' | 'processing' | 'completed' | 'failed';
+export type SessionStatus = "queued" | "processing" | "completed" | "failed";
 
 export interface FittingSession {
   id: string;

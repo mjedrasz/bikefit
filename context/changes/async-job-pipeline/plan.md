@@ -259,27 +259,27 @@ verifies ownership, and transitions the session to its terminal state.
 
 #### Automated
 
-- [x] 1.1 npm install zod completes without error
-- [x] 1.2 npm run typecheck — no errors including SUPABASE_SERVICE_ROLE_KEY from astro:env/server
-- [x] 1.3 npm run lint — passes on new files
+- [x] 1.1 npm install zod completes without error — 7a46915
+- [x] 1.2 npm run typecheck — no errors including SUPABASE_SERVICE_ROLE_KEY from astro:env/server — 7a46915
+- [x] 1.3 npm run lint — passes on new files — 7a46915
 
 #### Manual
 
-- [ ] 1.4 SUPABASE_SERVICE_ROLE_KEY set in .dev.vars; createAdminClient() returns a connected client
+- [x] 1.4 SUPABASE_SERVICE_ROLE_KEY set in .dev.vars; createAdminClient() returns a connected client
 
 ### Phase 2: Status and Start Endpoints
 
 #### Automated
 
-- [ ] 2.1 npm run typecheck — passes on both new routes
-- [ ] 2.2 npm run lint — passes
+- [x] 2.1 npm run typecheck — passes on both new routes
+- [x] 2.2 npm run lint — passes
 
 #### Manual
 
-- [ ] 2.3 GET /api/sessions/:id returns { status, updated_at } for own session
-- [ ] 2.4 GET /api/sessions/:id returns 404 for another user's session
-- [ ] 2.5 POST /api/sessions/:id/start flips queued → processing; returns { ok: true }
-- [ ] 2.6 POST /api/sessions/:id/start on already-processing session returns 409
+- [x] 2.3 GET /api/sessions/:id returns { status, updated_at } for own session
+- [x] 2.4 GET /api/sessions/:id returns 404 for another user's session
+- [x] 2.5 POST /api/sessions/:id/start flips queued → processing; returns { ok: true }
+- [x] 2.6 POST /api/sessions/:id/start on already-processing session returns 409
 
 ### Phase 3: Results Submission Endpoint
 
