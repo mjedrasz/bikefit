@@ -1,5 +1,10 @@
 import { z } from "zod";
 
+export const createSessionSchema = z.object({
+  video_filename: z.string().min(1),
+  video_duration_s: z.number().positive(),
+});
+
 export const recommendationSchema = z.object({
   adjustment: z.string(),
   rationale: z.string(),

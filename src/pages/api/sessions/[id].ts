@@ -16,7 +16,7 @@ export const GET: APIRoute = async (context) => {
 
   const { data } = await supabase
     .from("fitting_sessions")
-    .select("status, updated_at")
+    .select("status, updated_at, error_message")
     .eq("id", context.params.id)
     .single();
 
@@ -24,6 +24,6 @@ export const GET: APIRoute = async (context) => {
     return new Response(null, { status: 404 });
   }
 
-  const session = data as Pick<FittingSession, "status" | "updated_at">;
-  return Response.json({ status: session.status, updated_at: session.updated_at });
+  const session = data as Pick<FittingSession, "status" | "updated_at" | "error_message">;
+  return Response.json({ status: session.status, updated_at: session.updated_at, error_message: session.error_message });
 };
