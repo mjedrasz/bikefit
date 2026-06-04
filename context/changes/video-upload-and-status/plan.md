@@ -211,42 +211,42 @@ Replace the dashboard placeholder content with the `VideoUpload` island. Minimal
 
 #### Automated
 
-- [x] 1.1 TypeScript checks pass: `npx tsc --noEmit`
-- [x] 1.2 Lint passes: `npx eslint src/pages/api/sessions/index.ts src/lib/schemas.ts src/pages/api/sessions/[id].ts`
+- [x] 1.1 TypeScript checks pass: `npx tsc --noEmit` — a06f776
+- [x] 1.2 Lint passes: `npx eslint src/pages/api/sessions/index.ts src/lib/schemas.ts src/pages/api/sessions/[id].ts` — a06f776
 
 #### Manual
 
-- [ ] 1.3 POST /api/sessions with valid payload and auth → 201 with `{ id, status: 'queued' }`; row in Supabase
-- [ ] 1.4 POST /api/sessions unauthenticated → 401
-- [ ] 1.5 POST /api/sessions with missing fields → 400 with Zod error details
-- [ ] 1.6 GET /api/sessions/:id response includes error_message field
+- [x] 1.3 POST /api/sessions with valid payload and auth → 201 with `{ id, status: 'queued' }`; row in Supabase
+- [x] 1.4 POST /api/sessions unauthenticated → 401
+- [x] 1.5 POST /api/sessions with missing fields → 400 with Zod error details
+- [x] 1.6 GET /api/sessions/:id response includes error_message field
 
 ### Phase 2: VideoUpload React Island
 
 #### Automated
 
-- [ ] 2.1 TypeScript checks pass: `npx tsc --noEmit`
-- [ ] 2.2 Lint passes: `npx eslint src/components/VideoUpload.tsx`
+- [x] 2.1 TypeScript checks pass: `npx tsc --noEmit`
+- [x] 2.2 Lint passes: `npx eslint src/components/VideoUpload.tsx`
 
 #### Manual
 
-- [ ] 2.3 Valid 5s MP4 → session row created, status card appears and polls
-- [ ] 2.4 MP4 over 100 MB → file size error shown, no API call made
-- [ ] 2.5 2s MP4 → duration error ("Video must be at least 3 seconds")
-- [ ] 2.6 20s MP4 → duration error ("Video must be 15 seconds or shorter")
-- [ ] 2.7 .mov file → format error shown
-- [ ] 2.8 Status card cycles queued → processing → completed (manually advanced via Supabase)
-- [ ] 2.9 Navigating away while polling → no further requests (verified via DevTools Network)
+- [x] 2.3 Valid 5s MP4 → session row created, status card appears and polls
+- [x] 2.4 MP4 over 100 MB → file size error shown, no API call made
+- [x] 2.5 2s MP4 → duration error ("Video must be at least 3 seconds")
+- [x] 2.6 20s MP4 → duration error ("Video must be 15 seconds or shorter")
+- [x] 2.7 .mov file → format error shown
+- [x] 2.8 Status card cycles queued → processing → completed (manually advanced via Supabase)
+- [x] 2.9 Navigating away while polling → no further requests (verified via DevTools Network)
 
 ### Phase 3: Dashboard Integration
 
 #### Automated
 
-- [ ] 3.1 TypeScript checks pass: `npx tsc --noEmit`
-- [ ] 3.2 Lint passes: `npx eslint src/pages/dashboard.astro`
+- [x] 3.1 TypeScript checks pass: `npx tsc --noEmit`
+- [x] 3.2 Lint passes: `npx eslint src/pages/dashboard.astro`
 
 #### Manual
 
-- [ ] 3.3 Authenticated user lands on /dashboard → upload component renders
-- [ ] 3.4 Unauthenticated user navigates to /dashboard → redirected to sign-in
-- [ ] 3.5 Full happy path: valid video → session created → status card polling
+- [x] 3.3 Authenticated user lands on /dashboard → upload component renders
+- [x] 3.4 Unauthenticated user navigates to /dashboard → redirected to sign-in
+- [x] 3.5 Full happy path: valid video → session created → status card polling
