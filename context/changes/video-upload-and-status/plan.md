@@ -216,27 +216,27 @@ Replace the dashboard placeholder content with the `VideoUpload` island. Minimal
 
 #### Manual
 
-- [x] 1.3 POST /api/sessions with valid payload and auth → 201 with `{ id, status: 'queued' }`; row in Supabase
-- [x] 1.4 POST /api/sessions unauthenticated → 401
-- [x] 1.5 POST /api/sessions with missing fields → 400 with Zod error details
-- [x] 1.6 GET /api/sessions/:id response includes error_message field
+- [x] 1.3 POST /api/sessions with valid payload and auth → 201 with `{ id, status: 'queued' }`; row in Supabase — 71e5360
+- [x] 1.4 POST /api/sessions unauthenticated → 401 — 71e5360
+- [x] 1.5 POST /api/sessions with missing fields → 400 with Zod error details — 71e5360
+- [x] 1.6 GET /api/sessions/:id response includes error_message field — 71e5360
 
 ### Phase 2: VideoUpload React Island
 
 #### Automated
 
-- [x] 2.1 TypeScript checks pass: `npx tsc --noEmit`
-- [x] 2.2 Lint passes: `npx eslint src/components/VideoUpload.tsx`
+- [x] 2.1 TypeScript checks pass: `npx tsc --noEmit` — 71e5360
+- [x] 2.2 Lint passes: `npx eslint src/components/VideoUpload.tsx` — 71e5360
 
 #### Manual
 
-- [x] 2.3 Valid 5s MP4 → session row created, status card appears and polls
-- [x] 2.4 MP4 over 100 MB → file size error shown, no API call made
-- [x] 2.5 2s MP4 → duration error ("Video must be at least 3 seconds")
-- [x] 2.6 20s MP4 → duration error ("Video must be 15 seconds or shorter")
-- [x] 2.7 .mov file → format error shown
-- [x] 2.8 Status card cycles queued → processing → completed (manually advanced via Supabase)
-- [x] 2.9 Navigating away while polling → no further requests (verified via DevTools Network)
+- [x] 2.3 Valid 5s MP4 → session row created, status card appears and polls — 71e5360
+- [x] 2.4 MP4 over 100 MB → file size error shown, no API call made — 71e5360
+- [x] 2.5 2s MP4 → duration error ("Video must be at least 3 seconds") — 71e5360
+- [x] 2.6 20s MP4 → duration error ("Video must be 15 seconds or shorter") — 71e5360
+- [x] 2.7 .mov file → format error shown — 71e5360
+- [x] 2.8 Status card cycles queued → processing → completed (manually advanced via Supabase) — 71e5360
+- [x] 2.9 Navigating away while polling → no further requests (verified via DevTools Network) — 71e5360
 
 ### Phase 3: Dashboard Integration
 
