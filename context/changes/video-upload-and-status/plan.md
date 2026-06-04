@@ -242,11 +242,11 @@ Replace the dashboard placeholder content with the `VideoUpload` island. Minimal
 
 #### Automated
 
-- [x] 3.1 TypeScript checks pass: `npx tsc --noEmit`
-- [x] 3.2 Lint passes: `npx eslint src/pages/dashboard.astro`
+- [x] 3.1 TypeScript checks pass: `npx tsc --noEmit` — 7d8af89
+- [x] 3.2 Lint passes: `npx eslint src/pages/dashboard.astro` — 7d8af89
 
 #### Manual
 
-- [x] 3.3 Authenticated user lands on /dashboard → upload component renders
-- [x] 3.4 Unauthenticated user navigates to /dashboard → redirected to sign-in
-- [x] 3.5 Full happy path: valid video → session created → status card polling
+- [x] 3.3 Authenticated user lands on /dashboard → upload component renders — 7d8af89
+- [x] 3.4 Unauthenticated user navigates to /dashboard → redirected to sign-in — 7d8af89
+- [x] 3.5 Full happy path: valid video → session created → status card polling — 7d8af89
