@@ -1,7 +1,8 @@
 import { OPENROUTER_API_KEY } from "astro:env/server";
 import type { BodyAngle, Recommendation } from "@/types";
+import { name } from "eslint-plugin-prettier/recommended";
 
-const VISION_MODEL = "google/gemini-2.5-flash";
+const VISION_MODEL = "google/gemini-3.5-flash";
 const TEXT_MODEL = "google/gemini-2.5-flash";
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 
@@ -50,7 +51,7 @@ Return ONLY a valid JSON object (no markdown, no extra text) in this exact forma
   "recommendations": [
     { "adjustment": "concise action to take", "rationale": "why, referencing the measured angle and target range" }
   ],
-  "raw_llm_response": "your full reasoning and analysis here"
+  "raw_llm_response": "your reasoning and analysis here - be concise"
 }
 
 Rules:
@@ -61,9 +62,21 @@ Rules:
 - Follow the order of operations: saddle height before fore/aft before bar height before stem length
 - Note coupling effects in the rationale where relevant`;
 
-export async function analyzeVideo(
-  videoBase64: string
-): Promise<{ timestamps: { t: number; type: "BDC" | "TDC" }[] }> {
+const ANALYZE_VIDEO_SYSTEM_PROMPT = `You are analyzing a cycling video. Identify keyframes where the pedal is at Bottom Dead Center (BDC, 6 o'clock) and Top Dead Center (TDC, 12 o'clock).
+Respond with this exact format:
+{
+  "timestamps": [
+    { "t": <second_of_the_frame>, "f": <frame_number>, "type": "BDC" | "TDC" }
+  ]
+}
+
+Be as precise as possible with the timestamps (milliseconds precision if possible).
+If you are unsure, do not guess, just respond with an empty array:
+{
+  "timestamps": []
+}`;
+
+export async function analyzeVideo(videoBase64: string): Promise<{ timestamps: { t: number; type: "BDC" | "TDC" }[] }> {
   const response = await fetch(OPENROUTER_URL, {
     method: "POST",
     headers: {
@@ -72,23 +85,17 @@ export async function analyzeVideo(
     },
     body: JSON.stringify({
       model: VISION_MODEL,
-      response_format: { type: "json_object" },
       messages: [
+        {
+          role: "system",
+          content: ANALYZE_VIDEO_SYSTEM_PROMPT,
+        },
         {
           role: "user",
           content: [
             {
               type: "text",
-              text: `You are analyzing a side-view cycling video. Identify moments where the pedal is at Bottom Dead Center (BDC, 6 o'clock position) and Top Dead Center (TDC, 12 o'clock position).
-
-Return ONLY a valid JSON object in this exact format:
-{
-  "timestamps": [
-    { "t": <seconds as number>, "type": "BDC" | "TDC" }
-  ]
-}
-
-Include at least one BDC and one TDC timestamp. Use decimal seconds (e.g. 2.5). Only include moments where the pedal position is clearly at BDC or TDC.`,
+              text: "Analyse the video for BDC and TDC timestamps.",
             },
             {
               type: "video_url",
@@ -97,6 +104,33 @@ Include at least one BDC and one TDC timestamp. Use decimal seconds (e.g. 2.5). 
           ],
         },
       ],
+      response_format: {
+        type: "json_schema",
+        json_schema: {
+          name: "body_angles",
+          strict: true,
+          schema: {
+            type: "object",
+            properties: {
+              timestamps: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    t: { type: "number", description: "Second of the frame" },
+                    f: { type: "number", description: "Frame number" },
+                    type: { type: "string", description: "Type of timestamp (TDC or BDC)", enum: ["BDC", "TDC"] },
+                  },
+                  required: ["t", "f", "type"],
+                  additionalProperties: false,
+                },
+              },
+            },
+            required: ["timestamps"],
+            additionalProperties: false,
+          },
+        },
+      },
     }),
   });
 
@@ -104,7 +138,7 @@ Include at least one BDC and one TDC timestamp. Use decimal seconds (e.g. 2.5). 
     throw new Error(`OpenRouter vision request failed: ${response.status} ${await response.text()}`);
   }
 
-  const data = await response.json() as { choices: { message: { content: string } }[] };
+  const data = (await response.json()) as { choices: { message: { content: string } }[] };
   const content = data.choices?.[0]?.message?.content;
   if (!content) {
     throw new Error("OpenRouter returned no content for vision request");
@@ -126,12 +160,11 @@ Include at least one BDC and one TDC timestamp. Use decimal seconds (e.g. 2.5). 
 }
 
 export async function generateRecommendations(
-  angles: BodyAngle[]
+  angles: BodyAngle[],
 ): Promise<{ recommendations: Recommendation[]; raw_llm_response: string }> {
   const anglesText = angles
     .map(
-      (a) =>
-        `- ${a.name}: ${a.value.toFixed(1)}${a.unit} (reference: ${a.reference_min}–${a.reference_max}${a.unit})`
+      (a) => `- ${a.name}: ${a.value.toFixed(1)}${a.unit} (reference: ${a.reference_min}–${a.reference_max}${a.unit})`,
     )
     .join("\n");
 
@@ -143,7 +176,29 @@ export async function generateRecommendations(
     },
     body: JSON.stringify({
       model: TEXT_MODEL,
-      response_format: { type: "json_object" },
+      response_format: {
+        type: "json_object",
+        name: "fitting_recommendations",
+        strict: true,
+        schema: {
+          type: "object",
+          properties: {
+            recommendations: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  adjustment: { type: "string", description: "Concise action to take" },
+                },
+                required: ["adjustment"],
+                additionalProperties: false,
+              },
+            },
+          },
+          required: ["recommendations"],
+          additionalProperties: false,
+        },
+      },
       messages: [
         {
           role: "system",
@@ -161,7 +216,7 @@ export async function generateRecommendations(
     throw new Error(`OpenRouter text request failed: ${response.status} ${await response.text()}`);
   }
 
-  const data = await response.json() as { choices: { message: { content: string } }[] };
+  const data = (await response.json()) as { choices: { message: { content: string } }[] };
   const content = data.choices?.[0]?.message?.content;
   if (!content) {
     throw new Error("OpenRouter returned no content for recommendations request");
