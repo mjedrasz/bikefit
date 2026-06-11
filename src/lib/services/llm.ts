@@ -61,20 +61,9 @@ Rules:
 - Follow the order of operations: saddle height before fore/aft before bar height before stem length
 - Note coupling effects in the rationale where relevant`;
 
-export async function analyzeFrames(
-  frames: string[]
+export async function analyzeVideo(
+  videoBase64: string
 ): Promise<{ timestamps: { t: number; type: "BDC" | "TDC" }[] }> {
-  const imageContent = frames.map((b64, i) => [
-    {
-      type: "text",
-      text: `Frame at t=${i}s:`,
-    },
-    {
-      type: "image_url",
-      image_url: { url: `data:image/jpeg;base64,${b64}` },
-    },
-  ]).flat();
-
   const response = await fetch(OPENROUTER_URL, {
     method: "POST",
     headers: {
@@ -90,20 +79,21 @@ export async function analyzeFrames(
           content: [
             {
               type: "text",
-              text: `You are analyzing a cycling video (1 frame per second). Identify keyframes where the pedal is at Bottom Dead Center (BDC, 6 o'clock) and Top Dead Center (TDC, 12 o'clock).
-
-For each frame, the timestamp in seconds equals the frame index (frame 0 = t=0s, frame 1 = t=1s, etc.).
+              text: `You are analyzing a side-view cycling video. Identify moments where the pedal is at Bottom Dead Center (BDC, 6 o'clock position) and Top Dead Center (TDC, 12 o'clock position).
 
 Return ONLY a valid JSON object in this exact format:
 {
   "timestamps": [
-    { "t": <number>, "type": "BDC" | "TDC" }
+    { "t": <seconds as number>, "type": "BDC" | "TDC" }
   ]
 }
 
-Include at least one BDC and one TDC timestamp if visible. Only include frames where the pedal position is clearly at BDC or TDC.`,
+Include at least one BDC and one TDC timestamp. Use decimal seconds (e.g. 2.5). Only include moments where the pedal position is clearly at BDC or TDC.`,
             },
-            ...imageContent,
+            {
+              type: "video_url",
+              video_url: { url: `data:video/mp4;base64,${videoBase64}` },
+            },
           ],
         },
       ],

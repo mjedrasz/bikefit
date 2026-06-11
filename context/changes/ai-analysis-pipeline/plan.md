@@ -453,10 +453,10 @@ if (state.kind === "analyzing") {
 
 #### Automated
 
-- [x] 1.1 `npx tsc --noEmit` passes with `OPENROUTER_API_KEY` added to astro.config.mjs env schema
-- [x] 1.2 `@mediapipe/tasks-vision` appears in `package.json` dependencies
-- [x] 1.3 `src/lib/services/llm.ts` exports `analyzeFrames` and `generateRecommendations` with correct signatures
-- [x] 1.4 `src/lib/schemas.ts` exports `analyzeRequestSchema` and `recommendRequestSchema`
+- [x] 1.1 `npx tsc --noEmit` passes with `OPENROUTER_API_KEY` added to astro.config.mjs env schema — c493601
+- [x] 1.2 `@mediapipe/tasks-vision` appears in `package.json` dependencies — c493601
+- [x] 1.3 `src/lib/services/llm.ts` exports `analyzeFrames` and `generateRecommendations` with correct signatures — c493601
+- [x] 1.4 `src/lib/schemas.ts` exports `analyzeRequestSchema` and `recommendRequestSchema` — c493601
 
 #### Manual
 
@@ -467,15 +467,15 @@ if (state.kind === "analyzing") {
 
 #### Automated
 
-- [ ] 2.1 `npx tsc --noEmit` passes with both new route files
-- [ ] 2.2 Both routes export `const prerender = false` and a `POST` handler
+- [x] 2.1 `npx tsc --noEmit` passes with both new route files
+- [x] 2.2 Both routes export `const prerender = false` and a `POST` handler
 
 #### Manual
 
-- [ ] 2.3 `POST /api/analyze` with a valid base64 JPEG array returns `{ timestamps: [...] }`
-- [ ] 2.4 `POST /api/sessions/:id/recommend` with valid `body_angles` returns `{ recommendations: [...], raw_llm_response: "..." }`
-- [ ] 2.5 Both routes return 401 when called without a session cookie
-- [ ] 2.6 `/recommend` returns 404 for a session ID belonging to a different user
+- [x] 2.3 `POST /api/analyze` with a base64-encoded video returns `{ timestamps: [...] }`
+- [x] 2.4 `POST /api/sessions/:id/recommend` with valid `body_angles` returns `{ recommendations: [...], raw_llm_response: "..." }`
+- [x] 2.5 Both routes return 401 when called without a session cookie
+- [x] 2.6 `/recommend` returns 404 for a session ID belonging to a different user
 
 ### Phase 3: VideoAnalyzer.tsx
 
