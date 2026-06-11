@@ -1,4 +1,5 @@
 import type { APIRoute } from "astro";
+import { z } from "zod";
 import { analyzeVideo } from "@/lib/services/llm";
 import { analyzeRequestSchema } from "@/lib/schemas";
 
@@ -18,7 +19,7 @@ export const POST: APIRoute = async (context) => {
 
   const parsed = analyzeRequestSchema.safeParse(body);
   if (!parsed.success) {
-    return Response.json({ error: parsed.error.flatten() }, { status: 400 });
+    return Response.json({ error: z.treeifyError(parsed.error) }, { status: 400 });
   }
 
   try {

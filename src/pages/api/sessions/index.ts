@@ -1,6 +1,7 @@
 import type { APIRoute } from "astro";
 import { createAdminClient } from "@/lib/services/supabase-admin";
 import { createSessionSchema } from "@/lib/schemas";
+import { z } from "zod";
 
 export const prerender = false;
 
@@ -18,7 +19,7 @@ export const POST: APIRoute = async (context) => {
 
   const parsed = createSessionSchema.safeParse(body);
   if (!parsed.success) {
-    return Response.json({ error: parsed.error.flatten() }, { status: 400 });
+    return Response.json({ error: z.treeifyError(parsed.error) }, { status: 400 });
   }
 
   const { video_filename, video_duration_s } = parsed.data;
