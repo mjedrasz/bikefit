@@ -18,6 +18,14 @@ export const bodyAngleSchema = z.object({
   unit: z.string(),
 });
 
+export const analyzeRequestSchema = z.object({
+  frames: z.array(z.string()).min(1).max(30),
+});
+
+export const recommendRequestSchema = z.object({
+  body_angles: z.array(bodyAngleSchema).min(1),
+});
+
 export const resultsPayloadSchema = z.discriminatedUnion("error", [
   z.object({
     error: z.literal(false).optional(),
