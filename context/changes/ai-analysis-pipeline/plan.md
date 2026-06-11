@@ -467,15 +467,15 @@ if (state.kind === "analyzing") {
 
 #### Automated
 
-- [x] 2.1 `npx tsc --noEmit` passes with both new route files
-- [x] 2.2 Both routes export `const prerender = false` and a `POST` handler
+- [x] 2.1 `npx tsc --noEmit` passes with both new route files — 795e503
+- [x] 2.2 Both routes export `const prerender = false` and a `POST` handler — 795e503
 
 #### Manual
 
-- [x] 2.3 `POST /api/analyze` with a base64-encoded video returns `{ timestamps: [...] }`
-- [x] 2.4 `POST /api/sessions/:id/recommend` with valid `body_angles` returns `{ recommendations: [...], raw_llm_response: "..." }`
-- [x] 2.5 Both routes return 401 when called without a session cookie
-- [x] 2.6 `/recommend` returns 404 for a session ID belonging to a different user
+- [x] 2.3 `POST /api/analyze` with a base64-encoded video returns `{ timestamps: [...] }` — 795e503
+- [x] 2.4 `POST /api/sessions/:id/recommend` with valid `body_angles` returns `{ recommendations: [...], raw_llm_response: "..." }` — 795e503
+- [x] 2.5 Both routes return 401 when called without a session cookie — 795e503
+- [x] 2.6 `/recommend` returns 404 for a session ID belonging to a different user — 795e503
 
 ### Phase 3: VideoAnalyzer.tsx
 
