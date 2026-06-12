@@ -445,6 +445,48 @@ if (state.kind === "analyzing") {
 
 ---
 
+## Implementation Deviations
+
+The following deviations from the plan were made during implementation and are now the canonical as-built design.
+
+### 1. Pose estimation: MediaPipe replaced with TF.js MoveNet CPU backend
+
+**Plan said**: Install `@mediapipe/tasks-vision`; use `PoseLandmarker` with WASM + CDN model; detect poses via `poseLandmarker.detect(bitmap)`.
+
+**What was built**: `@mediapipe/tasks-vision` is still in `package.json` but is not used. Pose detection uses:
+- `@tensorflow-models/pose-detection` — MoveNet SinglePose Lightning model
+- `@tensorflow/tfjs-core` + `@tensorflow/tfjs-backend-cpu` — pure-JS CPU backend, zero WebGL dependency
+- `@tensorflow/tfjs-converter` — model loading
+
+All three packages are loaded via dynamic `import()` inside `runPipeline()` to keep them out of the Cloudflare Workers SSR bundle (TF.js static imports reference Node.js APIs at module-evaluation time and crash the SSR runtime).
+
+**Why**: MediaPipe Tasks Vision requires WebGL2 for image preprocessing in every running mode — even with `delegate: "CPU"`, the image pipeline calls `gl.activeTexture()` internally. When WebGL2 is unavailable (no GPU, hardware acceleration disabled, VM), it crashes with `"Cannot read properties of undefined (reading 'activeTexture')"` at the first `detect()` call, not at init. After six attempted workarounds, a pre-check (`canvas.getContext("webgl2") === null`) confirmed WebGL2 was simply absent in the test environment.
+
+**Landmark mapping**: MoveNet uses COCO-17 keypoints (indices 0–16) while the angle computation code uses MediaPipe's 33-landmark indices. A `convertKeypoints()` function maps the 6 most-relevant COCO-17 keypoints to their MediaPipe equivalents. It auto-selects the more visible body side (left vs. right) based on summed confidence scores — suited for side-view cycling video where only one side is visible.
+
+**Angle computation**: unchanged in intent; uses the same `jointAngle()` and `atan2`-based torso formula. The source landmarks are MediaPipe-index slots populated by `convertKeypoints()`.
+
+---
+
+### 2. `/api/analyze` input: full video as base64 instead of per-second JPEG frames
+
+**Plan said**:
+- `analyzeRequestSchema = z.object({ frames: z.array(z.string()).min(1).max(30) })`
+- `VideoAnalyzer.tsx` extracts ~1fps JPEG frames via canvas, strips the `data:image/jpeg;base64,` prefix, sends `{ frames: string[] }`
+- Route calls `llm.analyzeFrames(frames: string[])`
+
+**What was built**:
+- `analyzeRequestSchema = z.object({ video: z.string().min(1) })`
+- `VideoAnalyzer.tsx` converts the raw `File` to base64 via `FileReader` and sends `{ video: videoBase64 }`
+- Route calls `analyzeVideo(video: string)` (renamed function in `llm.ts`)
+- The LLM service sends the video directly to the vision model rather than individual JPEG frames
+
+**Why**: The "extracting-frames" step was removed from the pipeline during implementation. Sending the whole video is simpler, avoids the seek-loop latency for frame extraction, and lets the vision model use temporal context across the full clip rather than sparse snapshots.
+
+**Trade-offs**: The base64-encoded video payload is larger than a JPEG frame array (~1.5 MB vs. a few hundred KB). The per-second JPEG approach (original plan) would be more token-efficient if the model charges per image token; the video approach may charge differently depending on the OpenRouter/Gemini pricing for video inputs. For MVP this is acceptable.
+
+---
+
 ## Progress
 
 > Convention: `- [ ]` pending, `- [x]` done. Append ` — <commit sha>` when a step lands. Do not rename step titles. See `references/progress-format.md`.
