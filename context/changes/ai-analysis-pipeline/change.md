@@ -1,9 +1,9 @@
 ---
 change_id: ai-analysis-pipeline
 title: AI analysis pipeline — pose estimation, angle calculation, and LLM fitting recommendations
-status: implementing
+status: implemented
 created: 2026-05-28
-updated: 2026-06-11
+updated: 2026-06-12
 archived_at: null
 ---
 

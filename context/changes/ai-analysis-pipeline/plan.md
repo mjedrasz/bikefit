@@ -496,10 +496,10 @@ if (state.kind === "analyzing") {
 
 #### Automated
 
-- [x] 4.1 `npx tsc --noEmit` passes with all VideoUpload.tsx changes
+- [x] 4.1 `npx tsc --noEmit` passes with all VideoUpload.tsx changes — 5f6b60d
 
 #### Manual
 
-- [x] 4.2 Uploading a valid MP4 advances directly to VideoAnalyzer step indicator (no polling flicker)
-- [x] 4.3 Completed state shows "View fitting recommendations" button with correct session ID in href
-- [x] 4.4 On pipeline failure, "failed" state shows per-step error message and "Try again" button
+- [x] 4.2 Uploading a valid MP4 advances directly to VideoAnalyzer step indicator (no polling flicker) — 5f6b60d
+- [x] 4.3 Completed state shows "View fitting recommendations" button with correct session ID in href — 5f6b60d
+- [x] 4.4 On pipeline failure, "failed" state shows per-step error message and "Try again" button — 5f6b60d
