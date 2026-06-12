@@ -460,8 +460,8 @@ if (state.kind === "analyzing") {
 
 #### Manual
 
-- [ ] 1.5 `.dev.vars` updated with `OPENROUTER_API_KEY` (not checked into git)
-- [ ] 1.6 `npx tsc --noEmit` runs clean with no errors on the new files
+- [x] 1.5 `.dev.vars` updated with `OPENROUTER_API_KEY` (not checked into git)
+- [x] 1.6 `npx tsc --noEmit` runs clean with no errors on the new files
 
 ### Phase 2: Server API Routes
 
@@ -481,25 +481,25 @@ if (state.kind === "analyzing") {
 
 #### Automated
 
-- [x] 3.1 `npx tsc --noEmit` passes with `VideoAnalyzer.tsx` in place
-- [x] 3.2 Exported default component accepts `Props` interface without TypeScript errors
+- [x] 3.1 `npx tsc --noEmit` passes with `VideoAnalyzer.tsx` in place — 5b42b18
+- [x] 3.2 Exported default component accepts `Props` interface without TypeScript errors — 5b42b18
 
 #### Manual
 
-- [ ] 3.3 Step indicator advances through all 7 steps on a valid cycling video
-- [ ] 3.4 `analysis_results` row exists with non-empty `recommendations` and `body_angles` after successful run
-- [ ] 3.5 `fitting_sessions.status` flips to `completed` after successful run
-- [ ] 3.6 Video with no person visible produces a clear "Pose not detected" error and flips session to `failed`
-- [ ] 3.7 Each step's error message is human-readable
+- [x] 3.3 Step indicator advances through all 7 steps on a valid cycling video
+- [x] 3.4 `analysis_results` row exists with non-empty `recommendations` and `body_angles` after successful run
+- [x] 3.5 `fitting_sessions.status` flips to `completed` after successful run
+- [x] 3.6 Video with no person visible produces a clear "Pose not detected" error and flips session to `failed`
+- [x] 3.7 Each step's error message is human-readable
 
 ### Phase 4: VideoUpload.tsx Integration
 
 #### Automated
 
-- [ ] 4.1 `npx tsc --noEmit` passes with all VideoUpload.tsx changes
+- [x] 4.1 `npx tsc --noEmit` passes with all VideoUpload.tsx changes
 
 #### Manual
 
-- [ ] 4.2 Uploading a valid MP4 advances directly to VideoAnalyzer step indicator (no polling flicker)
-- [ ] 4.3 Completed state shows "View fitting recommendations" button with correct session ID in href
-- [ ] 4.4 On pipeline failure, "failed" state shows per-step error message and "Try again" button
+- [x] 4.2 Uploading a valid MP4 advances directly to VideoAnalyzer step indicator (no polling flicker)
+- [x] 4.3 Completed state shows "View fitting recommendations" button with correct session ID in href
+- [x] 4.4 On pipeline failure, "failed" state shows per-step error message and "Try again" button

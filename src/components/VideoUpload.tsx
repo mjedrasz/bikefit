@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import VideoAnalyzer from "@/components/VideoAnalyzer";
 import type { SessionStatus } from "@/types";
 
 type AppState =
@@ -8,8 +9,9 @@ type AppState =
   | { kind: "validating" }
   | { kind: "error"; message: string }
   | { kind: "creating" }
+  | { kind: "analyzing"; sessionId: string; file: File }
   | { kind: "polling"; sessionId: string; status: SessionStatus }
-  | { kind: "completed" }
+  | { kind: "completed"; sessionId: string }
   | { kind: "failed"; errorMessage: string | null };
 
 interface CreateSessionResponse {
@@ -27,7 +29,7 @@ interface ErrorResponse {
 }
 
 const MAX_SIZE = 104_857_600;
-const MIN_DURATION = 3;
+const MIN_DURATION = 2;
 const MAX_DURATION = 15;
 const POLL_INTERVAL_MS = 3000;
 const MAX_CONSECUTIVE_ERRORS = 5;
@@ -75,6 +77,7 @@ function StatusBadge({ status }: { status: SessionStatus }) {
 export default function VideoUpload() {
   const [state, setState] = useState<AppState>({ kind: "idle" });
   const inputRef = useRef<HTMLInputElement>(null);
+  const fileRef = useRef<File | null>(null);
   const intervalRef = useRef<number | null>(null);
   const consecutiveErrorsRef = useRef(0);
 
@@ -103,7 +106,7 @@ export default function VideoUpload() {
         const { status } = data;
         if (status === "completed") {
           stopPolling();
-          setState({ kind: "completed" });
+          setState({ kind: "completed", sessionId });
         } else if (status === "failed") {
           stopPolling();
           setState({ kind: "failed", errorMessage: data.error_message ?? null });
@@ -143,6 +146,7 @@ export default function VideoUpload() {
     let duration: number;
     try {
       duration = await extractDuration(file);
+      fileRef.current = file;
     } catch {
       setState({ kind: "error", message: "Could not read video duration" });
       return;
@@ -177,13 +181,23 @@ export default function VideoUpload() {
       return;
     }
 
-    setState({ kind: "polling", sessionId, status: "queued" });
-    startPolling(sessionId);
+    setState({ kind: "analyzing", sessionId, file: fileRef.current! });
   }
 
   function handleReset() {
     stopPolling();
     setState({ kind: "idle" });
+  }
+
+  if (state.kind === "analyzing") {
+    return (
+      <VideoAnalyzer
+        sessionId={state.sessionId}
+        file={state.file}
+        onComplete={(sessionId) => setState({ kind: "completed", sessionId })}
+        onError={(msg) => setState({ kind: "failed", errorMessage: msg })}
+      />
+    );
   }
 
   if (state.kind === "polling") {
@@ -201,6 +215,12 @@ export default function VideoUpload() {
       <div className="flex flex-col items-center gap-4 p-8">
         <h2 className="text-xl font-semibold">Analysis complete!</h2>
         <p className="text-muted-foreground text-sm">Your bike fit analysis is ready.</p>
+        <a
+          href={"/sessions/" + state.sessionId}
+          className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+        >
+          View fitting recommendations
+        </a>
       </div>
     );
   }
@@ -210,7 +230,7 @@ export default function VideoUpload() {
       <div className="flex flex-col items-center gap-4 p-8">
         <h2 className="text-xl font-semibold">Analysis failed</h2>
         {state.errorMessage && <p className="text-destructive text-sm">{state.errorMessage}</p>}
-        <Button variant="outline" onClick={handleReset}>
+        <Button variant="outline" className="text-foreground" onClick={handleReset}>
           Try again
         </Button>
       </div>

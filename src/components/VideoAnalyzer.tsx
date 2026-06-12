@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { FilesetResolver, PoseLandmarker } from "@mediapipe/tasks-vision";
+import type * as poseDetection from "@tensorflow-models/pose-detection";
 import type { BodyAngle, Recommendation } from "@/types";
 import { cn } from "@/lib/utils";
 
@@ -18,8 +18,6 @@ interface Props {
   onComplete: (sessionId: string) => void;
   onError: (message: string) => void;
 }
-
-const MEDIAPIPE_VERSION = "0.10.35";
 
 const ANGLE_REFS = {
   KNEE_BDC: { min: 137, max: 147, unit: "degrees", name: "Knee angle at BDC" },
@@ -102,20 +100,40 @@ function loadVideoElement(file: File): Promise<HTMLVideoElement> {
   });
 }
 
+// Convert MoveNet COCO-17 keypoints to a 33-slot array matching the MediaPipe landmark indices
+// used by jointAngle() and computeTorsoAngle(). Picks whichever side (left/right) has higher
+// average visibility so the component works for both left- and right-facing cycling videos.
+function convertKeypoints(keypoints: poseDetection.Keypoint[]): PoseLandmark[] {
+  const score = (i: number) => keypoints[i]?.score ?? 0;
+  const leftScore = score(5) + score(7) + score(9) + score(11) + score(13) + score(15);
+  const rightScore = score(6) + score(8) + score(10) + score(12) + score(14) + score(16);
+  // [movenet_idx, mediapipe_idx] — map chosen side onto the mp indices used for angle computation
+  const mapping: [number, number][] =
+    leftScore >= rightScore
+      ? [[5, 11], [7, 13], [9, 15], [11, 23], [13, 25], [15, 27]]
+      : [[6, 11], [8, 13], [10, 15], [12, 23], [14, 25], [16, 27]];
+  const landmarks: PoseLandmark[] = Array(33)
+    .fill(null)
+    .map(() => ({ x: 0, y: 0, z: 0, visibility: 0 }));
+  for (const [tfIdx, mpIdx] of mapping) {
+    const kp = keypoints[tfIdx];
+    if (kp) landmarks[mpIdx] = { x: kp.x, y: kp.y, z: 0, visibility: kp.score ?? 0 };
+  }
+  return landmarks;
+}
+
 async function detectPoseAt(
   videoEl: HTMLVideoElement,
   canvas: HTMLCanvasElement,
   ctx: CanvasRenderingContext2D,
-  poseLandmarker: PoseLandmarker,
+  detector: poseDetection.PoseDetector,
   t: number,
 ): Promise<PoseLandmark[] | null> {
   await seekTo(videoEl, t);
   ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
-  const bitmap = await createImageBitmap(canvas);
-  const result = poseLandmarker.detect(bitmap);
-  bitmap.close();
-  // worldLandmarks is typed as non-nullable but may be empty when no pose is found
-  return result.worldLandmarks.length > 0 ? result.worldLandmarks[0] : null;
+  const poses = await detector.estimatePoses(canvas);
+  if (!poses.length) return null;
+  return convertKeypoints(poses[0].keypoints);
 }
 
 export default function VideoAnalyzer({ sessionId, file, onComplete, onError }: Props) {
@@ -149,28 +167,23 @@ export default function VideoAnalyzer({ sessionId, file, onComplete, onError }: 
       return;
     }
 
-    // Step 2: Initialise MediaPipe PoseLandmarker (GPU with CPU fallback)
+    // Step 2: Initialise TF.js MoveNet pose detector (CPU backend — no WebGL required).
+    // Dynamic imports keep these modules out of the SSR bundle (Cloudflare Workers doesn't
+    // support Node.js APIs that some TF.js internals reference at module-evaluation time).
     setCurrentStep("loading-model");
-    let poseLandmarker: PoseLandmarker;
-    const wasmUrl = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MEDIAPIPE_VERSION}/wasm`;
-    const modelUrl =
-      "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_heavy/float16/latest/pose_landmarker_heavy.task";
+    let detector: poseDetection.PoseDetector;
 
     try {
-      const vision = await FilesetResolver.forVisionTasks(wasmUrl);
-      try {
-        poseLandmarker = await PoseLandmarker.createFromOptions(vision, {
-          baseOptions: { modelAssetPath: modelUrl, delegate: "GPU" },
-          runningMode: "IMAGE",
-          numPoses: 1,
-        });
-      } catch {
-        poseLandmarker = await PoseLandmarker.createFromOptions(vision, {
-          baseOptions: { modelAssetPath: modelUrl, delegate: "CPU" },
-          runningMode: "IMAGE",
-          numPoses: 1,
-        });
-      }
+      const [tfCore, pd] = await Promise.all([
+        import("@tensorflow/tfjs-core"),
+        import("@tensorflow-models/pose-detection"),
+      ]);
+      await import("@tensorflow/tfjs-backend-cpu");
+      await tfCore.setBackend("cpu");
+      await tfCore.ready();
+      detector = await pd.createDetector(pd.SupportedModels.MoveNet, {
+        modelType: pd.movenet.modelType.SINGLEPOSE_LIGHTNING,
+      });
     } catch (err) {
       await postError("loading-model", err instanceof Error ? err.message : "Failed to initialize pose model");
       return;
@@ -188,11 +201,11 @@ export default function VideoAnalyzer({ sessionId, file, onComplete, onError }: 
       canvas = document.createElement("canvas");
       canvas.width = videoEl.videoWidth || 640;
       canvas.height = videoEl.videoHeight || 480;
-      const context = canvas.getContext("2d");
-      if (!context) throw new Error("Canvas context not available");
+      const context = canvas.getContext("2d", { willReadFrequently: true });
+      if (!context) throw new Error("Canvas 2D context not available");
       ctx = context;
     } catch (err) {
-      poseLandmarker.close();
+      detector.dispose();
       await postError("extracting-frames", err instanceof Error ? err.message : "Failed to read video");
       return;
     }
@@ -215,7 +228,7 @@ export default function VideoAnalyzer({ sessionId, file, onComplete, onError }: 
       }
     } catch (err) {
       URL.revokeObjectURL(videoEl.src);
-      poseLandmarker.close();
+      detector.dispose();
       await postError("identifying-frames", err instanceof Error ? err.message : "Failed to identify keyframes");
       return;
     }
@@ -238,7 +251,7 @@ export default function VideoAnalyzer({ sessionId, file, onComplete, onError }: 
         let bestKneeAngle = type === "BDC" ? -Infinity : Infinity;
 
         for (const offset of scanOffsets) {
-          const wl = await detectPoseAt(videoEl, canvas, ctx, poseLandmarker, t + offset);
+          const wl = await detectPoseAt(videoEl, canvas, ctx, detector, t + offset);
           if (!wl || !visible(wl[23]) || !visible(wl[25]) || !visible(wl[27])) continue;
 
           const ka = jointAngle(wl[23], wl[25], wl[27]);
@@ -315,13 +328,13 @@ export default function VideoAnalyzer({ sessionId, file, onComplete, onError }: 
       }
     } catch (err) {
       URL.revokeObjectURL(videoEl.src);
-      poseLandmarker.close();
+      detector.dispose();
       await postError("measuring-angles", err instanceof Error ? err.message : "Failed to measure joint angles");
       return;
     }
 
     URL.revokeObjectURL(videoEl.src);
-    poseLandmarker.close();
+    detector.dispose();
 
     // Step 6: Generate fitting recommendations
     setCurrentStep("generating-recs");
