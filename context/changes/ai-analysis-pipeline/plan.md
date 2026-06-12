@@ -481,8 +481,8 @@ if (state.kind === "analyzing") {
 
 #### Automated
 
-- [ ] 3.1 `npx tsc --noEmit` passes with `VideoAnalyzer.tsx` in place
-- [ ] 3.2 Exported default component accepts `Props` interface without TypeScript errors
+- [x] 3.1 `npx tsc --noEmit` passes with `VideoAnalyzer.tsx` in place
+- [x] 3.2 Exported default component accepts `Props` interface without TypeScript errors
 
 #### Manual
 
