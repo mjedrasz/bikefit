@@ -161,8 +161,8 @@ None — no schema changes.
 
 #### Manual
 
-- [x] 1.3 Signed out, visiting `/sessions/00000000-0000-0000-0000-000000000000` redirects to `/auth/signin`
-- [x] 1.4 Signed in, visiting the same URL does not redirect
+- [x] 1.3 Signed out, visiting `/sessions/00000000-0000-0000-0000-000000000000` redirects to `/auth/signin` — 3c116a3
+- [x] 1.4 Signed in, visiting the same URL does not redirect — 3c116a3
 
 ### Phase 2: Results page
 
@@ -173,10 +173,10 @@ None — no schema changes.
 
 #### Manual
 
-- [ ] 2.3 Real completed session renders recommendations + correctly-flagged body angles
-- [ ] 2.4 Queued/processing session shows status message, no results
-- [ ] 2.5 Failed session shows the stored error message
-- [ ] 2.6 Nonexistent session ID returns 404
-- [ ] 2.7 Another user's session ID returns 404 (if testable)
-- [ ] 2.8 "Back to dashboard" link works
-- [ ] 2.9 Signed out, any `/sessions/<id>` URL redirects to `/auth/signin`
+- [x] 2.3 Real completed session renders recommendations + correctly-flagged body angles
+- [x] 2.4 Queued/processing session shows status message, no results
+- [x] 2.5 Failed session shows the stored error message
+- [x] 2.6 Nonexistent session ID returns 404
+- [x] 2.7 Another user's session ID returns 404 (if testable)
+- [x] 2.8 "Back to dashboard" link works
+- [x] 2.9 Signed out, any `/sessions/<id>` URL redirects to `/auth/signin`
