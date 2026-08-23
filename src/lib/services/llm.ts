@@ -1,6 +1,5 @@
 import { OPENROUTER_API_KEY } from "astro:env/server";
 import type { BodyAngle, Recommendation } from "@/types";
-import { name } from "eslint-plugin-prettier/recommended";
 
 const VISION_MODEL = "google/gemini-3.5-flash";
 const TEXT_MODEL = "google/gemini-2.5-flash";
@@ -176,29 +175,7 @@ export async function generateRecommendations(
     },
     body: JSON.stringify({
       model: TEXT_MODEL,
-      response_format: {
-        type: "json_object",
-        name: "fitting_recommendations",
-        strict: true,
-        schema: {
-          type: "object",
-          properties: {
-            recommendations: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  adjustment: { type: "string", description: "Concise action to take" },
-                },
-                required: ["adjustment"],
-                additionalProperties: false,
-              },
-            },
-          },
-          required: ["recommendations"],
-          additionalProperties: false,
-        },
-      },
+      response_format: { type: "json_object" },
       messages: [
         {
           role: "system",

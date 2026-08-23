@@ -487,6 +487,18 @@ All three packages are loaded via dynamic `import()` inside `runPipeline()` to k
 
 ---
 
+### 3. `POST /api/sessions` uses service_role client for INSERT
+
+**Plan said**: No explicit client choice for `sessions/index.ts` — the existing pattern (Phase 1 onward) used RLS-scoped clients for all DB operations.
+
+**What was built**: `src/pages/api/sessions/index.ts` was changed to use `createAdminClient()` (service_role key) for the `fitting_sessions` INSERT. Ownership is still enforced in application code by setting `user_id = context.locals.user.id` explicitly on the insert payload.
+
+**Why**: The RLS INSERT policy (`sessions_insert_own`) was preventing the insert from completing correctly in the SSR context — the authenticated user's JWT was not being propagated to the Supabase client as expected, causing the RLS check to fail even for valid authenticated requests.
+
+**Trade-offs**: RLS is no longer a second safety net on the INSERT path; ownership is enforced by application code only. The `sessions_insert_own` RLS policy is effectively dead code and can be removed in a future migration. The read path (`/recommend`, `/start`) continues to use the RLS-scoped client for ownership verification.
+
+---
+
 ## Progress
 
 > Convention: `- [ ]` pending, `- [x]` done. Append ` — <commit sha>` when a step lands. Do not rename step titles. See `references/progress-format.md`.

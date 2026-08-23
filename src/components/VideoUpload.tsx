@@ -153,7 +153,7 @@ export default function VideoUpload() {
     }
 
     if (duration < MIN_DURATION) {
-      setState({ kind: "error", message: "Video must be at least 3 seconds" });
+      setState({ kind: "error", message: "Video must be at least 2 seconds" });
       return;
     }
     if (duration > MAX_DURATION) {

@@ -110,8 +110,22 @@ function convertKeypoints(keypoints: poseDetection.Keypoint[]): PoseLandmark[] {
   // [movenet_idx, mediapipe_idx] — map chosen side onto the mp indices used for angle computation
   const mapping: [number, number][] =
     leftScore >= rightScore
-      ? [[5, 11], [7, 13], [9, 15], [11, 23], [13, 25], [15, 27]]
-      : [[6, 11], [8, 13], [10, 15], [12, 23], [14, 25], [16, 27]];
+      ? [
+          [5, 11],
+          [7, 13],
+          [9, 15],
+          [11, 23],
+          [13, 25],
+          [15, 27],
+        ]
+      : [
+          [6, 11],
+          [8, 13],
+          [10, 15],
+          [12, 23],
+          [14, 25],
+          [16, 27],
+        ];
   const landmarks: PoseLandmark[] = Array(33)
     .fill(null)
     .map(() => ({ x: 0, y: 0, z: 0, visibility: 0 }));
@@ -157,222 +171,226 @@ export default function VideoAnalyzer({ sessionId, file, onComplete, onError }: 
   }
 
   async function runPipeline(): Promise<void> {
-    // Step 1: Start session — must be first so /results error path can always run
-    setCurrentStep("starting");
+    let videoEl: HTMLVideoElement | undefined;
     try {
-      const res = await fetch(`/api/sessions/${sessionId}/start`, { method: "POST" });
-      if (!res.ok && res.status !== 409) throw new Error(`HTTP ${res.status}`);
-    } catch (err) {
-      await postError("starting", err instanceof Error ? err.message : "Failed to start session");
-      return;
-    }
-
-    // Step 2: Initialise TF.js MoveNet pose detector (CPU backend — no WebGL required).
-    // Dynamic imports keep these modules out of the SSR bundle (Cloudflare Workers doesn't
-    // support Node.js APIs that some TF.js internals reference at module-evaluation time).
-    setCurrentStep("loading-model");
-    let detector: poseDetection.PoseDetector;
-
-    try {
-      const [tfCore, pd] = await Promise.all([
-        import("@tensorflow/tfjs-core"),
-        import("@tensorflow-models/pose-detection"),
-      ]);
-      await import("@tensorflow/tfjs-backend-cpu");
-      await tfCore.setBackend("cpu");
-      await tfCore.ready();
-      detector = await pd.createDetector(pd.SupportedModels.MoveNet, {
-        modelType: pd.movenet.modelType.SINGLEPOSE_LIGHTNING,
-      });
-    } catch (err) {
-      await postError("loading-model", err instanceof Error ? err.message : "Failed to initialize pose model");
-      return;
-    }
-
-    // Step 3: Read video as base64 + load video element for frame seeking
-    setCurrentStep("extracting-frames");
-    let videoBase64: string;
-    let videoEl: HTMLVideoElement;
-    let canvas: HTMLCanvasElement;
-    let ctx: CanvasRenderingContext2D;
-
-    try {
-      [videoBase64, videoEl] = await Promise.all([fileToBase64(file), loadVideoElement(file)]);
-      canvas = document.createElement("canvas");
-      canvas.width = videoEl.videoWidth || 640;
-      canvas.height = videoEl.videoHeight || 480;
-      const context = canvas.getContext("2d", { willReadFrequently: true });
-      if (!context) throw new Error("Canvas 2D context not available");
-      ctx = context;
-    } catch (err) {
-      detector.dispose();
-      await postError("extracting-frames", err instanceof Error ? err.message : "Failed to read video");
-      return;
-    }
-
-    // Step 4: Identify BDC/TDC timestamps via vision LLM
-    setCurrentStep("identifying-frames");
-    let timestamps: { t: number; type: "BDC" | "TDC" }[];
-
-    try {
-      const res = await fetch("/api/analyze", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ video: videoBase64 }),
-      });
-      if (!res.ok) throw new Error(`Server returned HTTP ${res.status}`);
-      const data = (await res.json()) as { timestamps?: { t: number; type: "BDC" | "TDC" }[] };
-      timestamps = data.timestamps ?? [];
-      if (!timestamps.length) {
-        throw new Error("No keyframes detected — try a clearer side-view video with the full body visible");
+      // Step 1: Start session — must be first so /results error path can always run
+      setCurrentStep("starting");
+      try {
+        const res = await fetch(`/api/sessions/${sessionId}/start`, { method: "POST" });
+        if (!res.ok && res.status !== 409) throw new Error(`HTTP ${res.status}`);
+      } catch (err) {
+        await postError("starting", err instanceof Error ? err.message : "Failed to start session");
+        return;
       }
-    } catch (err) {
-      URL.revokeObjectURL(videoEl.src);
-      detector.dispose();
-      await postError("identifying-frames", err instanceof Error ? err.message : "Failed to identify keyframes");
-      return;
-    }
 
-    // Step 5: ±2-frame scan around each timestamp, pick best pose, compute angles
-    setCurrentStep("measuring-angles");
-    const bodyAngles: BodyAngle[] = [];
-    const scanOffsets = [-0.066, -0.033, 0, 0.033, 0.066];
+      // Step 2: Initialise TF.js MoveNet pose detector (CPU backend — no WebGL required).
+      // Dynamic imports keep these modules out of the SSR bundle (Cloudflare Workers doesn't
+      // support Node.js APIs that some TF.js internals reference at module-evaluation time).
+      setCurrentStep("loading-model");
+      let detector: poseDetection.PoseDetector;
 
-    try {
-      let bdcLandmarks: PoseLandmark[] | null = null;
-      let tdcLandmarks: PoseLandmark[] | null = null;
+      try {
+        const [tfCore, pd] = await Promise.all([
+          import("@tensorflow/tfjs-core"),
+          import("@tensorflow-models/pose-detection"),
+        ]);
+        await import("@tensorflow/tfjs-backend-cpu");
+        await tfCore.setBackend("cpu");
+        await tfCore.ready();
+        detector = await pd.createDetector(pd.SupportedModels.MoveNet, {
+          modelType: pd.movenet.modelType.SINGLEPOSE_LIGHTNING,
+        });
+      } catch (err) {
+        await postError("loading-model", err instanceof Error ? err.message : "Failed to initialize pose model");
+        return;
+      }
 
-      for (const { t, type } of timestamps) {
-        if (type === "BDC" && bdcLandmarks) continue;
-        if (type === "TDC" && tdcLandmarks) continue;
+      // Step 3: Read video as base64 + load video element for frame seeking
+      setCurrentStep("extracting-frames");
+      let videoBase64: string;
+      let canvas: HTMLCanvasElement;
+      let ctx: CanvasRenderingContext2D;
 
-        let bestLandmarks: PoseLandmark[] | null = null;
-        // BDC: most extended leg = highest knee angle; TDC: deepest flex = lowest knee angle
-        let bestKneeAngle = type === "BDC" ? -Infinity : Infinity;
+      try {
+        [videoBase64, videoEl] = await Promise.all([fileToBase64(file), loadVideoElement(file)]);
+        canvas = document.createElement("canvas");
+        canvas.width = videoEl.videoWidth || 640;
+        canvas.height = videoEl.videoHeight || 480;
+        const context = canvas.getContext("2d", { willReadFrequently: true });
+        if (!context) throw new Error("Canvas 2D context not available");
+        ctx = context;
+      } catch (err) {
+        detector.dispose();
+        await postError("extracting-frames", err instanceof Error ? err.message : "Failed to read video");
+        return;
+      }
 
-        for (const offset of scanOffsets) {
-          const wl = await detectPoseAt(videoEl, canvas, ctx, detector, t + offset);
-          if (!wl || !visible(wl[23]) || !visible(wl[25]) || !visible(wl[27])) continue;
+      // Step 4: Identify BDC/TDC timestamps via vision LLM
+      setCurrentStep("identifying-frames");
+      let timestamps: { t: number; type: "BDC" | "TDC" }[];
 
-          const ka = jointAngle(wl[23], wl[25], wl[27]);
-          if (type === "BDC" && ka > bestKneeAngle) {
-            bestKneeAngle = ka;
-            bestLandmarks = wl;
-          } else if (type === "TDC" && ka < bestKneeAngle) {
-            bestKneeAngle = ka;
-            bestLandmarks = wl;
+      try {
+        const res = await fetch("/api/analyze", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ video: videoBase64 }),
+        });
+        if (!res.ok) throw new Error(`Server returned HTTP ${res.status}`);
+        const data = (await res.json()) as { timestamps?: { t: number; type: "BDC" | "TDC" }[] };
+        timestamps = data.timestamps ?? [];
+        if (!timestamps.length) {
+          throw new Error("No keyframes detected — try a clearer side-view video with the full body visible");
+        }
+      } catch (err) {
+        URL.revokeObjectURL(videoEl.src);
+        detector.dispose();
+        await postError("identifying-frames", err instanceof Error ? err.message : "Failed to identify keyframes");
+        return;
+      }
+
+      // Step 5: ±2-frame scan around each timestamp, pick best pose, compute angles
+      setCurrentStep("measuring-angles");
+      const bodyAngles: BodyAngle[] = [];
+      const scanOffsets = [-0.066, -0.033, 0, 0.033, 0.066];
+
+      try {
+        let bdcLandmarks: PoseLandmark[] | null = null;
+        let tdcLandmarks: PoseLandmark[] | null = null;
+
+        for (const { t, type } of timestamps) {
+          if (type === "BDC" && bdcLandmarks) continue;
+          if (type === "TDC" && tdcLandmarks) continue;
+
+          let bestLandmarks: PoseLandmark[] | null = null;
+          // BDC: most extended leg = highest knee angle; TDC: deepest flex = lowest knee angle
+          let bestKneeAngle = type === "BDC" ? -Infinity : Infinity;
+
+          for (const offset of scanOffsets) {
+            const wl = await detectPoseAt(videoEl, canvas, ctx, detector, t + offset);
+            if (!wl || !visible(wl[23]) || !visible(wl[25]) || !visible(wl[27])) continue;
+
+            const ka = jointAngle(wl[23], wl[25], wl[27]);
+            if (type === "BDC" && ka > bestKneeAngle) {
+              bestKneeAngle = ka;
+              bestLandmarks = wl;
+            } else if (type === "TDC" && ka < bestKneeAngle) {
+              bestKneeAngle = ka;
+              bestLandmarks = wl;
+            }
+          }
+
+          if (type === "BDC") bdcLandmarks = bestLandmarks;
+          else tdcLandmarks = bestLandmarks;
+        }
+
+        // Angles from BDC frame: knee-BDC, torso, elbow
+        if (bdcLandmarks) {
+          const wl = bdcLandmarks;
+          if (visible(wl[23]) && visible(wl[25]) && visible(wl[27])) {
+            bodyAngles.push({
+              name: ANGLE_REFS.KNEE_BDC.name,
+              value: jointAngle(wl[23], wl[25], wl[27]),
+              reference_min: ANGLE_REFS.KNEE_BDC.min,
+              reference_max: ANGLE_REFS.KNEE_BDC.max,
+              unit: ANGLE_REFS.KNEE_BDC.unit,
+            });
+          }
+          if (visible(wl[11]) && visible(wl[23])) {
+            bodyAngles.push({
+              name: ANGLE_REFS.TORSO.name,
+              value: computeTorsoAngle(wl),
+              reference_min: ANGLE_REFS.TORSO.min,
+              reference_max: ANGLE_REFS.TORSO.max,
+              unit: ANGLE_REFS.TORSO.unit,
+            });
+          }
+          if (visible(wl[11]) && visible(wl[13]) && visible(wl[15])) {
+            bodyAngles.push({
+              name: ANGLE_REFS.ELBOW.name,
+              value: jointAngle(wl[11], wl[13], wl[15]),
+              reference_min: ANGLE_REFS.ELBOW.min,
+              reference_max: ANGLE_REFS.ELBOW.max,
+              unit: ANGLE_REFS.ELBOW.unit,
+            });
           }
         }
 
-        if (type === "BDC") bdcLandmarks = bestLandmarks;
-        else tdcLandmarks = bestLandmarks;
+        // Angles from TDC frame: knee-TDC, hip
+        if (tdcLandmarks) {
+          const wl = tdcLandmarks;
+          if (visible(wl[23]) && visible(wl[25]) && visible(wl[27])) {
+            bodyAngles.push({
+              name: ANGLE_REFS.KNEE_TDC.name,
+              value: jointAngle(wl[23], wl[25], wl[27]),
+              reference_min: ANGLE_REFS.KNEE_TDC.min,
+              reference_max: ANGLE_REFS.KNEE_TDC.max,
+              unit: ANGLE_REFS.KNEE_TDC.unit,
+            });
+          }
+          if (visible(wl[11]) && visible(wl[23]) && visible(wl[25])) {
+            bodyAngles.push({
+              name: ANGLE_REFS.HIP.name,
+              value: jointAngle(wl[11], wl[23], wl[25]),
+              reference_min: ANGLE_REFS.HIP.min,
+              reference_max: ANGLE_REFS.HIP.max,
+              unit: ANGLE_REFS.HIP.unit,
+            });
+          }
+        }
+
+        if (bodyAngles.length < 2) {
+          throw new Error("Pose not detected clearly — try a clearer side-view video with the full body visible");
+        }
+      } catch (err) {
+        URL.revokeObjectURL(videoEl.src);
+        detector.dispose();
+        await postError("measuring-angles", err instanceof Error ? err.message : "Failed to measure joint angles");
+        return;
       }
 
-      // Angles from BDC frame: knee-BDC, torso, elbow
-      if (bdcLandmarks) {
-        const wl = bdcLandmarks;
-        if (visible(wl[23]) && visible(wl[25]) && visible(wl[27])) {
-          bodyAngles.push({
-            name: ANGLE_REFS.KNEE_BDC.name,
-            value: jointAngle(wl[23], wl[25], wl[27]),
-            reference_min: ANGLE_REFS.KNEE_BDC.min,
-            reference_max: ANGLE_REFS.KNEE_BDC.max,
-            unit: ANGLE_REFS.KNEE_BDC.unit,
-          });
-        }
-        if (visible(wl[11]) && visible(wl[23])) {
-          bodyAngles.push({
-            name: ANGLE_REFS.TORSO.name,
-            value: computeTorsoAngle(wl),
-            reference_min: ANGLE_REFS.TORSO.min,
-            reference_max: ANGLE_REFS.TORSO.max,
-            unit: ANGLE_REFS.TORSO.unit,
-          });
-        }
-        if (visible(wl[11]) && visible(wl[13]) && visible(wl[15])) {
-          bodyAngles.push({
-            name: ANGLE_REFS.ELBOW.name,
-            value: jointAngle(wl[11], wl[13], wl[15]),
-            reference_min: ANGLE_REFS.ELBOW.min,
-            reference_max: ANGLE_REFS.ELBOW.max,
-            unit: ANGLE_REFS.ELBOW.unit,
-          });
-        }
-      }
-
-      // Angles from TDC frame: knee-TDC, hip
-      if (tdcLandmarks) {
-        const wl = tdcLandmarks;
-        if (visible(wl[23]) && visible(wl[25]) && visible(wl[27])) {
-          bodyAngles.push({
-            name: ANGLE_REFS.KNEE_TDC.name,
-            value: jointAngle(wl[23], wl[25], wl[27]),
-            reference_min: ANGLE_REFS.KNEE_TDC.min,
-            reference_max: ANGLE_REFS.KNEE_TDC.max,
-            unit: ANGLE_REFS.KNEE_TDC.unit,
-          });
-        }
-        if (visible(wl[11]) && visible(wl[23]) && visible(wl[25])) {
-          bodyAngles.push({
-            name: ANGLE_REFS.HIP.name,
-            value: jointAngle(wl[11], wl[23], wl[25]),
-            reference_min: ANGLE_REFS.HIP.min,
-            reference_max: ANGLE_REFS.HIP.max,
-            unit: ANGLE_REFS.HIP.unit,
-          });
-        }
-      }
-
-      if (bodyAngles.length < 2) {
-        throw new Error("Pose not detected clearly — try a clearer side-view video with the full body visible");
-      }
-    } catch (err) {
       URL.revokeObjectURL(videoEl.src);
       detector.dispose();
-      await postError("measuring-angles", err instanceof Error ? err.message : "Failed to measure joint angles");
-      return;
+
+      // Step 6: Generate fitting recommendations
+      setCurrentStep("generating-recs");
+      let recommendations: Recommendation[];
+      let rawLlmResponse: string;
+
+      try {
+        const res = await fetch(`/api/sessions/${sessionId}/recommend`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ body_angles: bodyAngles }),
+        });
+        if (!res.ok) throw new Error(`Server returned HTTP ${res.status}`);
+        const data = (await res.json()) as { recommendations: Recommendation[]; raw_llm_response: string };
+        recommendations = data.recommendations;
+        rawLlmResponse = data.raw_llm_response;
+      } catch (err) {
+        await postError("generating-recs", err instanceof Error ? err.message : "Failed to generate recommendations");
+        return;
+      }
+
+      // Step 7: Submit complete results
+      setCurrentStep("submitting");
+      try {
+        const res = await fetch(`/api/sessions/${sessionId}/results`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ recommendations, body_angles: bodyAngles, raw_llm_response: rawLlmResponse }),
+        });
+        if (!res.ok) throw new Error(`Server returned HTTP ${res.status}`);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "Failed to save results";
+        setErrorMessage(msg);
+        onError(msg);
+        return;
+      }
+
+      onComplete(sessionId);
+    } finally {
+      if (videoEl) URL.revokeObjectURL(videoEl.src);
     }
-
-    URL.revokeObjectURL(videoEl.src);
-    detector.dispose();
-
-    // Step 6: Generate fitting recommendations
-    setCurrentStep("generating-recs");
-    let recommendations: Recommendation[];
-    let rawLlmResponse: string;
-
-    try {
-      const res = await fetch(`/api/sessions/${sessionId}/recommend`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ body_angles: bodyAngles }),
-      });
-      if (!res.ok) throw new Error(`Server returned HTTP ${res.status}`);
-      const data = (await res.json()) as { recommendations: Recommendation[]; raw_llm_response: string };
-      recommendations = data.recommendations;
-      rawLlmResponse = data.raw_llm_response;
-    } catch (err) {
-      await postError("generating-recs", err instanceof Error ? err.message : "Failed to generate recommendations");
-      return;
-    }
-
-    // Step 7: Submit complete results
-    setCurrentStep("submitting");
-    try {
-      const res = await fetch(`/api/sessions/${sessionId}/results`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ recommendations, body_angles: bodyAngles, raw_llm_response: rawLlmResponse }),
-      });
-      if (!res.ok) throw new Error(`Server returned HTTP ${res.status}`);
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : "Failed to save results";
-      setErrorMessage(msg);
-      onError(msg);
-      return;
-    }
-
-    onComplete(sessionId);
   }
 
   useEffect(() => {

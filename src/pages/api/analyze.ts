@@ -13,8 +13,8 @@ export const POST: APIRoute = async (context) => {
   let body: unknown;
   try {
     body = await context.request.json();
-  } catch (err) {
-    return Response.json({ error: "Invalid JSON" + err }, { status: 400 });
+  } catch {
+    return Response.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
   const parsed = analyzeRequestSchema.safeParse(body);

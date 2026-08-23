@@ -19,7 +19,7 @@ export const bodyAngleSchema = z.object({
 });
 
 export const analyzeRequestSchema = z.object({
-  video: z.string().min(1),
+  video: z.string().min(1).max(140_000_000),
 });
 
 export const recommendRequestSchema = z.object({

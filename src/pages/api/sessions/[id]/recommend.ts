@@ -16,10 +16,17 @@ export const POST: APIRoute = async (context) => {
     return new Response("Service unavailable", { status: 503 });
   }
 
-  const { data } = await supabase.from("fitting_sessions").select("id").eq("id", context.params.id).single();
+  const { data: session, error } = await supabase
+    .from("fitting_sessions")
+    .select("id, status")
+    .eq("id", context.params.id)
+    .single();
 
-  if (!data) {
+  if (error) {
     return Response.json({ error: "Session not found" }, { status: 404 });
+  }
+  if (session.status !== "processing") {
+    return Response.json({ error: "Session is not in processing state" }, { status: 409 });
   }
 
   let body: unknown;
