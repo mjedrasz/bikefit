@@ -9,14 +9,20 @@ type SessionRow = Pick<FittingSession, "id" | "video_filename" | "status" | "cre
 const supabase = createClient(Astro.request.headers, Astro.cookies);
 
 let sessions: SessionRow[] = [];
+let loadError = false;
 if (!supabase) {
   Astro.response.status = 503;
 } else {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("fitting_sessions")
     .select("id, video_filename, status, created_at")
     .order("created_at", { ascending: false });
-  sessions = data ?? [];
+  if (error) {
+    Astro.response.status = 500;
+    loadError = true;
+  } else {
+    sessions = data;
+  }
 }
 
 const dateFormatter = new Intl.DateTimeFormat("en-US", {
@@ -43,6 +49,10 @@ const dateFormatter = new Intl.DateTimeFormat("en-US", {
           <div class="rounded-2xl border border-white/10 bg-white/10 p-8 text-center text-white backdrop-blur-xl">
             <p class="text-blue-100/70">Service unavailable — please try again later.</p>
           </div>
+        ) : loadError ? (
+          <div class="rounded-2xl border border-white/10 bg-white/10 p-8 text-center text-white backdrop-blur-xl">
+            <p class="text-blue-100/70">Couldn't load your sessions — please try again later.</p>
+          </div>
         ) : sessions.length === 0 ? (
           <div class="rounded-2xl border border-white/10 bg-white/10 p-8 text-center text-white backdrop-blur-xl">
             <p class="mb-4 text-blue-100/70">You haven't submitted any bike-fitting sessions yet.</p>
@@ -67,7 +77,7 @@ const dateFormatter = new Intl.DateTimeFormat("en-US", {
                       <span class="truncate font-medium">{session.video_filename ?? "Untitled session"}</span>
                       <span class="text-sm text-blue-100/70">{dateFormatter.format(new Date(session.created_at))}</span>
                     </div>
-                    <span class:list={`${SESSION_STATUS_BADGE_BASE_CLASSNAME} ${className} shrink-0`}>{label}</span>
+                    <span class:list={[SESSION_STATUS_BADGE_BASE_CLASSNAME, className, "shrink-0"]}>{label}</span>
                   </a>
                 </li>
               );

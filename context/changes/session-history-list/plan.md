@@ -175,8 +175,8 @@ None — no schema changes; this is a pure read/query slice against the existing
 
 #### Manual
 
-- [x] 1.3 Visiting `/sessions` while signed out redirects to `/auth/signin` — 09f58d0
-- [x] 1.4 Visiting `/dashboard` while signed out still redirects to `/auth/signin` (no regression) — 09f58d0
+- [x] 1.3 Visiting `/sessions` while signed out redirects to `/auth/signin` — 09f58d0 (live-verified 2026-08-23: `curl` against running dev server, no session cookie → 302 to `/auth/signin`)
+- [x] 1.4 Visiting `/dashboard` while signed out still redirects to `/auth/signin` (no regression) — 09f58d0 (live-verified 2026-08-23: same method, confirmed no regression)
 
 ### Phase 2: Session history list page
 
@@ -187,9 +187,9 @@ None — no schema changes; this is a pure read/query slice against the existing
 
 #### Manual
 
-- [x] 2.3 A user with sessions in 2+ different statuses sees all of them listed newest-first, with filename, date, and status badge colors matching `VideoUpload.tsx`'s convention exactly — c38acd5
-- [x] 2.4 Clicking any row navigates to `/sessions/<id>` (a 404 there is expected/acceptable until `fitting-results-display` ships) — c38acd5
-- [x] 2.5 A user with zero sessions sees the empty state with a working link back to `/dashboard` — c38acd5
-- [x] 2.6 A session with a `null` `video_filename` shows the fallback label instead of a blank — c38acd5
-- [x] 2.7 `/dashboard` shows a working link to `/sessions`, and the existing sign-out flow still works unchanged — c38acd5
-- [x] 2.8 A second test user's sessions never appear in the first user's list (RLS scoping holds) — c38acd5
+- [x] 2.3 A user with sessions in 2+ different statuses sees all of them listed newest-first, with filename, date, and status badge colors matching `VideoUpload.tsx`'s convention exactly — c38acd5 (live-verified 2026-08-23: seeded 4 sessions across all 4 statuses for a real test user against the local Supabase stack, signed in via the real `/api/auth/signin` flow, fetched `/sessions` from the running dev server. Rendered newest-first; badge classes matched exactly because `VideoUpload.tsx` and this page both read `SESSION_STATUS_META` from the same `session-status.ts` module)
+- [x] 2.4 Clicking any row navigates to `/sessions/<id>` (a 404 there is expected/acceptable until `fitting-results-display` ships) — c38acd5 (live-verified 2026-08-23: each rendered row's `href` was `/sessions/<real-uuid>`, confirmed in the live HTML response)
+- [x] 2.5 A user with zero sessions sees the empty state with a working link back to `/dashboard` — c38acd5 (live-verified 2026-08-23: second real test user with no sessions saw the empty-state message and an `href="/dashboard"` link)
+- [x] 2.6 A session with a `null` `video_filename` shows the fallback label instead of a blank — c38acd5 (live-verified 2026-08-23: seeded row with `video_filename = NULL` rendered "Untitled session" in the live response)
+- [x] 2.7 `/dashboard` shows a working link to `/sessions`, and the existing sign-out flow still works unchanged — c38acd5 (live-verified 2026-08-23: `/dashboard` rendered `href="/sessions"`; POSTing to `/api/auth/signout` cleared the auth cookie and subsequent `/dashboard` and `/sessions` requests redirected to `/auth/signin`)
+- [x] 2.8 A second test user's sessions never appear in the first user's list (RLS scoping holds) — c38acd5 (live-verified 2026-08-23: second real test user's `/sessions` response showed zero of the first user's 4 seeded rows, confirming RLS enforcement against the live database, not just policy inspection)
