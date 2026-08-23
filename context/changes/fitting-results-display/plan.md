@@ -173,10 +173,10 @@ None — no schema changes.
 
 #### Manual
 
-- [x] 2.3 Real completed session renders recommendations + correctly-flagged body angles
-- [x] 2.4 Queued/processing session shows status message, no results
-- [x] 2.5 Failed session shows the stored error message
-- [x] 2.6 Nonexistent session ID returns 404
-- [x] 2.7 Another user's session ID returns 404 (if testable)
-- [x] 2.8 "Back to dashboard" link works
-- [x] 2.9 Signed out, any `/sessions/<id>` URL redirects to `/auth/signin`
+- [x] 2.3 Real completed session renders recommendations + correctly-flagged body angles — ca272c8
+- [x] 2.4 Queued/processing session shows status message, no results — ca272c8
+- [x] 2.5 Failed session shows the stored error message — ca272c8
+- [x] 2.6 Nonexistent session ID returns 404 — ca272c8
+- [x] 2.7 Another user's session ID returns 404 (if testable) — ca272c8
+- [x] 2.8 "Back to dashboard" link works — ca272c8
+- [x] 2.9 Signed out, any `/sessions/<id>` URL redirects to `/auth/signin` — ca272c8
