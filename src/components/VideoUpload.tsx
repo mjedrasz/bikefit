@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import VideoAnalyzer from "@/components/VideoAnalyzer";
 import type { SessionStatus } from "@/types";
+import { SESSION_STATUS_BADGE_BASE_CLASSNAME, SESSION_STATUS_META } from "@/lib/session-status";
 
 type AppState =
   | { kind: "idle" }
@@ -53,25 +54,8 @@ function extractDuration(file: File): Promise<number> {
 }
 
 function StatusBadge({ status }: { status: SessionStatus }) {
-  const labels: Record<SessionStatus, string> = {
-    queued: "Queued",
-    processing: "Processing",
-    completed: "Completed",
-    failed: "Failed",
-  };
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center rounded-full px-3 py-1 text-sm font-medium",
-        status === "queued" && "bg-muted text-muted-foreground",
-        status === "processing" && "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
-        status === "completed" && "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300",
-        status === "failed" && "bg-destructive/10 text-destructive",
-      )}
-    >
-      {labels[status]}
-    </span>
-  );
+  const { label, className } = SESSION_STATUS_META[status];
+  return <span className={cn(SESSION_STATUS_BADGE_BASE_CLASSNAME, className)}>{label}</span>;
 }
 
 export default function VideoUpload() {

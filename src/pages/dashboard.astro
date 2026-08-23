@@ -11,14 +11,22 @@ const { user } = Astro.locals;
       <span class="text-sm text-blue-100/70">
         Signed in as <span class="font-medium text-white">{user?.email}</span>
       </span>
-      <form method="POST" action="/api/auth/signout">
-        <button
-          type="submit"
+      <div class="flex items-center gap-2">
+        <a
+          href="/sessions"
           class="rounded-lg border border-white/20 bg-white/10 px-3 py-1.5 text-sm text-white transition-colors hover:bg-white/20"
         >
-          Sign out
-        </button>
-      </form>
+          View session history
+        </a>
+        <form method="POST" action="/api/auth/signout">
+          <button
+            type="submit"
+            class="rounded-lg border border-white/20 bg-white/10 px-3 py-1.5 text-sm text-white transition-colors hover:bg-white/20"
+          >
+            Sign out
+          </button>
+        </form>
+      </div>
     </div>
     <div class="w-full max-w-lg rounded-2xl border border-white/10 bg-white/10 text-white backdrop-blur-xl">
       <VideoUpload client:load />
