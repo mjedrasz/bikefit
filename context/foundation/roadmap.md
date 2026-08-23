@@ -33,7 +33,7 @@ Amateur cyclists who notice discomfort or wonder whether their position is effic
 | F-02 | async-job-pipeline           | (foundation) analysis jobs can be queued, executed, and their status tracked       | F-01             | NFR-async                             | ready    |
 | S-01 | video-upload-and-status      | upload a short MP4 cycling video and see live processing status                    | F-01, F-02       | FR-001, FR-002, FR-003, US-01         | blocked  |
 | S-02 | ai-analysis-pipeline         | have uploaded video fully processed — pose keypoints, angles, LLM recommendations | F-01, F-02, S-01 | FR-004, FR-005, FR-006, FR-007, US-01 | blocked  |
-| S-03 | fitting-results-display      | view fitting recommendations and body angles for a completed session               | F-01             | FR-008, US-01                         | ready    |
+| S-03 | fitting-results-display      | view fitting recommendations and body angles for a completed session               | F-01             | FR-008, US-01                         | in-progress |
 | S-04 | session-history-list         | browse all past fitting sessions and navigate to any completed result              | S-01, F-01       | FR-009                                | proposed |
 
 ## Streams
@@ -127,7 +127,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Unknowns:**
   - Which body angles will be surfaced alongside recommendations? — Owner: system (emerges from LLM output at runtime). Block: no. (The set of angles shown is determined by the LLM response per PRD §FR-006 rationale; the display component must handle a variable list rather than a fixed schema. Non-blocking: design the component to render whatever the LLM returns.)
 - **Risk:** Lightest-prerequisite slice in the roadmap — depends only on F-01 (schema types). Building against mock data while the pipeline is blocked allows early UI validation and reduces integration risk when S-02 lands. The variable-angle display is a mild design consideration, not a blocker.
-- **Status:** ready
+- **Status:** in-progress
 
 ### S-04: Session history list
 
