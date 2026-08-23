@@ -3,7 +3,7 @@ project: "BikeFit"
 version: 1
 status: draft
 created: 2026-05-26
-updated: 2026-05-29
+updated: 2026-08-23
 prd_version: 1
 main_goal: market-feedback
 top_blocker: decisions
@@ -146,11 +146,11 @@ Foundations below assume these are present and do NOT re-scaffold them.
 | Roadmap ID | Change ID                    | Suggested issue title                                    | Ready for `/10x-plan` | Notes                                                            |
 | ---------- | ---------------------------- | -------------------------------------------------------- | --------------------- | ---------------------------------------------------------------- |
 | F-01       | db-schema-and-privacy-design | Design session + result schema with privacy-first RLS    | done                  | Implemented 2026-05-29                                           |
-| F-02       | async-job-pipeline           | Wire async analysis job queue and status tracking        | yes                   | F-01 done; run `/10x-plan async-job-pipeline`                    |
-| S-01       | video-upload-and-status      | Build video upload flow with processing-status indicator | no                    | Blocked: resolve OQ-1 (min duration) and OQ-3 (tool) first      |
-| S-02       | ai-analysis-pipeline         | Integrate pose estimation + angle calc + LLM pipeline    | no                    | Blocked: resolve OQ-2 (reference ranges) and OQ-3 (tool) first  |
+| F-02       | async-job-pipeline           | Wire async analysis job queue and status tracking        | done                  | F-01 done; run `/10x-plan async-job-pipeline`                    |
+| S-01       | video-upload-and-status      | Build video upload flow with processing-status indicator | done                  | Blocked: resolve OQ-1 (min duration) and OQ-3 (tool) first      |
+| S-02       | ai-analysis-pipeline         | Integrate pose estimation + angle calc + LLM pipeline    | done                  | Blocked: resolve OQ-2 (reference ranges) and OQ-3 (tool) first  |
 | S-03       | fitting-results-display      | Build results display: recommendations + angles + ranges | yes                   | F-01 done; run `/10x-plan fitting-results-display`               |
-| S-04       | session-history-list         | Build session history list and navigation                | no                    | Depends on S-01 completing                                       |
+| S-04       | session-history-list         | Build session history list and navigation                | yes                   | Depends on S-01 completing                                       |
 
 ## Open Roadmap Questions
 
