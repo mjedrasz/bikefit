@@ -1,7 +1,7 @@
 ---
 change_id: session-history-list
 title: Session history list
-status: implementing
+status: implemented
 created: 2026-08-23
 updated: 2026-08-23
 archived_at: null

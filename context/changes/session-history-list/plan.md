@@ -182,14 +182,14 @@ None — no schema changes; this is a pure read/query slice against the existing
 
 #### Automated
 
-- [x] 2.1 Type checking passes: `npx tsc --noEmit`
-- [x] 2.2 Linting passes: `npm run lint`
+- [x] 2.1 Type checking passes: `npx tsc --noEmit` — c38acd5
+- [x] 2.2 Linting passes: `npm run lint` — c38acd5
 
 #### Manual
 
-- [x] 2.3 A user with sessions in 2+ different statuses sees all of them listed newest-first, with filename, date, and status badge colors matching `VideoUpload.tsx`'s convention exactly
-- [x] 2.4 Clicking any row navigates to `/sessions/<id>` (a 404 there is expected/acceptable until `fitting-results-display` ships)
-- [x] 2.5 A user with zero sessions sees the empty state with a working link back to `/dashboard`
-- [x] 2.6 A session with a `null` `video_filename` shows the fallback label instead of a blank
-- [x] 2.7 `/dashboard` shows a working link to `/sessions`, and the existing sign-out flow still works unchanged
-- [x] 2.8 A second test user's sessions never appear in the first user's list (RLS scoping holds)
+- [x] 2.3 A user with sessions in 2+ different statuses sees all of them listed newest-first, with filename, date, and status badge colors matching `VideoUpload.tsx`'s convention exactly — c38acd5
+- [x] 2.4 Clicking any row navigates to `/sessions/<id>` (a 404 there is expected/acceptable until `fitting-results-display` ships) — c38acd5
+- [x] 2.5 A user with zero sessions sees the empty state with a working link back to `/dashboard` — c38acd5
+- [x] 2.6 A session with a `null` `video_filename` shows the fallback label instead of a blank — c38acd5
+- [x] 2.7 `/dashboard` shows a working link to `/sessions`, and the existing sign-out flow still works unchanged — c38acd5
+- [x] 2.8 A second test user's sessions never appear in the first user's list (RLS scoping holds) — c38acd5
