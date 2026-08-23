@@ -101,6 +101,12 @@ Build `src/pages/sessions/[id].astro`: SSR data fetch, status branching, and the
 - Page chrome matches `dashboard.astro`'s visual language (`bg-cosmic` wrapper, `rounded-2xl border border-white/10 bg-white/10 backdrop-blur-xl` card, white text) and includes a link back to `/dashboard`.
 - Wrap the page content in the existing `Layout` component (`src/layouts/Layout.astro`), passing an appropriate `title`.
 
+#### 2. ESLint config carve-out for `.astro` frontmatter returns
+
+**File**: `eslint.config.js`
+
+**Intent**: `astro-eslint-parser` doesn't attach a normal function-scope parent to a top-level frontmatter `return`, which crashes (not just misreports) `@typescript-eslint/no-misused-promises`'s `checkReturnStatement` — hit directly by this phase's mandated `return new Response(...)` frontmatter pattern (item 1, contract bullet 2). Disable that rule inside the `.astro`-scoped config block only; `.ts`/`.tsx` files keep it at `error`.
+
 ### Success Criteria:
 
 #### Automated Verification:

@@ -1,7 +1,7 @@
 ---
 change_id: fitting-results-display
 title: Fitting results display
-status: implemented
+status: impl_reviewed
 created: 2026-08-23
 updated: 2026-08-23
 archived_at: null
