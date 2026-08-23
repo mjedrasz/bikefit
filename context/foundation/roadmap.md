@@ -30,11 +30,11 @@ Amateur cyclists who notice discomfort or wonder whether their position is effic
 | ID   | Change ID                    | Outcome (user can …)                                                               | Prerequisites    | PRD refs                              | Status   |
 | ---- | ---------------------------- | ---------------------------------------------------------------------------------- | ---------------- | ------------------------------------- | -------- |
 | F-01 | db-schema-and-privacy-design | (foundation) session and result tables exist; schema enforces no-raw-video privacy | —                | NFR-privacy, FR-001, FR-002           | done     |
-| F-02 | async-job-pipeline           | (foundation) analysis jobs can be queued, executed, and their status tracked       | F-01             | NFR-async                             | ready    |
-| S-01 | video-upload-and-status      | upload a short MP4 cycling video and see live processing status                    | F-01, F-02       | FR-001, FR-002, FR-003, US-01         | blocked  |
-| S-02 | ai-analysis-pipeline         | have uploaded video fully processed — pose keypoints, angles, LLM recommendations | F-01, F-02, S-01 | FR-004, FR-005, FR-006, FR-007, US-01 | blocked  |
-| S-03 | fitting-results-display      | view fitting recommendations and body angles for a completed session               | F-01             | FR-008, US-01                         | in-progress |
-| S-04 | session-history-list         | browse all past fitting sessions and navigate to any completed result              | S-01, F-01       | FR-009                                | in-progress |
+| F-02 | async-job-pipeline           | (foundation) analysis jobs can be queued, executed, and their status tracked       | F-01             | NFR-async                             | done    |
+| S-01 | video-upload-and-status      | upload a short MP4 cycling video and see live processing status                    | F-01, F-02       | FR-001, FR-002, FR-003, US-01         | done  |
+| S-02 | ai-analysis-pipeline         | have uploaded video fully processed — pose keypoints, angles, LLM recommendations | F-01, F-02, S-01 | FR-004, FR-005, FR-006, FR-007, US-01 | done  |
+| S-03 | fitting-results-display      | view fitting recommendations and body angles for a completed session               | F-01             | FR-008, US-01                         | done |
+| S-04 | session-history-list         | browse all past fitting sessions and navigate to any completed result              | S-01, F-01       | FR-009                                | done |
 
 ## Streams
 
@@ -149,8 +149,8 @@ Foundations below assume these are present and do NOT re-scaffold them.
 | F-02       | async-job-pipeline           | Wire async analysis job queue and status tracking        | done                  | F-01 done; run `/10x-plan async-job-pipeline`                    |
 | S-01       | video-upload-and-status      | Build video upload flow with processing-status indicator | done                  | Blocked: resolve OQ-1 (min duration) and OQ-3 (tool) first      |
 | S-02       | ai-analysis-pipeline         | Integrate pose estimation + angle calc + LLM pipeline    | done                  | Blocked: resolve OQ-2 (reference ranges) and OQ-3 (tool) first  |
-| S-03       | fitting-results-display      | Build results display: recommendations + angles + ranges | yes                   | F-01 done; run `/10x-plan fitting-results-display`               |
-| S-04       | session-history-list         | Build session history list and navigation                | yes                   | Depends on S-01 completing                                       |
+| S-03       | fitting-results-display      | Build results display: recommendations + angles + ranges | done                   | F-01 done; run `/10x-plan fitting-results-display`               |
+| S-04       | session-history-list         | Build session history list and navigation                | done                   | Depends on S-01 completing                                       |
 
 ## Open Roadmap Questions
 
