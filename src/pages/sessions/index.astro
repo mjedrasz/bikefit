@@ -1,0 +1,80 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { createClient } from "@/lib/supabase";
+import { SESSION_STATUS_BADGE_BASE_CLASSNAME, SESSION_STATUS_META } from "@/lib/session-status";
+import type { FittingSession } from "@/types";
+
+type SessionRow = Pick<FittingSession, "id" | "video_filename" | "status" | "created_at">;
+
+const supabase = createClient(Astro.request.headers, Astro.cookies);
+
+let sessions: SessionRow[] = [];
+if (!supabase) {
+  Astro.response.status = 503;
+} else {
+  const { data } = await supabase
+    .from("fitting_sessions")
+    .select("id, video_filename, status, created_at")
+    .order("created_at", { ascending: false });
+  sessions = data ?? [];
+}
+
+const dateFormatter = new Intl.DateTimeFormat("en-US", {
+  dateStyle: "medium",
+  timeStyle: "short",
+});
+---
+
+<Layout title="Session history">
+  <div class="bg-cosmic flex min-h-screen flex-col items-center p-4 py-12">
+    <div class="mb-6 flex w-full max-w-2xl items-center justify-between">
+      <h1 class="text-xl font-semibold text-white">Session history</h1>
+      <a
+        href="/dashboard"
+        class="rounded-lg border border-white/20 bg-white/10 px-3 py-1.5 text-sm text-white transition-colors hover:bg-white/20"
+      >
+        Back to dashboard
+      </a>
+    </div>
+
+    <div class="w-full max-w-2xl">
+      {
+        !supabase ? (
+          <div class="rounded-2xl border border-white/10 bg-white/10 p-8 text-center text-white backdrop-blur-xl">
+            <p class="text-blue-100/70">Service unavailable — please try again later.</p>
+          </div>
+        ) : sessions.length === 0 ? (
+          <div class="rounded-2xl border border-white/10 bg-white/10 p-8 text-center text-white backdrop-blur-xl">
+            <p class="mb-4 text-blue-100/70">You haven't submitted any bike-fitting sessions yet.</p>
+            <a
+              href="/dashboard"
+              class="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium"
+            >
+              Upload a video
+            </a>
+          </div>
+        ) : (
+          <ul class="flex flex-col gap-3">
+            {sessions.map((session) => {
+              const { label, className } = SESSION_STATUS_META[session.status];
+              return (
+                <li>
+                  <a
+                    href={`/sessions/${session.id}`}
+                    class="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/10 p-4 text-white backdrop-blur-xl transition-colors hover:bg-white/20"
+                  >
+                    <div class="flex min-w-0 flex-col gap-1">
+                      <span class="truncate font-medium">{session.video_filename ?? "Untitled session"}</span>
+                      <span class="text-sm text-blue-100/70">{dateFormatter.format(new Date(session.created_at))}</span>
+                    </div>
+                    <span class:list={`${SESSION_STATUS_BADGE_BASE_CLASSNAME} ${className} shrink-0`}>{label}</span>
+                  </a>
+                </li>
+              );
+            })}
+          </ul>
+        )
+      }
+    </div>
+  </div>
+</Layout>

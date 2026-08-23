@@ -170,26 +170,26 @@ None — no schema changes; this is a pure read/query slice against the existing
 
 #### Automated
 
-- [x] 1.1 Type checking passes: `npx tsc --noEmit`
-- [x] 1.2 Linting passes: `npm run lint`
+- [x] 1.1 Type checking passes: `npx tsc --noEmit` — 09f58d0
+- [x] 1.2 Linting passes: `npm run lint` — 09f58d0
 
 #### Manual
 
-- [x] 1.3 Visiting `/sessions` while signed out redirects to `/auth/signin`
-- [x] 1.4 Visiting `/dashboard` while signed out still redirects to `/auth/signin` (no regression)
+- [x] 1.3 Visiting `/sessions` while signed out redirects to `/auth/signin` — 09f58d0
+- [x] 1.4 Visiting `/dashboard` while signed out still redirects to `/auth/signin` (no regression) — 09f58d0
 
 ### Phase 2: Session history list page
 
 #### Automated
 
-- [ ] 2.1 Type checking passes: `npx tsc --noEmit`
-- [ ] 2.2 Linting passes: `npm run lint`
+- [x] 2.1 Type checking passes: `npx tsc --noEmit`
+- [x] 2.2 Linting passes: `npm run lint`
 
 #### Manual
 
-- [ ] 2.3 A user with sessions in 2+ different statuses sees all of them listed newest-first, with filename, date, and status badge colors matching `VideoUpload.tsx`'s convention exactly
-- [ ] 2.4 Clicking any row navigates to `/sessions/<id>` (a 404 there is expected/acceptable until `fitting-results-display` ships)
-- [ ] 2.5 A user with zero sessions sees the empty state with a working link back to `/dashboard`
-- [ ] 2.6 A session with a `null` `video_filename` shows the fallback label instead of a blank
-- [ ] 2.7 `/dashboard` shows a working link to `/sessions`, and the existing sign-out flow still works unchanged
-- [ ] 2.8 A second test user's sessions never appear in the first user's list (RLS scoping holds)
+- [x] 2.3 A user with sessions in 2+ different statuses sees all of them listed newest-first, with filename, date, and status badge colors matching `VideoUpload.tsx`'s convention exactly
+- [x] 2.4 Clicking any row navigates to `/sessions/<id>` (a 404 there is expected/acceptable until `fitting-results-display` ships)
+- [x] 2.5 A user with zero sessions sees the empty state with a working link back to `/dashboard`
+- [x] 2.6 A session with a `null` `video_filename` shows the fallback label instead of a blank
+- [x] 2.7 `/dashboard` shows a working link to `/sessions`, and the existing sign-out flow still works unchanged
+- [x] 2.8 A second test user's sessions never appear in the first user's list (RLS scoping holds)
