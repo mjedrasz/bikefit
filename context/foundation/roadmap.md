@@ -34,7 +34,7 @@ Amateur cyclists who notice discomfort or wonder whether their position is effic
 | S-01 | video-upload-and-status      | upload a short MP4 cycling video and see live processing status                    | F-01, F-02       | FR-001, FR-002, FR-003, US-01         | blocked  |
 | S-02 | ai-analysis-pipeline         | have uploaded video fully processed — pose keypoints, angles, LLM recommendations | F-01, F-02, S-01 | FR-004, FR-005, FR-006, FR-007, US-01 | blocked  |
 | S-03 | fitting-results-display      | view fitting recommendations and body angles for a completed session               | F-01             | FR-008, US-01                         | ready    |
-| S-04 | session-history-list         | browse all past fitting sessions and navigate to any completed result              | S-01, F-01       | FR-009                                | proposed |
+| S-04 | session-history-list         | browse all past fitting sessions and navigate to any completed result              | S-01, F-01       | FR-009                                | in-progress |
 
 ## Streams
 
@@ -139,7 +139,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Lightweight slice once S-01 and F-01 are in place — it is a list query and navigation wrapper over data that already exists. Sequenced after S-01 because the history list is only meaningful when sessions are being created. Can be built in parallel with S-02 (the pipeline) once S-01 ships.
-- **Status:** proposed
+- **Status:** in-progress
 
 ## Backlog Handoff
 
