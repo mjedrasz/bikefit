@@ -156,8 +156,8 @@ None — no schema changes.
 
 #### Automated
 
-- [x] 1.1 TypeScript checks pass: `npx tsc --noEmit`
-- [x] 1.2 Lint passes: `npx eslint src/middleware.ts`
+- [x] 1.1 TypeScript checks pass: `npx tsc --noEmit` — efe5a4b
+- [x] 1.2 Lint passes: `npx eslint src/middleware.ts` — efe5a4b
 
 #### Manual
 

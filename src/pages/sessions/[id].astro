@@ -1,0 +1,119 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { createClient } from "@/lib/supabase";
+import type { AnalysisResult, FittingSession } from "@/types";
+
+const { id } = Astro.params;
+
+const supabase = createClient(Astro.request.headers, Astro.cookies);
+if (!supabase) {
+  return new Response("Service unavailable", { status: 503 });
+}
+
+const { data: sessionData } = await supabase
+  .from("fitting_sessions")
+  .select("id, status, error_message, video_filename, created_at")
+  .eq("id", id)
+  .single();
+
+if (!sessionData) {
+  return new Response(null, { status: 404 });
+}
+
+const session = sessionData as Pick<
+  FittingSession,
+  "id" | "status" | "error_message" | "video_filename" | "created_at"
+>;
+
+let results: Pick<AnalysisResult, "recommendations" | "body_angles"> | null = null;
+
+if (session.status === "completed") {
+  const { data: resultsData } = await supabase
+    .from("analysis_results")
+    .select("recommendations, body_angles")
+    .eq("session_id", session.id)
+    .single();
+  results = resultsData;
+}
+
+const bodyAngles =
+  results?.body_angles.map((angle) => ({
+    ...angle,
+    inRange: angle.value >= angle.reference_min && angle.value <= angle.reference_max,
+  })) ?? [];
+---
+
+<Layout title="Fitting results">
+  <div class="bg-cosmic flex min-h-screen flex-col items-center justify-center p-4">
+    <div class="mb-4 w-full max-w-2xl">
+      <a href="/dashboard" class="text-sm text-blue-100/70 hover:text-white">&larr; Back to dashboard</a>
+    </div>
+    <div class="w-full max-w-2xl rounded-2xl border border-white/10 bg-white/10 p-6 text-white backdrop-blur-xl">
+      {
+        session.status === "completed" && results && (
+          <div class="flex flex-col gap-8">
+            <h1 class="text-2xl font-semibold">Your fitting results</h1>
+
+            <section class="flex flex-col gap-4">
+              <h2 class="text-lg font-medium">Recommendations</h2>
+              <ul class="flex flex-col gap-4">
+                {results.recommendations.map((rec) => (
+                  <li class="rounded-xl border border-white/10 bg-white/5 p-4">
+                    <p class="font-medium">{rec.adjustment}</p>
+                    <p class="text-sm text-blue-100/70">{rec.rationale}</p>
+                  </li>
+                ))}
+              </ul>
+            </section>
+
+            <section class="flex flex-col gap-4">
+              <h2 class="text-lg font-medium">Body angles</h2>
+              <ul class="flex flex-col gap-3">
+                {bodyAngles.map((angle) => (
+                  <li class="flex items-center justify-between gap-4 rounded-xl border border-white/10 bg-white/5 p-4">
+                    <div>
+                      <p class="font-medium">{angle.name}</p>
+                      <p class="text-sm text-blue-100/70">
+                        {angle.value}
+                        {angle.unit} (reference: {angle.reference_min}&ndash;{angle.reference_max}
+                        {angle.unit})
+                      </p>
+                    </div>
+                    <span
+                      class:list={[
+                        "inline-flex shrink-0 items-center rounded-full px-3 py-1 text-sm font-medium",
+                        angle.inRange
+                          ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
+                          : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300",
+                      ]}
+                    >
+                      {angle.inRange ? "In range" : "Outside range"}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          </div>
+        )
+      }
+
+      {
+        (session.status === "queued" || session.status === "processing") && (
+          <div class="flex flex-col items-center gap-4 p-8 text-center">
+            <h1 class="text-xl font-semibold">Still processing</h1>
+            <p class="text-blue-100/70">Your analysis is still processing — check back soon.</p>
+          </div>
+        )
+      }
+
+      {
+        session.status === "failed" && (
+          <div class="flex flex-col items-center gap-4 p-8 text-center">
+            <h1 class="text-xl font-semibold">Analysis failed</h1>
+            <p class="text-destructive">{session.error_message}</p>
+          </div>
+        )
+      }
+    </div>
+  </div>
+</Layout>
