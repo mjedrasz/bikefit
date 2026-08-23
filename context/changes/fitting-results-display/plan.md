@@ -161,8 +161,8 @@ None — no schema changes.
 
 #### Manual
 
-- [ ] 1.3 Signed out, visiting `/sessions/00000000-0000-0000-0000-000000000000` redirects to `/auth/signin`
-- [ ] 1.4 Signed in, visiting the same URL does not redirect
+- [x] 1.3 Signed out, visiting `/sessions/00000000-0000-0000-0000-000000000000` redirects to `/auth/signin`
+- [x] 1.4 Signed in, visiting the same URL does not redirect
 
 ### Phase 2: Results page
 
