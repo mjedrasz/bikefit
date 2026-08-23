@@ -168,8 +168,8 @@ None — no schema changes.
 
 #### Automated
 
-- [x] 2.1 TypeScript checks pass: `npx tsc --noEmit`
-- [x] 2.2 Lint passes: `npx eslint src/pages/sessions/[id].astro`
+- [x] 2.1 TypeScript checks pass: `npx tsc --noEmit` — 49808b2
+- [x] 2.2 Lint passes: `npx eslint src/pages/sessions/[id].astro` — 49808b2
 
 #### Manual
 
