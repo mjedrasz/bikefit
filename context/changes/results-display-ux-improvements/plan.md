@@ -125,12 +125,12 @@ None — no schema, data, or API changes. Existing stored `body_angles` values a
 
 #### Automated
 
-- [x] 1.1 TypeScript checks pass: `npx tsc --noEmit`
-- [x] 1.2 Lint passes: `npx eslint src/lib/format-angle.ts src/pages/sessions/[id].astro`
+- [x] 1.1 TypeScript checks pass: `npx tsc --noEmit` — 7003965
+- [x] 1.2 Lint passes: `npx eslint src/lib/format-angle.ts src/pages/sessions/[id].astro` — 7003965
 
 #### Manual
 
-- [x] 1.3 Body angles render as whole-degree values with `°` instead of raw floating-point
-- [x] 1.4 Reference ranges render as whole-degree with `°`
-- [x] 1.5 In-range/out-of-range badge still matches the true (unrounded) measurement
-- [x] 1.6 Recommendations section renders unchanged
+- [x] 1.3 Body angles render as whole-degree values with `°` instead of raw floating-point — 7003965
+- [x] 1.4 Reference ranges render as whole-degree with `°` — 7003965
+- [x] 1.5 In-range/out-of-range badge still matches the true (unrounded) measurement — 7003965
+- [x] 1.6 Recommendations section renders unchanged — 7003965
