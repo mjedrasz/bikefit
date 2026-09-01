@@ -137,7 +137,7 @@ export async function analyzeVideo(videoBase64: string): Promise<{ timestamps: {
     throw new Error(`OpenRouter vision request failed: ${response.status} ${await response.text()}`);
   }
 
-  const data = (await response.json()) as { choices: { message: { content: string } }[] };
+  const data = (await response.json()) as { choices?: { message?: { content?: string } }[] };
   const content = data.choices?.[0]?.message?.content;
   if (!content) {
     throw new Error("OpenRouter returned no content for vision request");
@@ -193,7 +193,7 @@ export async function generateRecommendations(
     throw new Error(`OpenRouter text request failed: ${response.status} ${await response.text()}`);
   }
 
-  const data = (await response.json()) as { choices: { message: { content: string } }[] };
+  const data = (await response.json()) as { choices?: { message?: { content?: string } }[] };
   const content = data.choices?.[0]?.message?.content;
   if (!content) {
     throw new Error("OpenRouter returned no content for recommendations request");

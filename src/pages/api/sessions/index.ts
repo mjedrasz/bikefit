@@ -1,6 +1,7 @@
 import type { APIRoute } from "astro";
 import { createAdminClient } from "@/lib/services/supabase-admin";
 import { createSessionSchema } from "@/lib/schemas";
+import type { FittingSession } from "@/types";
 import { z } from "zod";
 
 export const prerender = false;
@@ -36,9 +37,10 @@ export const POST: APIRoute = async (context) => {
     .select("id, status")
     .single();
 
-  if (error || !data) {
+  if (error) {
     return Response.json({ error: "Failed to create session" }, { status: 500 });
   }
 
-  return Response.json({ id: data.id, status: data.status }, { status: 201 });
+  const session = data as Pick<FittingSession, "id" | "status">;
+  return Response.json({ id: session.id, status: session.status }, { status: 201 });
 };

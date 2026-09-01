@@ -130,7 +130,7 @@ function convertKeypoints(keypoints: poseDetection.Keypoint[]): PoseLandmark[] {
     .fill(null)
     .map(() => ({ x: 0, y: 0, z: 0, visibility: 0 }));
   for (const [tfIdx, mpIdx] of mapping) {
-    const kp = keypoints[tfIdx];
+    const kp = keypoints.at(tfIdx);
     if (kp) landmarks[mpIdx] = { x: kp.x, y: kp.y, z: 0, visibility: kp.score ?? 0 };
   }
   return landmarks;

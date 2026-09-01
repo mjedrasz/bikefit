@@ -26,9 +26,6 @@ export const POST: APIRoute = async (context) => {
     const result = await analyzeVideo(parsed.data.video);
     return Response.json(result);
   } catch (err) {
-    return Response.json(
-      { error: err instanceof Error ? err.message : "LLM call failed" },
-      { status: 500 }
-    );
+    return Response.json({ error: err instanceof Error ? err.message : "LLM call failed" }, { status: 500 });
   }
 };

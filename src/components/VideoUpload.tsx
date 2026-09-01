@@ -1,9 +1,7 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import VideoAnalyzer from "@/components/VideoAnalyzer";
 import type { SessionStatus } from "@/types";
-import { SESSION_STATUS_BADGE_BASE_CLASSNAME, SESSION_STATUS_META } from "@/lib/session-status";
 
 type AppState =
   | { kind: "idle" }
@@ -11,18 +9,12 @@ type AppState =
   | { kind: "error"; message: string }
   | { kind: "creating" }
   | { kind: "analyzing"; sessionId: string; file: File }
-  | { kind: "polling"; sessionId: string; status: SessionStatus }
   | { kind: "completed"; sessionId: string }
   | { kind: "failed"; errorMessage: string | null };
 
 interface CreateSessionResponse {
   id: string;
   status: SessionStatus;
-}
-
-interface PollResponse {
-  status: SessionStatus;
-  error_message?: string | null;
 }
 
 interface ErrorResponse {
@@ -32,8 +24,6 @@ interface ErrorResponse {
 const MAX_SIZE = 104_857_600;
 const MIN_DURATION = 2;
 const MAX_DURATION = 15;
-const POLL_INTERVAL_MS = 3000;
-const MAX_CONSECUTIVE_ERRORS = 5;
 
 function extractDuration(file: File): Promise<number> {
   return new Promise((resolve, reject) => {
@@ -53,64 +43,9 @@ function extractDuration(file: File): Promise<number> {
   });
 }
 
-function StatusBadge({ status }: { status: SessionStatus }) {
-  const { label, className } = SESSION_STATUS_META[status];
-  return <span className={cn(SESSION_STATUS_BADGE_BASE_CLASSNAME, className)}>{label}</span>;
-}
-
 export default function VideoUpload() {
   const [state, setState] = useState<AppState>({ kind: "idle" });
   const inputRef = useRef<HTMLInputElement>(null);
-  const fileRef = useRef<File | null>(null);
-  const intervalRef = useRef<number | null>(null);
-  const consecutiveErrorsRef = useRef(0);
-
-  const stopPolling = useCallback(() => {
-    if (intervalRef.current !== null) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      stopPolling();
-    };
-  }, [stopPolling]);
-
-  function startPolling(sessionId: string) {
-    consecutiveErrorsRef.current = 0;
-
-    async function poll() {
-      try {
-        const res = await fetch(`/api/sessions/${sessionId}`);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = (await res.json()) as PollResponse;
-        consecutiveErrorsRef.current = 0;
-        const { status } = data;
-        if (status === "completed") {
-          stopPolling();
-          setState({ kind: "completed", sessionId });
-        } else if (status === "failed") {
-          stopPolling();
-          setState({ kind: "failed", errorMessage: data.error_message ?? null });
-        } else {
-          setState({ kind: "polling", sessionId, status });
-        }
-      } catch (err) {
-        console.error("Poll error:", err);
-        consecutiveErrorsRef.current += 1;
-        if (consecutiveErrorsRef.current >= MAX_CONSECUTIVE_ERRORS) {
-          stopPolling();
-          setState({ kind: "error", message: "Connection lost — please refresh" });
-        }
-      }
-    }
-
-    intervalRef.current = window.setInterval(() => {
-      void poll();
-    }, POLL_INTERVAL_MS);
-  }
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -130,7 +65,6 @@ export default function VideoUpload() {
     let duration: number;
     try {
       duration = await extractDuration(file);
-      fileRef.current = file;
     } catch {
       setState({ kind: "error", message: "Could not read video duration" });
       return;
@@ -165,11 +99,10 @@ export default function VideoUpload() {
       return;
     }
 
-    setState({ kind: "analyzing", sessionId, file: fileRef.current! });
+    setState({ kind: "analyzing", sessionId, file });
   }
 
   function handleReset() {
-    stopPolling();
     setState({ kind: "idle" });
   }
 
@@ -178,19 +111,13 @@ export default function VideoUpload() {
       <VideoAnalyzer
         sessionId={state.sessionId}
         file={state.file}
-        onComplete={(sessionId) => setState({ kind: "completed", sessionId })}
-        onError={(msg) => setState({ kind: "failed", errorMessage: msg })}
+        onComplete={(sessionId) => {
+          setState({ kind: "completed", sessionId });
+        }}
+        onError={(msg) => {
+          setState({ kind: "failed", errorMessage: msg });
+        }}
       />
-    );
-  }
-
-  if (state.kind === "polling") {
-    return (
-      <div className="flex flex-col items-center gap-4 p-8">
-        <h2 className="text-xl font-semibold">Analysing your video</h2>
-        <StatusBadge status={state.status} />
-        <p className="text-muted-foreground text-sm">Checking for updates every few seconds…</p>
-      </div>
     );
   }
 
@@ -201,7 +128,7 @@ export default function VideoUpload() {
         <p className="text-muted-foreground text-sm">Your bike fit analysis is ready.</p>
         <a
           href={"/sessions/" + state.sessionId}
-          className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+          className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium"
         >
           View fitting recommendations
         </a>

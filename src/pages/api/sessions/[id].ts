@@ -25,5 +25,9 @@ export const GET: APIRoute = async (context) => {
   }
 
   const session = data as Pick<FittingSession, "status" | "updated_at" | "error_message">;
-  return Response.json({ status: session.status, updated_at: session.updated_at, error_message: session.error_message });
+  return Response.json({
+    status: session.status,
+    updated_at: session.updated_at,
+    error_message: session.error_message,
+  });
 };

@@ -61,6 +61,15 @@ const reactConfig = tseslint.config({
 
 const astroConfig = tseslint.config({
   files: ["**/*.astro"],
+  languageOptions: {
+    parserOptions: {
+      // baseConfig applies `projectService: true` to every file, but astro-eslint-parser
+      // doesn't support it and warns once per .astro file before falling back to `project: true`.
+      // Set the fallback explicitly here to silence the warning while keeping type-aware linting.
+      projectService: false,
+      project: true,
+    },
+  },
   rules: {
     "astro/no-set-html-directive": "error",
     "astro/no-unused-css-selector": "warn",
