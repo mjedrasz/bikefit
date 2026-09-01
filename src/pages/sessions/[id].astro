@@ -1,5 +1,6 @@
 ---
 import Layout from "@/layouts/Layout.astro";
+import { formatAngle } from "@/lib/format-angle";
 import { createClient } from "@/lib/supabase";
 import type { AnalysisResult, FittingSession } from "@/types";
 
@@ -74,9 +75,8 @@ const bodyAngles =
                     <div>
                       <p class="font-medium">{angle.name}</p>
                       <p class="text-sm text-blue-100/70">
-                        {angle.value}
-                        {angle.unit} (reference: {angle.reference_min}&ndash;{angle.reference_max}
-                        {angle.unit})
+                        {formatAngle(angle.value)}&deg; (reference: {formatAngle(angle.reference_min)}&ndash;
+                        {formatAngle(angle.reference_max)}&deg;)
                       </p>
                     </div>
                     <span
