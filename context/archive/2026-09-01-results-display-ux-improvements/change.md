@@ -1,10 +1,10 @@
 ---
 change_id: results-display-ux-improvements
 title: Round over-precise body angles in results display
-status: implemented
+status: archived
 created: 2026-09-01
 updated: 2026-09-01
-archived_at: null
+archived_at: 2026-09-01T16:29:19Z
 ---
 
 ## Notes
