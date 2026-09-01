@@ -3,7 +3,7 @@ project: "BikeFit"
 version: 1
 status: draft
 created: 2026-05-26
-updated: 2026-08-23
+updated: 2026-09-01
 prd_version: 1
 main_goal: market-feedback
 top_blocker: decisions
@@ -35,6 +35,7 @@ Amateur cyclists who notice discomfort or wonder whether their position is effic
 | S-02 | ai-analysis-pipeline         | have uploaded video fully processed — pose keypoints, angles, LLM recommendations | F-01, F-02, S-01 | FR-004, FR-005, FR-006, FR-007, US-01 | done  |
 | S-03 | fitting-results-display      | view fitting recommendations and body angles for a completed session               | F-01             | FR-008, US-01                         | done |
 | S-04 | session-history-list         | browse all past fitting sessions and navigate to any completed result              | S-01, F-01       | FR-009                                | done |
+| S-05 | results-display-ux-improvements | see body angles rounded to a readable precision instead of raw floating-point values | S-03              | FR-008                                | not started |
 
 ## Streams
 
@@ -43,7 +44,7 @@ Navigation aid — groups items that share a Prerequisites chain. Canonical orde
 | Stream | Theme                  | Chain                              | Note                                                                                      |
 | ------ | ---------------------- | ---------------------------------- | ----------------------------------------------------------------------------------------- |
 | A      | Core analysis pipeline | `F-01` → `F-02` → `S-01` → `S-02` | North star lives at S-02; entire analysis path flows here; blocked by 3 open decisions    |
-| B      | Results display        | `S-03`                             | Branches from Stream A at F-01; parallel with F-02, S-01, S-02 — build with mock data while pipeline is unblocked |
+| B      | Results display        | `S-03` → `S-05`                    | Branches from Stream A at F-01; parallel with F-02, S-01, S-02 — build with mock data while pipeline is unblocked; S-05 polishes the display once S-03 ships |
 | C      | Session history        | `S-04`                             | Branches from Stream A at S-01; parallel with S-02 — opens once video upload is working  |
 
 ## Baseline
@@ -141,6 +142,19 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Risk:** Lightweight slice once S-01 and F-01 are in place — it is a list query and navigation wrapper over data that already exists. Sequenced after S-01 because the history list is only meaningful when sessions are being created. Can be built in parallel with S-02 (the pipeline) once S-01 ships.
 - **Status:** in-progress
 
+### S-05: UX improvements
+
+- **Outcome:** user sees body angles displayed with a readable, consistent precision (e.g., rounded to the nearest whole degree) instead of raw floating-point values like `120.36403496308388 degrees`.
+- **Change ID:** results-display-ux-improvements
+- **PRD refs:** FR-008 (recommendations in plain language with angles and reference ranges for context — precision is part of "plain language")
+- **Prerequisites:** S-03
+- **Parallel with:** S-04
+- **Blockers:** —
+- **Unknowns:**
+  - What rounding precision reads best (whole degree vs. one decimal)? — Owner: user. Block: no. (Cosmetic choice; default to whole-degree rounding and adjust from user feedback.)
+- **Risk:** Surfaced during S-03 implementation — unrounded floating-point angles undermine the plain-language readability FR-008 calls for. Low risk: display-only formatting change over an already-built component, no schema or pipeline impact.
+- **Status:** not started
+
 ## Backlog Handoff
 
 | Roadmap ID | Change ID                    | Suggested issue title                                    | Ready for `/10x-plan` | Notes                                                            |
@@ -151,6 +165,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 | S-02       | ai-analysis-pipeline         | Integrate pose estimation + angle calc + LLM pipeline    | done                  | Blocked: resolve OQ-2 (reference ranges) and OQ-3 (tool) first  |
 | S-03       | fitting-results-display      | Build results display: recommendations + angles + ranges | done                   | F-01 done; run `/10x-plan fitting-results-display`               |
 | S-04       | session-history-list         | Build session history list and navigation                | done                   | Depends on S-01 completing                                       |
+| S-05       | results-display-ux-improvements | Round over-precise body angle values in results display  | no                     | Depends on S-03 completing; run `/10x-new results-display-ux-improvements` once ready |
 
 ## Open Roadmap Questions
 
