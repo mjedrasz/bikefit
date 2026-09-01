@@ -35,7 +35,7 @@ Amateur cyclists who notice discomfort or wonder whether their position is effic
 | S-02 | ai-analysis-pipeline         | have uploaded video fully processed — pose keypoints, angles, LLM recommendations | F-01, F-02, S-01 | FR-004, FR-005, FR-006, FR-007, US-01 | done  |
 | S-03 | fitting-results-display      | view fitting recommendations and body angles for a completed session               | F-01             | FR-008, US-01                         | done |
 | S-04 | session-history-list         | browse all past fitting sessions and navigate to any completed result              | S-01, F-01       | FR-009                                | done |
-| S-05 | results-display-ux-improvements | see body angles rounded to a readable precision instead of raw floating-point values | S-03              | FR-008                                | not started |
+| S-05 | results-display-ux-improvements | see body angles rounded to a readable precision instead of raw floating-point values | S-03              | FR-008                                | done |
 
 ## Streams
 
@@ -85,7 +85,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Sequenced second because both S-01 and S-02 depend on the job queue contract; choosing the wrong async primitive (e.g., Supabase Edge Function with polling vs. Cloudflare Queues) couples tightly into the upload and pipeline designs. Resolve the queue mechanism here before either downstream slice starts.
-- **Status:** ready
+- **Status:** done
 
 ## Slices
 
@@ -101,7 +101,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
   - What is the minimum video duration for reliable angle extraction? — Owner: user. Block: yes. (Affects the file-validation logic in FR-003; the current 10s cap is arbitrary and must be grounded in the chosen tool's accuracy requirements before upload validation can be implemented.)
   - Which pose estimation tool/API will be used? — Owner: user. Block: yes. (The upload endpoint must route the video file to the chosen service; input format requirements and API call shape differ per tool, so this can't be implemented blind.)
 - **Risk:** First user-facing slice on the critical analysis path; the upload flow must be solid before the pipeline in S-02 can be meaningfully tested end-to-end. The tool-selection unknown gates both the routing logic and the duration validation — don't begin implementation until OQ-3 is resolved.
-- **Status:** blocked
+- **Status:** done
 
 ### S-02: AI analysis pipeline
 
@@ -115,7 +115,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
   - Which gravel bike angle reference ranges are authoritative? — Owner: user. Block: yes. (The LLM prompt must embed domain reference ranges; without them recommendations cannot be validated against the ±10° success criterion or the reference-range success criterion. Source from bike fitting literature or certified fitter consultation before implementation.)
   - Which pose estimation tool/API will be used? — Owner: user. Block: yes. (Pipeline integration, input/output format, latency budget, and accuracy on side-view cycling video all depend on which service is chosen. Must be validated on cycling footage before committing, as training data typically covers standing/walking poses.)
 - **Risk:** This is the north star slice — the product's core hypothesis lives here. Both blocking unknowns must be resolved before implementation begins. LLM hallucination risk is mitigated by embedding reference ranges in the prompt (per PRD §Business Logic), but that mitigation only activates once OQ-2 is resolved.
-- **Status:** blocked
+- **Status:** done
 
 ### S-03: Fitting results display
 
@@ -128,7 +128,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Unknowns:**
   - Which body angles will be surfaced alongside recommendations? — Owner: system (emerges from LLM output at runtime). Block: no. (The set of angles shown is determined by the LLM response per PRD §FR-006 rationale; the display component must handle a variable list rather than a fixed schema. Non-blocking: design the component to render whatever the LLM returns.)
 - **Risk:** Lightest-prerequisite slice in the roadmap — depends only on F-01 (schema types). Building against mock data while the pipeline is blocked allows early UI validation and reduces integration risk when S-02 lands. The variable-angle display is a mild design consideration, not a blocker.
-- **Status:** in-progress
+- **Status:** done
 
 ### S-04: Session history list
 
@@ -140,7 +140,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Lightweight slice once S-01 and F-01 are in place — it is a list query and navigation wrapper over data that already exists. Sequenced after S-01 because the history list is only meaningful when sessions are being created. Can be built in parallel with S-02 (the pipeline) once S-01 ships.
-- **Status:** in-progress
+- **Status:** done
 
 ### S-05: UX improvements
 
@@ -153,7 +153,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Unknowns:**
   - What rounding precision reads best (whole degree vs. one decimal)? — Owner: user. Block: no. (Cosmetic choice; default to whole-degree rounding and adjust from user feedback.)
 - **Risk:** Surfaced during S-03 implementation — unrounded floating-point angles undermine the plain-language readability FR-008 calls for. Low risk: display-only formatting change over an already-built component, no schema or pipeline impact.
-- **Status:** not started
+- **Status:** done
 
 ## Backlog Handoff
 
@@ -188,4 +188,10 @@ Foundations below assume these are present and do NOT re-scaffold them.
 
 ## Done
 
-(Empty on first generation. `/10x-archive` appends an entry here — and flips that item's `Status` to `done` — when a change whose `Change ID` matches the item is archived.)
+- **F-01: (foundation) session and result tables exist; schema enforces no-raw-video privacy** — Archived 2026-09-01 → `context/archive/2026-05-26-db-schema-and-privacy-design/`. Lesson: —.
+- **F-02: (foundation) analysis jobs can be queued, executed, and their status tracked** — Archived 2026-09-01 → `context/archive/2026-05-31-async-job-pipeline/`. Lesson: —.
+- **S-01: upload a short MP4 cycling video and see live processing status** — Archived 2026-09-01 → `context/archive/2026-06-04-video-upload-and-status/`. Lesson: —.
+- **S-02: have uploaded video fully processed — pose keypoints, angles, LLM recommendations** — Archived 2026-09-01 → `context/archive/2026-05-28-ai-analysis-pipeline/`. Lesson: —.
+- **S-03: view fitting recommendations and body angles for a completed session** — Archived 2026-09-01 → `context/archive/2026-08-23-fitting-results-display/`. Lesson: —.
+- **S-04: browse all past fitting sessions and navigate to any completed result** — Archived 2026-09-01 → `context/archive/2026-08-23-session-history-list/`. Lesson: —.
+- **S-05: see body angles rounded to a readable precision instead of raw floating-point values** — Archived 2026-09-01 → `context/archive/2026-09-01-results-display-ux-improvements/`. Lesson: —.
