@@ -150,8 +150,10 @@ runner's `include` is further narrowed to `src/**/*.{test,spec}.ts` so
 
 **Run command.** `npm test` (→ `vitest run`, one-shot) or `npm run
 test:watch` (→ `vitest`, re-runs on save). `npm test` is self-contained
-from a fresh checkout — `pretest` runs `astro sync` so the `astro:env`
-virtual module resolves.
+from a fresh checkout with **no `pretest` step** — nothing in the
+unit-test graph imports the `astro:env` virtual module, so `astro sync` /
+a populated `.astro/` is not required (`rm -rf .astro && npm test` is
+green).
 
 **Environment.** `environment: "node"` — Astro 6 removed rendering Astro
 components in client (`jsdom` / `happy-dom`) Vitest environments, and every
@@ -159,6 +161,16 @@ pure helper operates on plain objects, so `node` is both required and
 sufficient. No DOM. The I/O helpers (`seekTo`, `loadVideoElement`,
 `detectPoseAt`, …) are **not** unit-tested here — that needs a DOM env and
 is a later rollout phase.
+
+**Config.** `vitest.config.ts` is a plain `defineConfig` from
+`vitest/config` that re-declares only the `@/*` path alias from
+`tsconfig.json`. It does **not** use `getViteConfig` from `astro/config`
+(what §4's Stack table still names): `getViteConfig` drags the full Astro
+build pipeline — including the Cloudflare adapter, incompatible with
+Vitest's `ssr` environment — into every run, and the pure-logic suite
+needs none of it. If a later rollout phase needs `astro:env`, a DOM
+global, or the plugin chain in tests, revisit this and refresh §4
+(`/10x-test-plan --refresh`).
 
 **The canonical reference test — the oracle rule.** For the joint-angle /
 keypoint-mapping pattern: construct keypoint fixtures, call the pure

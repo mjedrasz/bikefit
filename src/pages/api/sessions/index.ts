@@ -37,10 +37,14 @@ export const POST: APIRoute = async (context) => {
     .select("id, status")
     .single();
 
-  if (error) {
+  // supabase-js infers `data` as `null` for a string `.select()` on the admin client, so the
+  // insert's returned row comes back through `unknown` — keep the `!row` guard so a null result
+  // degrades to a clean 500 instead of throwing on `session.id`.
+  const row: unknown = data;
+  if (error || !row) {
     return Response.json({ error: "Failed to create session" }, { status: 500 });
   }
 
-  const session = data as Pick<FittingSession, "id" | "status">;
+  const session = row as Pick<FittingSession, "id" | "status">;
   return Response.json({ id: session.id, status: session.status }, { status: 201 });
 };

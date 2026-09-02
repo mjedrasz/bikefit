@@ -120,6 +120,16 @@ only. CI runs `lint` + `build`. `@astrojs/check` is installed but never invoked.
 - `getViteConfig()` from `astro/config` is the current documented Vitest integration
   (Astro docs, verified 2026-09-01); a second arg allows Astro-config overrides
   (Astro 4.8+).
+- **Deviation from plan Phase 1 #2 / plan-review F4 (shipped in `87d26b3`).**
+  `vitest.config.ts` uses a plain `defineConfig` from `vitest/config` with a
+  hand-declared `@/*` alias, **not** `getViteConfig`, and there is **no
+  `"pretest": "astro sync"`** script. Reason: `getViteConfig` pulls the full Astro
+  build pipeline — incl. the Cloudflare adapter, incompatible with Vitest's `ssr`
+  environment — into every run, and nothing in the pure-logic unit graph touches
+  `astro:env`, so the sync step is unnecessary (`rm -rf .astro && npm test` is green).
+  Progress step 1.2's "`pretest` runs `astro sync`" wording is stale in the same way.
+  `test-plan.md` §6.1 was corrected to match; §4's `getViteConfig` Stack row is frozen
+  and left for `/10x-test-plan --refresh` alongside the DOM-env row.
 - **Astro 6 removed rendering Astro components in Vitest client environments** (`jsdom` /
   `happy-dom`); tests must use `environment: 'node'`. The Phase 1 pure helpers operate on
   plain objects and need no DOM regardless — so `node` is both required and sufficient.
@@ -781,6 +791,31 @@ output for **left-facing videos only** — historical `analysis_results` rows fo
 left-facing clips retain their wrong stored torso value (the app does not recompute
 persisted results). This is acceptable for MVP: no backfill, and the wrong historical
 values were already user-visible. Note it in the phase-5 §6.6 entry.
+
+## Addendum — Out-of-Plan Changes During Rollout
+
+Recorded after the fact (impl-review F2) so a later review does not re-flag these as
+untracked drift.
+
+- **`23c0413` "fix lint errors" — pre-existing lint debt swept up to clear Phase 1's
+  "`npm run lint` passes" criterion.** Seven files outside this plan's change set:
+  - `src/lib/services/llm.ts` — response type widened `choices` → `choices?`
+    (`{ message?: { content?: string } }[]`), a defensive narrowing only. This touches a
+    file "What We're NOT Doing" said stays untouched; the prompt-embedded range copies were
+    **not** changed, so that exclusion's intent (no de-dup work) still holds.
+  - `src/components/VideoUpload.tsx` — ~91 lines of already-dead polling machinery removed
+    (`polling` state, `startPolling` — defined once, never called on master —, `StatusBadge`,
+    retry refs). Dead before this change; no behaviour lost.
+  - `eslint.config.js` — `parserOptions` block added to the `.astro` override
+    (`projectService: false` + `project: true`) to silence a per-file astro-parser warning.
+    Plan Phase 1 #4 predicted "verify only — likely no change"; the change is config-only.
+  - `src/pages/api/analyze.ts`, `src/pages/api/sessions/[id].ts`,
+    `src/components/VideoAnalyzer.tsx` — prettier reflow only.
+  - `src/pages/api/sessions/index.ts` — a `!data` runtime guard was dropped here (impl-review
+    F4); restored in the review follow-up (via an `unknown` intermediate so the null-guard
+    stays lint-clean under `strictTypeChecked`).
+- **Going forward:** unrelated lint-debt cleanups belong on their own commit / PR, not folded
+  into a feature branch under a terse message.
 
 ## References
 
