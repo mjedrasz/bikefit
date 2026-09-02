@@ -1,7 +1,7 @@
 ---
 change_id: testing-angle-correctness
 title: Test harness bootstrap + joint-angle correctness (test-plan rollout Phase 1)
-status: implementing
+status: implemented
 created: 2026-09-01
 updated: 2026-09-02
 archived_at: null

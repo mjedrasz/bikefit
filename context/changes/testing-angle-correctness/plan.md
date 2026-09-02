@@ -867,14 +867,14 @@ values were already user-visible. Note it in the phase-5 §6.6 entry.
 
 #### Automated
 
-- [x] 5.1 `npm test` green (full suite)
-- [x] 5.2 `npm run lint` passes
-- [x] 5.3 `npx tsc --noEmit` passes
-- [x] 5.4 `npm run build` passes
-- [x] 5.5 `test-plan.md` §6.1 and §6.6 no longer contain "TBD — see §3 Phase 1"
-- [x] 5.6 `context/changes/resolve-angle-reference-bands/change.md` exists and `roadmap.md` OQ-2 points at it
+- [x] 5.1 `npm test` green (full suite) — acf86e2
+- [x] 5.2 `npm run lint` passes — acf86e2
+- [x] 5.3 `npx tsc --noEmit` passes — acf86e2
+- [x] 5.4 `npm run build` passes — acf86e2
+- [x] 5.5 `test-plan.md` §6.1 and §6.6 no longer contain "TBD — see §3 Phase 1" — acf86e2
+- [x] 5.6 `context/changes/resolve-angle-reference-bands/change.md` exists and `roadmap.md` OQ-2 points at it — acf86e2
 
 #### Manual
 
-- [x] 5.7 A reader can follow §6.1 to add a pure-logic unit test unaided
-- [x] 5.8 §7 reflects the team's actual belief about the deviations
+- [x] 5.7 A reader can follow §6.1 to add a pure-logic unit test unaided — acf86e2
+- [x] 5.8 §7 reflects the team's actual belief about the deviations — acf86e2
