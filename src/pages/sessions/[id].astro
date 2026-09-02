@@ -1,5 +1,6 @@
 ---
 import Layout from "@/layouts/Layout.astro";
+import { angleVerdict } from "@/lib/angle-verdict";
 import { formatAngle } from "@/lib/format-angle";
 import { createClient } from "@/lib/supabase";
 import type { AnalysisResult, FittingSession } from "@/types";
@@ -40,7 +41,7 @@ if (session.status === "completed") {
 const bodyAngles =
   results?.body_angles.map((angle) => ({
     ...angle,
-    inRange: angle.value >= angle.reference_min && angle.value <= angle.reference_max,
+    inRange: angleVerdict(angle.value, angle.reference_min, angle.reference_max),
   })) ?? [];
 ---
 

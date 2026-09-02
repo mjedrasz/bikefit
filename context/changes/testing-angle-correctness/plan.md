@@ -838,30 +838,30 @@ values were already user-visible. Note it in the phase-5 §6.6 entry.
 
 #### Automated
 
-- [x] 3.1 `npm test` green — all `angles.test.ts` cases pass (torso after the fix)
-- [x] 3.2 Reverting only the torso fix fails every left-facing torso assertion (no right-facing one), then re-applied
-- [x] 3.3 `npx tsc --noEmit` passes
-- [x] 3.4 `npm run lint` passes
-- [x] 3.5 `npm run build` passes
+- [x] 3.1 `npm test` green — all `angles.test.ts` cases pass (torso after the fix) — b7267fb
+- [x] 3.2 Reverting only the torso fix fails every left-facing torso assertion (no right-facing one), then re-applied — b7267fb
+- [x] 3.3 `npx tsc --noEmit` passes — b7267fb
+- [x] 3.4 `npm run lint` passes — b7267fb
+- [x] 3.5 `npm run build` passes — b7267fb
 
 #### Manual
 
-- [x] 3.6 Left-facing clip: torso angle now plausible (~45–55°) instead of ~125–135°
-- [x] 3.7 Right-facing clip: torso angle unchanged from before the fix
-- [x] 3.8 The other four angles unchanged for both clips
+- [x] 3.6 Left-facing clip: torso angle now plausible (~45–55°) instead of ~125–135° — b7267fb
+- [x] 3.7 Right-facing clip: torso angle unchanged from before the fix — b7267fb
+- [x] 3.8 The other four angles unchanged for both clips — b7267fb
 
 ### Phase 4: Verdict Helper Extraction + Specs
 
 #### Automated
 
-- [ ] 4.1 `npm test` green — all `angle-verdict.test.ts` cases pass
-- [ ] 4.2 `npx tsc --noEmit` passes
-- [ ] 4.3 `npm run lint` passes
-- [ ] 4.4 `npm run build` passes
+- [x] 4.1 `npm test` green — all `angle-verdict.test.ts` cases pass
+- [x] 4.2 `npx tsc --noEmit` passes
+- [x] 4.3 `npm run lint` passes
+- [x] 4.4 `npm run build` passes
 
 #### Manual
 
-- [ ] 4.5 Results page renders the same pills and numbers as before the extraction
+- [x] 4.5 Results page renders the same pills and numbers as before the extraction
 
 ### Phase 5: Cookbook + Negative-Space Update
 
