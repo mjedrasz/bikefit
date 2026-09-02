@@ -854,27 +854,27 @@ values were already user-visible. Note it in the phase-5 §6.6 entry.
 
 #### Automated
 
-- [x] 4.1 `npm test` green — all `angle-verdict.test.ts` cases pass
-- [x] 4.2 `npx tsc --noEmit` passes
-- [x] 4.3 `npm run lint` passes
-- [x] 4.4 `npm run build` passes
+- [x] 4.1 `npm test` green — all `angle-verdict.test.ts` cases pass — 02b81bc
+- [x] 4.2 `npx tsc --noEmit` passes — 02b81bc
+- [x] 4.3 `npm run lint` passes — 02b81bc
+- [x] 4.4 `npm run build` passes — 02b81bc
 
 #### Manual
 
-- [x] 4.5 Results page renders the same pills and numbers as before the extraction
+- [x] 4.5 Results page renders the same pills and numbers as before the extraction — 02b81bc
 
 ### Phase 5: Cookbook + Negative-Space Update
 
 #### Automated
 
-- [ ] 5.1 `npm test` green (full suite)
-- [ ] 5.2 `npm run lint` passes
-- [ ] 5.3 `npx tsc --noEmit` passes
-- [ ] 5.4 `npm run build` passes
-- [ ] 5.5 `test-plan.md` §6.1 and §6.6 no longer contain "TBD — see §3 Phase 1"
-- [ ] 5.6 `context/changes/resolve-angle-reference-bands/change.md` exists and `roadmap.md` OQ-2 points at it
+- [x] 5.1 `npm test` green (full suite)
+- [x] 5.2 `npm run lint` passes
+- [x] 5.3 `npx tsc --noEmit` passes
+- [x] 5.4 `npm run build` passes
+- [x] 5.5 `test-plan.md` §6.1 and §6.6 no longer contain "TBD — see §3 Phase 1"
+- [x] 5.6 `context/changes/resolve-angle-reference-bands/change.md` exists and `roadmap.md` OQ-2 points at it
 
 #### Manual
 
-- [ ] 5.7 A reader can follow §6.1 to add a pure-logic unit test unaided
-- [ ] 5.8 §7 reflects the team's actual belief about the deviations
+- [x] 5.7 A reader can follow §6.1 to add a pure-logic unit test unaided
+- [x] 5.8 §7 reflects the team's actual belief about the deviations
