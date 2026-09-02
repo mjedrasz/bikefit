@@ -3,7 +3,7 @@ project: "BikeFit"
 version: 1
 status: draft
 created: 2026-05-26
-updated: 2026-09-01
+updated: 2026-09-02
 prd_version: 1
 main_goal: market-feedback
 top_blocker: decisions
@@ -36,6 +36,7 @@ Amateur cyclists who notice discomfort or wonder whether their position is effic
 | S-03 | fitting-results-display      | view fitting recommendations and body angles for a completed session               | F-01             | FR-008, US-01                         | done |
 | S-04 | session-history-list         | browse all past fitting sessions and navigate to any completed result              | S-01, F-01       | FR-009                                | done |
 | S-05 | results-display-ux-improvements | see body angles rounded to a readable precision instead of raw floating-point values | S-03              | FR-008                                | done |
+| S-06 | delete-session               | delete a selected past fitting session they own                                    | S-04             | FR-009, Access Control               | backlog |
 
 ## Streams
 
@@ -45,7 +46,7 @@ Navigation aid — groups items that share a Prerequisites chain. Canonical orde
 | ------ | ---------------------- | ---------------------------------- | ----------------------------------------------------------------------------------------- |
 | A      | Core analysis pipeline | `F-01` → `F-02` → `S-01` → `S-02` | North star lives at S-02; entire analysis path flows here; blocked by 3 open decisions    |
 | B      | Results display        | `S-03` → `S-05`                    | Branches from Stream A at F-01; parallel with F-02, S-01, S-02 — build with mock data while pipeline is unblocked; S-05 polishes the display once S-03 ships |
-| C      | Session history        | `S-04`                             | Branches from Stream A at S-01; parallel with S-02 — opens once video upload is working  |
+| C      | Session history        | `S-04` → `S-06`                    | Branches from Stream A at S-01; opens once video upload is working; S-06 (delete a session) extends the history view once S-04 ships |
 
 ## Baseline
 
@@ -155,6 +156,19 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Risk:** Surfaced during S-03 implementation — unrounded floating-point angles undermine the plain-language readability FR-008 calls for. Low risk: display-only formatting change over an already-built component, no schema or pipeline impact.
 - **Status:** done
 
+### S-06: Remove session
+
+- **Outcome:** user can delete a selected past fitting session from their history; the deleted session and its result data disappear from the history list and are no longer retrievable. A user can delete only their own sessions.
+- **Change ID:** delete-session
+- **PRD refs:** FR-009 (managing the past-sessions view), Access Control (session history is tied to the user account — ownership is enforced on delete)
+- **Prerequisites:** S-04
+- **Parallel with:** —
+- **Blockers:** —
+- **Unknowns:**
+  - Hard delete or soft delete (retain a tombstone row)? — Owner: user. Block: no. (Default to hard delete — the process-and-discard privacy posture extends to user-initiated removal; revisit only if history analytics need a trail.)
+- **Risk:** Lightweight slice over data and a list view that already exist once S-04 ships — a delete endpoint plus a confirm action in the history UI. The one real correctness concern is the ownership check: a user must never delete another user's session, so the delete must be scoped to the authenticated user and enforced by RLS, not just the UI.
+- **Status:** backlog
+
 ## Backlog Handoff
 
 | Roadmap ID | Change ID                    | Suggested issue title                                    | Ready for `/10x-plan` | Notes                                                            |
@@ -166,12 +180,13 @@ Foundations below assume these are present and do NOT re-scaffold them.
 | S-03       | fitting-results-display      | Build results display: recommendations + angles + ranges | done                   | F-01 done; run `/10x-plan fitting-results-display`               |
 | S-04       | session-history-list         | Build session history list and navigation                | done                   | Depends on S-01 completing                                       |
 | S-05       | results-display-ux-improvements | Round over-precise body angle values in results display  | no                     | Depends on S-03 completing; run `/10x-new results-display-ux-improvements` once ready |
+| S-06       | delete-session               | Let users delete their own past fitting sessions         | yes                   | S-04 done; run `/10x-new delete-session` to open the change     |
 
 ## Open Roadmap Questions
 
 1. **What is the minimum video duration for reliable angle extraction?** The 10s cap was challenged as arbitrary in the PRD; a single crank rotation (1–2s at 60 rpm) may suffice. Must be validated against the chosen pose estimation tool's accuracy requirements before upload validation (FR-003) can be implemented. Owner: user. Block: S-01.
 
-2. **Which gravel bike angle reference ranges are authoritative?** The ±10° success criterion and the reference-range recommendation criterion both require a sourced reference frame for gravel bike geometry. Must be obtained from bike fitting literature or a certified fitter consultation before LLM prompt engineering (FR-007) can begin. Owner: user. Block: S-02.
+2. **Which gravel bike angle reference ranges are authoritative?** The ±10° success criterion and the reference-range recommendation criterion both require a sourced reference frame for gravel bike geometry. Must be obtained from bike fitting literature or a certified fitter consultation before LLM prompt engineering (FR-007) can begin. Owner: user. Block: S-02. Tracked as change `resolve-angle-reference-bands` (opened 2026-09-02); still unresolved.
 
 3. **Which third-party pose estimation tool/API will be used?** The chosen service must be validated specifically for accuracy on side-view cycling video before committing — training data typically covers standing/walking poses, which may differ materially from a pedalling cyclist. Tool choice gates both the upload routing design (S-01) and the pipeline integration (S-02). Owner: user. Block: S-01, S-02.
 
