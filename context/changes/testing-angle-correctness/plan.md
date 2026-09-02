@@ -807,32 +807,32 @@ values were already user-visible. Note it in the phase-5 §6.6 entry.
 
 #### Automated
 
-- [x] 1.1 `npm install` succeeds with the new dependency
-- [x] 1.2 `npm test` exits 0 from a clean state (`rm -rf .astro`; `pretest` runs `astro sync`) and reports the smoke spec passing
-- [x] 1.3 `npx vitest run` works headless
-- [x] 1.4 `npm run lint` passes with the new `.ts` files present
-- [x] 1.5 `npx tsc --noEmit` passes
-- [x] 1.6 `npm run build` still passes
+- [x] 1.1 `npm install` succeeds with the new dependency — 87d26b3
+- [x] 1.2 `npm test` exits 0 from a clean state (`rm -rf .astro`; `pretest` runs `astro sync`) and reports the smoke spec passing — 87d26b3
+- [x] 1.3 `npx vitest run` works headless — 87d26b3
+- [x] 1.4 `npm run lint` passes with the new `.ts` files present — 87d26b3
+- [x] 1.5 `npx tsc --noEmit` passes — 87d26b3
+- [x] 1.6 `npm run build` still passes — 87d26b3
 
 #### Manual
 
-- [x] 1.7 `npm run test:watch` starts watch mode and re-runs on edit
-- [x] 1.8 Smoke spec fails loudly when the `@/*` alias is broken, then reverted
+- [x] 1.7 `npm run test:watch` starts watch mode and re-runs on edit — 87d26b3
+- [x] 1.8 Smoke spec fails loudly when the `@/*` alias is broken, then reverted — 87d26b3
 
 ### Phase 2: Extract the Pure Pose-Math Module
 
 #### Automated
 
-- [ ] 2.1 `npx tsc --noEmit` passes
-- [ ] 2.2 `npm run lint` passes (react-compiler + react-hooks on the modified island)
-- [ ] 2.3 `npm run build` passes
-- [ ] 2.4 `npm test` still green
+- [x] 2.1 `npx tsc --noEmit` passes
+- [x] 2.2 `npm run lint` passes (react-compiler + react-hooks on the modified island)
+- [x] 2.3 `npm run build` passes
+- [x] 2.4 `npm test` still green
 
 #### Manual
 
-- [ ] 2.5 A real clip run through the app produces the same five angles as before
-- [ ] 2.6 Computed values for a re-used test clip match pre-extraction values
-- [ ] 2.7 No new browser console errors during analysis
+- [x] 2.5 A real clip run through the app produces the same five angles as before
+- [x] 2.6 Computed values for a re-used test clip match pre-extraction values
+- [x] 2.7 No new browser console errors during analysis
 
 ### Phase 3: Correctness Specs + Torso Direction Fix
 

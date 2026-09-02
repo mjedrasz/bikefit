@@ -2,6 +2,15 @@ import { useEffect, useRef, useState } from "react";
 import type * as poseDetection from "@tensorflow-models/pose-detection";
 import type { BodyAngle, Recommendation } from "@/types";
 import { cn } from "@/lib/utils";
+import {
+  ANGLE_REFS,
+  computeTorsoAngle,
+  convertKeypoints,
+  jointAngle,
+  pickExtremumFrame,
+  visible,
+  type PoseLandmark,
+} from "@/lib/pose/angles";
 
 type AnalysisStep =
   | "starting"
@@ -19,14 +28,6 @@ interface Props {
   onError: (message: string) => void;
 }
 
-const ANGLE_REFS = {
-  KNEE_BDC: { min: 137, max: 147, unit: "degrees", name: "Knee angle at BDC" },
-  KNEE_TDC: { min: 65, max: 75, unit: "degrees", name: "Knee angle at TDC" },
-  HIP: { min: 55, max: 65, unit: "degrees", name: "Hip angle at TDC" },
-  TORSO: { min: 45, max: 55, unit: "degrees", name: "Torso angle" },
-  ELBOW: { min: 150, max: 160, unit: "degrees", name: "Elbow angle" },
-} as const;
-
 const STEPS: { id: AnalysisStep; label: string }[] = [
   { id: "starting", label: "Starting session" },
   { id: "loading-model", label: "Loading pose model" },
@@ -36,30 +37,6 @@ const STEPS: { id: AnalysisStep; label: string }[] = [
   { id: "generating-recs", label: "Generating recommendations" },
   { id: "submitting", label: "Saving results" },
 ];
-
-interface PoseLandmark {
-  x: number;
-  y: number;
-  z: number;
-  visibility?: number;
-}
-
-function jointAngle(a: PoseLandmark, b: PoseLandmark, c: PoseLandmark): number {
-  const ba = { x: a.x - b.x, y: a.y - b.y, z: a.z - b.z };
-  const bc = { x: c.x - b.x, y: c.y - b.y, z: c.z - b.z };
-  const dot = ba.x * bc.x + ba.y * bc.y + ba.z * bc.z;
-  const mag = (v: { x: number; y: number; z: number }) => Math.sqrt(v.x ** 2 + v.y ** 2 + v.z ** 2);
-  return Math.acos(Math.max(-1, Math.min(1, dot / (mag(ba) * mag(bc))))) * (180 / Math.PI);
-}
-
-// Torso angle: angle of hip→shoulder vector from horizontal (Y increases downward in world coords)
-function computeTorsoAngle(wl: PoseLandmark[]): number {
-  return Math.abs(Math.atan2(wl[11].y - wl[23].y, wl[11].x - wl[23].x) * (180 / Math.PI));
-}
-
-function visible(lm: PoseLandmark | undefined): boolean {
-  return (lm?.visibility ?? 0) >= 0.5;
-}
 
 function seekTo(videoEl: HTMLVideoElement, t: number): Promise<void> {
   return new Promise((resolve) => {
@@ -98,42 +75,6 @@ function loadVideoElement(file: File): Promise<HTMLVideoElement> {
     };
     video.src = url;
   });
-}
-
-// Convert MoveNet COCO-17 keypoints to a 33-slot array matching the MediaPipe landmark indices
-// used by jointAngle() and computeTorsoAngle(). Picks whichever side (left/right) has higher
-// average visibility so the component works for both left- and right-facing cycling videos.
-function convertKeypoints(keypoints: poseDetection.Keypoint[]): PoseLandmark[] {
-  const score = (i: number) => keypoints[i]?.score ?? 0;
-  const leftScore = score(5) + score(7) + score(9) + score(11) + score(13) + score(15);
-  const rightScore = score(6) + score(8) + score(10) + score(12) + score(14) + score(16);
-  // [movenet_idx, mediapipe_idx] — map chosen side onto the mp indices used for angle computation
-  const mapping: [number, number][] =
-    leftScore >= rightScore
-      ? [
-          [5, 11],
-          [7, 13],
-          [9, 15],
-          [11, 23],
-          [13, 25],
-          [15, 27],
-        ]
-      : [
-          [6, 11],
-          [8, 13],
-          [10, 15],
-          [12, 23],
-          [14, 25],
-          [16, 27],
-        ];
-  const landmarks: PoseLandmark[] = Array(33)
-    .fill(null)
-    .map(() => ({ x: 0, y: 0, z: 0, visibility: 0 }));
-  for (const [tfIdx, mpIdx] of mapping) {
-    const kp = keypoints.at(tfIdx);
-    if (kp) landmarks[mpIdx] = { x: kp.x, y: kp.y, z: 0, visibility: kp.score ?? 0 };
-  }
-  return landmarks;
 }
 
 async function detectPoseAt(
@@ -261,24 +202,15 @@ export default function VideoAnalyzer({ sessionId, file, onComplete, onError }: 
           if (type === "BDC" && bdcLandmarks) continue;
           if (type === "TDC" && tdcLandmarks) continue;
 
-          let bestLandmarks: PoseLandmark[] | null = null;
-          // BDC: most extended leg = highest knee angle; TDC: deepest flex = lowest knee angle
-          let bestKneeAngle = type === "BDC" ? -Infinity : Infinity;
-
+          // Collect this timestamp's ±2-frame offset poses, then let pickExtremumFrame
+          // choose the extremum knee angle for it (highest for BDC, lowest for TDC).
+          const candidates: PoseLandmark[][] = [];
           for (const offset of scanOffsets) {
             const wl = await detectPoseAt(videoEl, canvas, ctx, detector, t + offset);
-            if (!wl || !visible(wl[23]) || !visible(wl[25]) || !visible(wl[27])) continue;
-
-            const ka = jointAngle(wl[23], wl[25], wl[27]);
-            if (type === "BDC" && ka > bestKneeAngle) {
-              bestKneeAngle = ka;
-              bestLandmarks = wl;
-            } else if (type === "TDC" && ka < bestKneeAngle) {
-              bestKneeAngle = ka;
-              bestLandmarks = wl;
-            }
+            if (wl) candidates.push(wl);
           }
 
+          const bestLandmarks = pickExtremumFrame(candidates, type);
           if (type === "BDC") bdcLandmarks = bestLandmarks;
           else tdcLandmarks = bestLandmarks;
         }
