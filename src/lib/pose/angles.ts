@@ -67,11 +67,34 @@ export function jointAngle(a: PoseLandmark, b: PoseLandmark, c: PoseLandmark): n
   return Math.acos(Math.max(-1, Math.min(1, dot / (mag(ba) * mag(bc))))) * (180 / Math.PI);
 }
 
-// Torso angle: angle of hip→shoulder vector from horizontal (Y increases downward in world coords)
-// MOVED UNCHANGED from VideoAnalyzer.tsx — carries a known left/right-facing bug (returns
-// `180° − true` for a left-facing rider); fixed in test-plan rollout Phase 3.
+/**
+ * Angle of the hip→shoulder line from horizontal, as an **acute** angle in `[0, 90]`
+ * degrees. `bike-fitting-ref-angles.md` defines the torso angle as "measured from
+ * horizontal to a line from hip to shoulder … 45–55° from horizontal".
+ *
+ * Direction-agnostic: the magnitude is taken on each component before `atan2`, folding
+ * the result to its acute complement, so a left-facing and a right-facing rider at the
+ * same true lean return the same value. (Before test-plan rollout Phase 3 this was
+ * `Math.abs(atan2(dy, dx))`, which folded the sign but not the 180° complement and so
+ * returned `180° − true` for a left-facing rider — a well-fitted left-facing rider was
+ * scored "Outside range" and the LLM told the torso was far too upright.)
+ *
+ * Input is 2-D pixel space (`x` rightward, `y` downward — see the module doc); the result
+ * is the image-plane projection, valid only for a true perpendicular side view.
+ *
+ * Frame deviation — accepted MVP gap, see `context/foundation/test-plan.md` §7: the
+ * caller measures this from the **BDC** keyframe, but the reference defines the torso
+ * angle at cranks-horizontal (3/9 o'clock). Torso-to-horizontal shifts only ~5° across
+ * the pedal stroke so the practical error is small; closing it needs a third detected
+ * keyframe (out of MVP scope). The **elbow** angle (`jointAngle(wl[11], wl[13], wl[15])`)
+ * is likewise consumed from BDC while the reference implies cranks-horizontal — the same
+ * accepted deviation.
+ */
 export function computeTorsoAngle(wl: PoseLandmark[]): number {
-  return Math.abs(Math.atan2(wl[11].y - wl[23].y, wl[11].x - wl[23].x) * (180 / Math.PI));
+  // hip→shoulder vector; direction-agnostic angle from horizontal, 0–90°
+  const dy = wl[11].y - wl[23].y;
+  const dx = wl[11].x - wl[23].x;
+  return Math.atan2(Math.abs(dy), Math.abs(dx)) * (180 / Math.PI);
 }
 
 /** Visibility gate: a landmark is usable when its `visibility` (populated from MoveNet's

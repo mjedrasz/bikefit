@@ -823,32 +823,32 @@ values were already user-visible. Note it in the phase-5 §6.6 entry.
 
 #### Automated
 
-- [x] 2.1 `npx tsc --noEmit` passes
-- [x] 2.2 `npm run lint` passes (react-compiler + react-hooks on the modified island)
-- [x] 2.3 `npm run build` passes
-- [x] 2.4 `npm test` still green
+- [x] 2.1 `npx tsc --noEmit` passes — 2232f65
+- [x] 2.2 `npm run lint` passes (react-compiler + react-hooks on the modified island) — 2232f65
+- [x] 2.3 `npm run build` passes — 2232f65
+- [x] 2.4 `npm test` still green — 2232f65
 
 #### Manual
 
-- [x] 2.5 A real clip run through the app produces the same five angles as before
-- [x] 2.6 Computed values for a re-used test clip match pre-extraction values
-- [x] 2.7 No new browser console errors during analysis
+- [x] 2.5 A real clip run through the app produces the same five angles as before — 2232f65
+- [x] 2.6 Computed values for a re-used test clip match pre-extraction values — 2232f65
+- [x] 2.7 No new browser console errors during analysis — 2232f65
 
 ### Phase 3: Correctness Specs + Torso Direction Fix
 
 #### Automated
 
-- [ ] 3.1 `npm test` green — all `angles.test.ts` cases pass (torso after the fix)
-- [ ] 3.2 Reverting only the torso fix fails every left-facing torso assertion (no right-facing one), then re-applied
-- [ ] 3.3 `npx tsc --noEmit` passes
-- [ ] 3.4 `npm run lint` passes
-- [ ] 3.5 `npm run build` passes
+- [x] 3.1 `npm test` green — all `angles.test.ts` cases pass (torso after the fix)
+- [x] 3.2 Reverting only the torso fix fails every left-facing torso assertion (no right-facing one), then re-applied
+- [x] 3.3 `npx tsc --noEmit` passes
+- [x] 3.4 `npm run lint` passes
+- [x] 3.5 `npm run build` passes
 
 #### Manual
 
-- [ ] 3.6 Left-facing clip: torso angle now plausible (~45–55°) instead of ~125–135°
-- [ ] 3.7 Right-facing clip: torso angle unchanged from before the fix
-- [ ] 3.8 The other four angles unchanged for both clips
+- [x] 3.6 Left-facing clip: torso angle now plausible (~45–55°) instead of ~125–135°
+- [x] 3.7 Right-facing clip: torso angle unchanged from before the fix
+- [x] 3.8 The other four angles unchanged for both clips
 
 ### Phase 4: Verdict Helper Extraction + Specs
 
