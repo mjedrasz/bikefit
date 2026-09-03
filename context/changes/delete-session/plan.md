@@ -514,18 +514,18 @@ hydrate.
 
 #### Automated
 
-- [x] 2.1 `npm run lint` passes
-- [x] 2.2 `npx tsc --noEmit` passes
-- [x] 2.3 `npm run build` passes
+- [x] 2.1 `npm run lint` passes — 1a1c105
+- [x] 2.2 `npx tsc --noEmit` passes — 1a1c105
+- [x] 2.3 `npm run build` passes — 1a1c105
 
 #### Manual
 
-- [x] 2.4 Each row shows a delete control; filename/pill area still navigates to the session
-- [x] 2.5 Delete → inline Confirm / Cancel; Cancel sends no request
-- [x] 2.6 Delete → Confirm → session removed, page reloads, session gone from list
-- [x] 2.7 Deleting the last session → empty state renders after reload
-- [x] 2.8 Failure path → inline red error text, row stays, no reload
-- [x] 2.9 Delete trigger and Confirm / Cancel are keyboard-focusable and operable; sensible focus order
-- [x] 2.10 No console errors; `Trash2` icon renders
-- [x] 2.11 Card hover highlight spans the row; hovering the delete control does not break or double it
-- [x] 2.12 Focus returns to the delete trigger after Cancel / failed Confirm; error `<p>` has `role="alert"`
+- [x] 2.4 Each row shows a delete control; filename/pill area still navigates to the session — 1a1c105
+- [x] 2.5 Delete → inline Confirm / Cancel; Cancel sends no request — 1a1c105
+- [x] 2.6 Delete → Confirm → session removed, page reloads, session gone from list — 1a1c105
+- [x] 2.7 Deleting the last session → empty state renders after reload — 1a1c105
+- [x] 2.8 Failure path → inline red error text, row stays, no reload — 1a1c105
+- [x] 2.9 Delete trigger and Confirm / Cancel are keyboard-focusable and operable; sensible focus order — 1a1c105
+- [x] 2.10 No console errors; `Trash2` icon renders — 1a1c105
+- [x] 2.11 Card hover highlight spans the row; hovering the delete control does not break or double it — 1a1c105
+- [x] 2.12 Focus returns to the delete trigger after Cancel / failed Confirm; error `<p>` has `role="alert"` — 1a1c105
