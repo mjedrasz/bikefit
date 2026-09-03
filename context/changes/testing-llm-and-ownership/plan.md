@@ -936,18 +936,18 @@ rewrite frozen §1–§5 strategy in place beyond this pointer.
 
 #### Automated
 
-- [x] 1.1 `npm test` passes with the new smoke tests green
-- [x] 1.2 `npm test` is green from a clean state with no network (`rm -rf .astro node_modules/.vite && npm test`)
-- [x] 1.3 Lint passes on all new files under `src/test/`
-- [x] 1.4 Type-check passes (`npx tsc --noEmit`)
-- [x] 1.5 A test importing a route module does not throw at import
-- [x] 1.9 A `.astro` import in a `src/pages/sessions/*.{test,spec}.ts` spec compiles under the `pages` project
+- [x] 1.1 `npm test` passes with the new smoke tests green — c62e041
+- [x] 1.2 `npm test` is green from a clean state with no network (`rm -rf .astro node_modules/.vite && npm test`) — c62e041
+- [x] 1.3 Lint passes on all new files under `src/test/` — c62e041
+- [x] 1.4 Type-check passes (`npx tsc --noEmit`) — c62e041
+- [x] 1.5 A test importing a route module does not throw at import — c62e041
+- [x] 1.9 A `.astro` import in a `src/pages/sessions/*.{test,spec}.ts` spec compiles under the `pages` project — c62e041
 
 #### Manual
 
-- [x] 1.6 The Supabase stub can return an `error` shape and a handler test observes it
-- [x] 1.7 `openrouter-mock` leaves no global dispatcher installed after a suite
-- [x] 1.8 §6.2 reads as a usable recipe to someone who wasn't in this session
+- [x] 1.6 The Supabase stub can return an `error` shape and a handler test observes it — c62e041
+- [x] 1.7 `openrouter-mock` leaves no global dispatcher installed after a suite — c62e041
+- [x] 1.8 §6.2 reads as a usable recipe to someone who wasn't in this session — c62e041
 
 ### Phase 2: LLM boundary hardening + contract tests (Risk #2)
 
