@@ -45,16 +45,20 @@ export const DELETE: APIRoute = async (context) => {
 
   // Ownership pre-check: RLS (sessions_select_own) scopes this to the owner, so
   // another user's row comes back as `!data` → 404 (no owner-enumeration leak).
-  // Destructure `error` too — a genuine query failure must not read as "absent".
-  // `.maybeSingle()` (not `.single()`) so a real failure surfaces as `error`
-  // rather than the PGRST116 "no rows" error; both still fall through to 404.
+  // `.maybeSingle()` (not `.single()`) returns `data: null` with no `error` for
+  // the not-found / not-owner case, so a populated `error` means the query
+  // genuinely failed — surface that as 500 rather than letting it read as
+  // "row absent" (project Risk #7).
   const { data, error } = await supabase
     .from("fitting_sessions")
     .select("id")
     .eq("id", context.params.id)
     .maybeSingle();
 
-  if (error || !data) {
+  if (error) {
+    return new Response(null, { status: 500 });
+  }
+  if (!data) {
     return new Response(null, { status: 404 });
   }
 

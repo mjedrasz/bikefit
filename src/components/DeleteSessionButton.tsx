@@ -19,13 +19,20 @@ export default function DeleteSessionButton({ sessionId, filename }: Props) {
   const [confirming, setConfirming] = useState(false);
   const { state, deleteSession } = useDeleteSession();
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const cancelRef = useRef<HTMLButtonElement>(null);
   const restoreFocus = useRef(false);
 
   const deleting = state.kind === "deleting";
   const label = `Delete ${filename ?? "session"}`;
 
+  // Keep focus with the control that is on screen: move to "Cancel" when the
+  // confirm pair appears, and back to the trigger when it is dismissed (Cancel
+  // or a failed Confirm — see restoreFocus). Without this a keyboard / SR user
+  // who activates the trigger is left on a detached node with no announcement.
   useEffect(() => {
-    if (!confirming && restoreFocus.current) {
+    if (confirming) {
+      cancelRef.current?.focus();
+    } else if (restoreFocus.current) {
       restoreFocus.current = false;
       triggerRef.current?.focus();
     }
@@ -50,7 +57,14 @@ export default function DeleteSessionButton({ sessionId, filename }: Props) {
           <Button variant="destructive" size="sm" onClick={handleConfirm} disabled={deleting}>
             {deleting ? "Deleting…" : "Confirm"}
           </Button>
-          <Button variant="outline" size="sm" className="text-foreground" onClick={handleCancel} disabled={deleting}>
+          <Button
+            ref={cancelRef}
+            variant="outline"
+            size="sm"
+            className="text-foreground"
+            onClick={handleCancel}
+            disabled={deleting}
+          >
             Cancel
           </Button>
         </div>

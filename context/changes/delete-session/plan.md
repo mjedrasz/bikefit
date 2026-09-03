@@ -245,6 +245,10 @@ distinct status codes for success / not-found / server error. Template:
    .from("fitting_sessions").select("id").eq("id", context.params.id)
    .single(); if (error || !data) return new Response(null, { status: 404 })`.
    (Destructure `error`, not just `data` — do not inherit the swallow.)
+   *As shipped (impl-review F3, 2026-09-03): the handler uses `.maybeSingle()`
+   and splits the branch — a populated `error` (genuine query failure) → 500,
+   `!data` (not found / not owner) → 404 — so an infra failure is not reported
+   as "row absent" (Risk #7).*
 4. Admin delete:
    `const admin = createAdminClient();
    const { data: deleted, error: deleteError } = await admin
@@ -502,6 +506,16 @@ hydrate.
 > Phase 1 does not close until 1.5–1.10 are checked here. Append the Supabase
 > project ref and date each check ran against, e.g. `— vs. project abcd1234,
 > 2026-09-02`. Automated checks 1.1–1.4 alone do not complete this phase.
+>
+> **Verification-environment note (impl-review F2, 2026-09-03):** 1.5–1.10 were
+> run against the local Supabase stack, not the hosted/dev project this plan
+> mandated. Accepted as sufficient: the ownership guard does not depend on the
+> local vs. hosted difference — `sessions_select_own` (the SELECT pre-check) is
+> exercised by every production read path, and the admin delete's explicit
+> `.eq("user_id", …)` filter is RLS-independent. The non-owner→404 path (1.6)
+> passed locally. Residual risk (hosted `auth.uid()` / JWT-claim divergence,
+> per Deviation 3) is judged low for a DELETE that never leans on the RLS
+> write policy. No hosted re-verification required before archive.
 
 - [x] 1.5 Owner deletes own session → 200; `fitting_sessions` + `analysis_results` rows gone — vs. local Supabase, 2026-09-02 — 384d845
 - [x] 1.6 Non-owner DELETE of another user's session → 404; row survives — vs. local Supabase, 2026-09-02 — 384d845
