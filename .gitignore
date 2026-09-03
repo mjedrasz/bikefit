@@ -4,6 +4,10 @@ dist/
 # generated types
 .astro/
 
+# mutation testing
+.stryker-tmp/
+reports/
+
 # dependencies
 node_modules/
 

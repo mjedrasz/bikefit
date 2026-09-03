@@ -6,7 +6,7 @@
 >
 > Refresh: re-run `/10x-test-plan --refresh` when stale (see §8).
 >
-> Last updated: 2026-09-03 (§3 Phase 1 reconciled to `complete` — `testing-angle-correctness` plan.md Progress fully shipped and impl-reviewed. Earlier: 2026-09-02 OQ-2 resolved — reference-band dimension of Risk #1 now covered by `resolve-angle-reference-bands`; §2, §6.1, §6.6, §7 updated. Phase 1 implemented — §6.1, §6.6, §7 filled)
+> Last updated: 2026-09-03 (`--refresh`: StrykerJS mutation testing entered the stack — §4, §5, §6.7, §7, §8 updated; §1–§2 unchanged; §3 Phase 2 reconciled to `researched`. See `context/changes/test-plan-refresh-2026-09-03/`. Earlier same day: §3 Phase 1 reconciled to `complete` — `testing-angle-correctness` shipped and impl-reviewed. 2026-09-02: OQ-2 resolved — reference-band dimension of Risk #1 covered by `resolve-angle-reference-bands`; §2, §6.1, §6.6, §7 updated. Phase 1 implemented — §6.1, §6.6, §7 filled)
 
 ## 1. Strategy
 
@@ -23,9 +23,9 @@ Tests follow three non-negotiable principles for this project:
    is worried about X, and the failure would surface somewhere in <area>"
    carry the same weight as PRD lines or hot-spot data. The five Phase 2
    interview answers drove five of the seven risks below.
-3. **Risks are scenarios, not code locations.** This plan documents *what
-   could fail* and *why we believe it's likely* — drawn from documents,
-   interview, and codebase *signal* (churn, structure, test base). It does
+3. **Risks are scenarios, not code locations.** This plan documents _what
+   could fail_ and _why we believe it's likely_ — drawn from documents,
+   interview, and codebase _signal_ (churn, structure, test base). It does
    NOT claim to know which line owns the failure. That knowledge is
    produced by `/10x-research` during each rollout phase. If the plan and
    research disagree about where the failure lives, research is the ground
@@ -40,19 +40,19 @@ commits and carry no authoring signal.
 
 The top failure scenarios this project must protect against, ordered by
 risk = impact × likelihood. Risks are failure scenarios in user / business
-terms, not test names. The Source column cites the *evidence that surfaced
-this risk* — never a specific file as "where the failure lives" (that is
+terms, not test names. The Source column cites the _evidence that surfaced
+this risk_ — never a specific file as "where the failure lives" (that is
 research's job, see §1 principle #3).
 
-| # | Risk (failure scenario) | Impact | Likelihood | Source (evidence — not anchor) |
-|---|-------------------------|--------|------------|--------------------------------|
-| 1 | Joint-angle / keypoint math is subtly wrong — the angles the app computes don't match the reference-frame definitions they're compared against — so every "in range / outside range" verdict and every fitting recommendation built on them is confidently wrong. | High | High | PRD §Success Criteria (±10° accuracy), FR-006; interview Q1(1), Q3(2), Q3(3); hot-spot dir `src/components/` (7 commits/90d) |
-| 2 | OpenRouter returns a slightly different JSON shape, truncated body, or markdown-fenced JSON one day and the whole analysis dies for every user. | High | High | interview Q1(2), Q2; hot-spot dirs `src/lib/services/` and `src/lib/` (4 commits/90d each); archive `2026-05-28-ai-analysis-pipeline/reviews/impl-review.md` (F1/F2/F3 — criticals in the LLM service) |
-| 3 | The OpenRouter dependency is an unprotected single point of failure — no rate limiting, no server-side payload caps, the vision route not scoped to an owned session — so unintended use or an attacker exhausts the API budget or gets BikeFit's provider account content-flagged, taking the product down for everyone. | High | High | interview Q1(4), Q1(5); no rate-limiting middleware in the request path; open self-service signup (PRD §Access Control) |
-| 4 | A crafted or fabricated video manipulates the vision model into doing something other than keyframe detection (multimodal prompt injection) — leaked system prompt, or attacker-influenced output attributed to BikeFit. | High | Medium | interview Q1(3); PRD accepts arbitrary user-supplied video (abuse lens — untrusted input) |
-| 5 | One user reads or mutates another user's session or analysis results — the ownership check erodes because routes verify "is logged in" while mutations run through the service-role client keyed by a path parameter. | High | Medium | PRD §Access Control; abuse lens (authorization / IDOR); mixed user-client-read / admin-client-write pattern across the session mutation routes; `src/middleware.ts` (2 commits/30d) |
-| 6 | The browser tab closes mid-analysis (the client-side pipeline runs for minutes on CPU) and the session is orphaned in `processing` forever — no result, no failure message — contradicting the "no silent errors" guardrail. | Medium | High | PRD §Guardrails (no silent errors) + §NFR (async); archive `2026-05-28-ai-analysis-pipeline/plan.md` documents this as an accepted unmitigated risk; client-side pipeline architecture |
-| 7 | A Supabase query errors and the UI renders it as "not found" / "no sessions yet" / a blank results card — a real backend failure is indistinguishable from absent data. | Medium | High | archive `2026-08-23-fitting-results-display/reviews/impl-review.md` (F2), `2026-08-23-session-history-list/reviews/impl-review.md` (F1); PRD §Guardrails (no silent errors); noted as an accepted convention across several read paths |
+| #   | Risk (failure scenario)                                                                                                                                                                                                                                                                                                   | Impact | Likelihood | Source (evidence — not anchor)                                                                                                                                                                                                         |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Joint-angle / keypoint math is subtly wrong — the angles the app computes don't match the reference-frame definitions they're compared against — so every "in range / outside range" verdict and every fitting recommendation built on them is confidently wrong.                                                         | High   | High       | PRD §Success Criteria (±10° accuracy), FR-006; interview Q1(1), Q3(2), Q3(3); hot-spot dir `src/components/` (7 commits/90d)                                                                                                           |
+| 2   | OpenRouter returns a slightly different JSON shape, truncated body, or markdown-fenced JSON one day and the whole analysis dies for every user.                                                                                                                                                                           | High   | High       | interview Q1(2), Q2; hot-spot dirs `src/lib/services/` and `src/lib/` (4 commits/90d each); archive `2026-05-28-ai-analysis-pipeline/reviews/impl-review.md` (F1/F2/F3 — criticals in the LLM service)                                 |
+| 3   | The OpenRouter dependency is an unprotected single point of failure — no rate limiting, no server-side payload caps, the vision route not scoped to an owned session — so unintended use or an attacker exhausts the API budget or gets BikeFit's provider account content-flagged, taking the product down for everyone. | High   | High       | interview Q1(4), Q1(5); no rate-limiting middleware in the request path; open self-service signup (PRD §Access Control)                                                                                                                |
+| 4   | A crafted or fabricated video manipulates the vision model into doing something other than keyframe detection (multimodal prompt injection) — leaked system prompt, or attacker-influenced output attributed to BikeFit.                                                                                                  | High   | Medium     | interview Q1(3); PRD accepts arbitrary user-supplied video (abuse lens — untrusted input)                                                                                                                                              |
+| 5   | One user reads or mutates another user's session or analysis results — the ownership check erodes because routes verify "is logged in" while mutations run through the service-role client keyed by a path parameter.                                                                                                     | High   | Medium     | PRD §Access Control; abuse lens (authorization / IDOR); mixed user-client-read / admin-client-write pattern across the session mutation routes; `src/middleware.ts` (2 commits/30d)                                                    |
+| 6   | The browser tab closes mid-analysis (the client-side pipeline runs for minutes on CPU) and the session is orphaned in `processing` forever — no result, no failure message — contradicting the "no silent errors" guardrail.                                                                                              | Medium | High       | PRD §Guardrails (no silent errors) + §NFR (async); archive `2026-05-28-ai-analysis-pipeline/plan.md` documents this as an accepted unmitigated risk; client-side pipeline architecture                                                 |
+| 7   | A Supabase query errors and the UI renders it as "not found" / "no sessions yet" / a blank results card — a real backend failure is indistinguishable from absent data.                                                                                                                                                   | Medium | High       | archive `2026-08-23-fitting-results-display/reviews/impl-review.md` (F2), `2026-08-23-session-history-list/reviews/impl-review.md` (F1); PRD §Guardrails (no silent errors); noted as an accepted convention across several read paths |
 
 **Abuse / security lens.** BikeFit has self-service auth and accepts
 arbitrary user video, so the map carries three abuse rows: untrusted-input
@@ -66,19 +66,19 @@ echo secrets.
 
 ### Risk Response Guidance
 
-| Risk | What would prove protection | Must challenge | Context `/10x-research` must ground | Likely cheapest layer | Anti-pattern to avoid |
-|------|-----------------------------|----------------|--------------------------------------|-----------------------|-----------------------|
-| #1 | Given known keypoint fixtures, computed angles match the bike-fitting **reference definitions** (correct vertex, included-vs-flexion convention, torso-measured-from-horizontal axis) within a stated tolerance; a left-facing and a right-facing clip both resolve to the correct body side. | "The angle the code computes is the angle the fitting literature means." Also: "the server would catch a bad result" — it will not, it persists whatever the browser posts. | The angle formulas, the keypoint-index contract, the exact definitions in the archived reference-angle notes, how the pose model's coordinates map onto those. | unit (pure functions) | Oracle problem — asserting the function returns the value it happens to return today; a snapshot of current output. |
-| #2 | A drifted, truncated, markdown-fenced, or wrong-shape OpenRouter response produces a typed, plain-language failure — never a crash, never a partial DB write. | "HTTP 200 from OpenRouter means the body is the shape we expect." | Both response-format paths (strict `json_schema` vs `json_object`), every parse-then-shape-check site, and what the browser does with a route 4xx/5xx. | contract + integration (mocked OpenRouter at the network edge) | Testing only the well-formed response; mocking the provider to always return perfect JSON. |
-| #3 | Server-side rate limiting and payload-size caps are enforced on every OpenRouter-backed route; the vision route is bound to an owned session; a provider 4xx/5xx/403/451 degrades to a clean plain-language error rather than a stack trace or a silent hang. | "Auth on the route is enough" / "the client already caps size, so the server needn't." | The full request path for the vision and recommendation routes, where a limiter would sit, the current caps, and the provider-error branch. | integration (enforcement + provider-failure simulation) | Asserting a 429 against a mock with the limit hard-coded; testing the limiter in isolation from the route it protects. |
-| #4 | The vision route's output contract is a hard boundary — nothing the model returns is used beyond the strictly-validated timestamp schema; an adversarial probe set cannot make the route emit free text or break the schema. | "The model only returns timestamps because the prompt asks for timestamps." | How the strict schema is actually enforced on the response, and whether raw model text is ever rendered unescaped or used in control flow. | integration (schema-boundary) + a small dated AI-native probe (optional) | Building a full red-team eval harness at MVP scale; asserting on specific model outputs. |
-| #5 | A second user receives 404 / empty / 403 for every route and page that addresses the first user's session or results — reads *and* writes. | "The route checks `locals.user`, so it is safe" — authentication is not ownership, and the admin client bypasses RLS. | The RLS policies as deployed, which routes read with the user client vs write with the admin client, and the pre-check guarding each admin write. | integration (two distinct user fixtures) | Testing only that an anonymous request is blocked; trusting RLS without exercising a cross-user request against it. |
-| #6 | A session with no client progress for longer than a defined interval reaches a terminal `failed` state with a readable message; the results page and history never show a permanently stuck `processing`. | "The client always posts an error on failure." It cannot if the tab is gone. | The status lifecycle and who writes each transition, whether any server-side sweep or TTL exists, and what the UI renders for a long-lived `processing` session. | integration (status lifecycle) + unit (UI state mapping) | Testing only the path where the client stays alive to report completion or failure. |
-| #7 | When a Supabase query returns an error, the user sees a distinct error state (a 500 or a "couldn't load" message), never an empty list or a 404. | "`data` is null means the row does not exist." | Every query site that destructures only `data`, the difference between a query error and an empty result, and the guarantee that a `completed` session has a results row. | integration + unit (error branch) | Asserting the current `data ?? []` fallthrough behavior; mocking Supabase so it can only ever succeed. |
+| Risk | What would prove protection                                                                                                                                                                                                                                                                   | Must challenge                                                                                                                                                              | Context `/10x-research` must ground                                                                                                                                       | Likely cheapest layer                                                    | Anti-pattern to avoid                                                                                                  |
+| ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
+| #1   | Given known keypoint fixtures, computed angles match the bike-fitting **reference definitions** (correct vertex, included-vs-flexion convention, torso-measured-from-horizontal axis) within a stated tolerance; a left-facing and a right-facing clip both resolve to the correct body side. | "The angle the code computes is the angle the fitting literature means." Also: "the server would catch a bad result" — it will not, it persists whatever the browser posts. | The angle formulas, the keypoint-index contract, the exact definitions in the archived reference-angle notes, how the pose model's coordinates map onto those.            | unit (pure functions)                                                    | Oracle problem — asserting the function returns the value it happens to return today; a snapshot of current output.    |
+| #2   | A drifted, truncated, markdown-fenced, or wrong-shape OpenRouter response produces a typed, plain-language failure — never a crash, never a partial DB write.                                                                                                                                 | "HTTP 200 from OpenRouter means the body is the shape we expect."                                                                                                           | Both response-format paths (strict `json_schema` vs `json_object`), every parse-then-shape-check site, and what the browser does with a route 4xx/5xx.                    | contract + integration (mocked OpenRouter at the network edge)           | Testing only the well-formed response; mocking the provider to always return perfect JSON.                             |
+| #3   | Server-side rate limiting and payload-size caps are enforced on every OpenRouter-backed route; the vision route is bound to an owned session; a provider 4xx/5xx/403/451 degrades to a clean plain-language error rather than a stack trace or a silent hang.                                 | "Auth on the route is enough" / "the client already caps size, so the server needn't."                                                                                      | The full request path for the vision and recommendation routes, where a limiter would sit, the current caps, and the provider-error branch.                               | integration (enforcement + provider-failure simulation)                  | Asserting a 429 against a mock with the limit hard-coded; testing the limiter in isolation from the route it protects. |
+| #4   | The vision route's output contract is a hard boundary — nothing the model returns is used beyond the strictly-validated timestamp schema; an adversarial probe set cannot make the route emit free text or break the schema.                                                                  | "The model only returns timestamps because the prompt asks for timestamps."                                                                                                 | How the strict schema is actually enforced on the response, and whether raw model text is ever rendered unescaped or used in control flow.                                | integration (schema-boundary) + a small dated AI-native probe (optional) | Building a full red-team eval harness at MVP scale; asserting on specific model outputs.                               |
+| #5   | A second user receives 404 / empty / 403 for every route and page that addresses the first user's session or results — reads _and_ writes.                                                                                                                                                    | "The route checks `locals.user`, so it is safe" — authentication is not ownership, and the admin client bypasses RLS.                                                       | The RLS policies as deployed, which routes read with the user client vs write with the admin client, and the pre-check guarding each admin write.                         | integration (two distinct user fixtures)                                 | Testing only that an anonymous request is blocked; trusting RLS without exercising a cross-user request against it.    |
+| #6   | A session with no client progress for longer than a defined interval reaches a terminal `failed` state with a readable message; the results page and history never show a permanently stuck `processing`.                                                                                     | "The client always posts an error on failure." It cannot if the tab is gone.                                                                                                | The status lifecycle and who writes each transition, whether any server-side sweep or TTL exists, and what the UI renders for a long-lived `processing` session.          | integration (status lifecycle) + unit (UI state mapping)                 | Testing only the path where the client stays alive to report completion or failure.                                    |
+| #7   | When a Supabase query returns an error, the user sees a distinct error state (a 500 or a "couldn't load" message), never an empty list or a 404.                                                                                                                                              | "`data` is null means the row does not exist."                                                                                                                              | Every query site that destructures only `data`, the difference between a query error and an empty result, and the guarantee that a `completed` session has a results row. | integration + unit (error branch)                                        | Asserting the current `data ?? []` fallthrough behavior; mocking Supabase so it can only ever succeed.                 |
 
-**Risk #1 has two dimensions.** The guidance above covers the *geometry /
-convention* dimension — the angle the code computes vs. the angle the fitting
-literature means. The complementary *reference-band* dimension — which
+**Risk #1 has two dimensions.** The guidance above covers the _geometry /
+convention_ dimension — the angle the code computes vs. the angle the fitting
+literature means. The complementary _reference-band_ dimension — which
 numeric range each angle is judged against — is OQ-2, **RESOLVED
 (2026-09-02)** and covered by change `resolve-angle-reference-bands`:
 `ANGLE_REFS` is pinned to `context/foundation/reference-angles.md` in
@@ -91,12 +91,12 @@ Each row is a discrete rollout phase that will open its own change folder
 via `/10x-new`. Status moves left-to-right through the values below; the
 orchestrator updates Status as artifacts appear on disk.
 
-| # | Phase name | Goal (one line) | Risks covered | Test types | Status | Change folder |
-|---|------------|-----------------|---------------|------------|--------|---------------|
-| 1 | Harness bootstrap + joint-angle correctness | Stand up the test runner and prove the angle and keypoint-mapping math matches the reference-frame definitions it is judged against, including left/right side selection. | #1 | unit | complete | context/changes/testing-angle-correctness/ |
-| 2 | LLM boundary + API-route integration | Make the OpenRouter response boundary strict and fail-clean, make every session route enforce ownership, surface DB errors as distinct states, and drive stuck-`processing` sessions to a terminal state. | #2, #5, #6, #7 | contract, integration, unit | change opened | context/changes/testing-llm-and-ownership/ |
-| 3 | Abuse & resource protection | Add server-side payload caps and rate limiting on the OpenRouter-backed routes, scope the vision route to an owned session, degrade gracefully on provider errors, and add a small dated adversarial probe on the vision boundary. | #3, #4 | integration, AI-native probe (optional) | not started | — |
-| 4 | Quality-gates wiring + one e2e smoke | Add typecheck and the new test suites as required CI gates and add a single Playwright happy-path smoke over upload → analysing → results. | cross-cutting | e2e (1 flow), gates | not started | — |
+| #   | Phase name                                  | Goal (one line)                                                                                                                                                                                                                    | Risks covered  | Test types                              | Status      | Change folder                              |
+| --- | ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- | --------------------------------------- | ----------- | ------------------------------------------ |
+| 1   | Harness bootstrap + joint-angle correctness | Stand up the test runner and prove the angle and keypoint-mapping math matches the reference-frame definitions it is judged against, including left/right side selection.                                                          | #1             | unit                                    | complete    | context/changes/testing-angle-correctness/ |
+| 2   | LLM boundary + API-route integration        | Make the OpenRouter response boundary strict and fail-clean, make every session route enforce ownership, surface DB errors as distinct states, and drive stuck-`processing` sessions to a terminal state.                          | #2, #5, #6, #7 | contract, integration, unit             | researched  | context/changes/testing-llm-and-ownership/ |
+| 3   | Abuse & resource protection                 | Add server-side payload caps and rate limiting on the OpenRouter-backed routes, scope the vision route to an owned session, degrade gracefully on provider errors, and add a small dated adversarial probe on the vision boundary. | #3, #4         | integration, AI-native probe (optional) | not started | —                                          |
+| 4   | Quality-gates wiring + one e2e smoke        | Add typecheck and the new test suites as required CI gates and add a single Playwright happy-path smoke over upload → analysing → results.                                                                                         | cross-cutting  | e2e (1 flow), gates                     | not started | —                                          |
 
 **Status vocabulary** (fixed — parser literals): `not started` →
 `change opened` → `researched` → `planned` → `implementing` → `complete`.
@@ -110,17 +110,19 @@ other phases are test-only against behavior that already exists.
 The classic test base for this project. AI-native tools (if any) carry a
 `checked:` date so future readers can see which lines need re-verification.
 
-| Layer | Tool | Version | Notes |
-|-------|------|---------|-------|
-| unit + integration | Vitest | none yet — see Phase 1 | Configure through `getViteConfig` from `astro/config` so `astro:env`, the `@/*` alias, and the Vite plugin chain resolve in tests. |
-| DOM environment | happy-dom or jsdom | none yet — see Phase 1 | The browser pipeline component uses `document`, `canvas` 2D context, `FileReader`, and `URL.createObjectURL`; unit tests for its pure helpers still need a DOM global. |
-| API / network mocking | MSW, or undici `MockAgent` | none yet — see Phase 2 | Mock OpenRouter at the HTTP edge only. Supabase: use a thin client stub — the local Supabase stack has been unreliable in this environment (noted in two archived impl-reviews) so CI should not depend on it. |
-| e2e | Playwright | none yet — see Phase 4 | One happy-path flow only; seed Supabase through the admin API as the archived `session-history-list` verification did. |
-| validation | Zod | 4.4.3 (in use) | Format errors with `z.treeifyError`, never `.flatten()` (see `context/foundation/lessons.md`). |
-| CI | GitHub Actions | in use | Today runs `lint` + `build` only. `astro build` does not type-check TS and `@astrojs/check` is installed but never invoked — typecheck is currently ungated. |
+| Layer                 | Tool                                                                   | Version                              | Notes                                                                                                                                                                                                                                                                                                 |
+| --------------------- | ---------------------------------------------------------------------- | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| unit + integration    | Vitest                                                                 | 4.1.11 (in use — Phase 1)            | `vitest.config.ts` is a plain `defineConfig` from `vitest/config`, re-declaring only the `@/*` alias — **not** `getViteConfig` from `astro/config` (which drags the Cloudflare adapter into the run). `environment: "node"`. Revisit if a phase needs `astro:env` or a DOM global in tests. See §6.1. |
+| mutation testing      | StrykerJS (`@stryker-mutator/core` + `@stryker-mutator/vitest-runner`) | 10.0.0 (in use); checked: 2026-09-03 | Advisory, local / on-demand — not a CI gate. `stryker.config.json` scopes `mutate` to the four `astro:env`-free pure-logic modules Phase 1 covers; `thresholds.break: null`. `npm run test:mutation`. Catches assertion-free and tautological tests that line coverage rewards. See §6.7.             |
+| DOM environment       | happy-dom or jsdom                                                     | none yet — see Phase 2               | Deferred: the Phase 1 suite is `node`-env only (pure helpers on plain objects). The browser pipeline component's I/O helpers (`document`, `canvas` 2D context, `FileReader`, `URL.createObjectURL`) still need a DOM global if a later phase unit-tests them.                                         |
+| API / network mocking | MSW, or undici `MockAgent`                                             | none yet — see Phase 2               | Mock OpenRouter at the HTTP edge only. Supabase: use a thin client stub — the local Supabase stack has been unreliable in this environment (noted in two archived impl-reviews) so CI should not depend on it.                                                                                        |
+| e2e                   | Playwright                                                             | none yet — see Phase 4               | One happy-path flow only; seed Supabase through the admin API as the archived `session-history-list` verification did.                                                                                                                                                                                |
+| validation            | Zod                                                                    | 4.4.3 (in use)                       | Format errors with `z.treeifyError`, never `.flatten()` (see `context/foundation/lessons.md`).                                                                                                                                                                                                        |
+| CI                    | GitHub Actions                                                         | in use                               | Today runs `lint` + `build` only. `astro build` does not type-check TS and `@astrojs/check` is installed but never invoked — typecheck is currently ungated.                                                                                                                                          |
 
 **Stack grounding tools (current session):**
-- Docs: Context7 — available; use for Astro 6 SSR test configuration (`getViteConfig`), Vitest setup, and Playwright against an Astro SSR server; checked: 2026-09-01
+
+- Docs: Context7 — available; use for Astro 6 SSR test configuration, Vitest setup, and Playwright against an Astro SSR server. Used 2026-09-03 to verify StrykerJS 10 + `vitest-runner` setup (`/stryker-mutator/stryker-js`); checked: 2026-09-03
 - Search: Exa.ai — available; use only for discovery / current-status checks, then cite the official doc; checked: 2026-09-01
 - Runtime/browser: `claude-in-chrome` browser automation — available; a possible manual-verification aid, not a test layer; no Playwright MCP in session; checked: 2026-09-01
 - Provider/platform: `gh` and `supabase` CLIs via shell — available; no GitHub / Supabase / Cloudflare MCP server in session; checked: 2026-09-01
@@ -131,15 +133,16 @@ The full set of gates that must pass before a change reaches production.
 "Required after §3 Phase N" means the gate is enforced once that rollout
 phase lands; before that, the gate is planned.
 
-| Gate | Where | Required? | Catches |
-|------|-------|-----------|---------|
-| lint (eslint) | local + CI | required (wired) | syntactic drift, a11y-lint, deprecated-API lint |
-| typecheck (`npx tsc --noEmit`) | local + CI | required after §3 Phase 4 | type drift; not gated today |
-| unit + integration (Vitest) | local + CI | required after §3 Phase 2 | angle-math regressions, LLM-boundary regressions, ownership regressions, swallowed-error regressions |
-| e2e smoke — happy path | CI on PR | required after §3 Phase 4 | the upload → analysing → results flow being broken end to end |
-| post-edit hook (run related tests on save) | local (agent loop) | recommended after §3 Phase 4 | regressions at edit time; not a CI substitute |
-| multimodal visual review | CI on PR | optional | visual regressions on the results screen only (1 screen); classic assertions cover the rest |
-| pre-prod smoke | between merge and prod | optional | Cloudflare Workers environment-specific failures (`nodejs_compat`, adapter) |
+| Gate                                       | Where                  | Required?                    | Catches                                                                                                                                                                                                                                                                                                                      |
+| ------------------------------------------ | ---------------------- | ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| lint (eslint)                              | local + CI             | required (wired)             | syntactic drift, a11y-lint, deprecated-API lint                                                                                                                                                                                                                                                                              |
+| typecheck (`npx tsc --noEmit`)             | local + CI             | required after §3 Phase 4    | type drift; not gated today                                                                                                                                                                                                                                                                                                  |
+| unit + integration (Vitest)                | local + CI             | required after §3 Phase 2    | angle-math regressions, LLM-boundary regressions, ownership regressions, swallowed-error regressions                                                                                                                                                                                                                         |
+| mutation score (Stryker)                   | local + on-demand      | advisory (not gated)         | tests that execute a line without asserting its behaviour — tautological / oracle-problem tests that raise line coverage but would not fail on a real regression. Run when touching the pure-logic modules in `stryker.config.json`; treat a new survivor as a prompt to strengthen the test or record why it is acceptable. |
+| e2e smoke — happy path                     | CI on PR               | required after §3 Phase 4    | the upload → analysing → results flow being broken end to end                                                                                                                                                                                                                                                                |
+| post-edit hook (run related tests on save) | local (agent loop)     | recommended after §3 Phase 4 | regressions at edit time; not a CI substitute                                                                                                                                                                                                                                                                                |
+| multimodal visual review                   | CI on PR               | optional                     | visual regressions on the results screen only (1 screen); classic assertions cover the rest                                                                                                                                                                                                                                  |
+| pre-prod smoke                             | between merge and prod | optional                     | Cloudflare Workers environment-specific failures (`nodejs_compat`, adapter)                                                                                                                                                                                                                                                  |
 
 ## 6. Cookbook Patterns
 
@@ -246,7 +249,7 @@ phase taught, e.g. a fixture directory later phases should reuse.)
   worth testing comes out of the island first**, into `src/lib/`.
 - **`astro:env` import hazard.** `src/lib/services/llm.ts` imports
   `OPENROUTER_API_KEY` from `astro:env/server` (an `access: "secret"`
-  *required* field) at module top level — importing that module in a test
+  _required_ field) at module top level — importing that module in a test
   without the var set throws at import time. The Phase 1 smoke spec
   deliberately imports `@/lib/format-angle` (no `astro:env` anywhere in its
   transitive graph). Env-setup wiring for `astro:env`-touching modules is
@@ -288,6 +291,60 @@ phase taught, e.g. a fixture directory later phases should reuse.)
     in `src/lib/pose/angles.test.ts`, and the recommendations prompt
     generated from `ANGLE_REFS` (`src/lib/recommendations-prompt.test.ts`).
     Phase 1 itself still asserts geometry and convention only.
+
+### 6.7 Checking a suite with mutation testing (StrykerJS)
+
+Added by `--refresh` on 2026-09-03 (`context/changes/test-plan-refresh-2026-09-03/`).
+
+**What it is for.** Line coverage proves a line _ran_ during a test. Mutation
+testing proves a test would _fail if that line were wrong_. It is the
+mechanical check for §6.1's oracle rule: a test that executes the angle math
+but asserts nothing meaningful passes coverage and fails Stryker.
+
+**Run command.** `npm run test:mutation` (→ `stryker run`). Takes ~40 s.
+HTML report at `reports/mutation/mutation.html`; `clear-text` lists every
+survivor inline. `.stryker-tmp/` and `reports/` are gitignored.
+
+**What it mutates — and why it is scoped.** `stryker.config.json` `mutate`
+names exactly the four `astro:env`-free pure-logic modules Phase 1 covers:
+`src/lib/pose/angles.ts`, `src/lib/angle-verdict.ts`,
+`src/lib/recommendations-prompt.ts`, `src/lib/format-angle.ts`. It is **not**
+pointed at all of `src/`: any module importing `astro:env/server` throws at
+import under Vitest (see §6.6, Phase 1 `astro:env` hazard), and mutating
+modules that have no spec only produces survivors that mean nothing. Widen
+`mutate` when — and only when — a new pure-logic module gets a real spec.
+
+**Config.** `testRunner: "vitest"` + `@stryker-mutator/vitest-runner`,
+`coverageAnalysis: "perTest"`, `thresholds.break: null` — the command never
+fails, so it is safe to run any time and it is not wired into CI (§5:
+advisory). `high: 90 / low: 80` only colour the report.
+
+**Reading a survivor.** Stryker prints `[Survived]` with the applied
+mutation, e.g. `ConditionalExpression` → `if (true && ka > bestKneeAngle)`,
+`LogicalOperator` → `||` swapped for `&&`, `StringLiteral` → `.join("\n")`
+became `.join("")`. Survived = the whole suite still passed with that change
+in place = no test pins that behaviour. Two valid responses: **kill it**
+(add or tighten an assertion whose expected value comes from an independent
+oracle, never from the mutated code), or **consciously accept it** (an
+equivalent mutant, or a branch genuinely not worth a test) and note why in
+the spec or here.
+
+**Discipline.** Run before and after changing a pure-logic module. A _new_
+survivor is a regression in test strength — treat it like a red test. Do not
+chase 100%, and never add a test whose only purpose is to kill a mutant with
+no real oracle behind it — that reintroduces exactly the tautology §6.1
+forbids.
+
+**Worked example — baseline 2026-09-03.** 89.72% overall (96 killed / 11
+survived, 0 errors). `angle-verdict.ts` and `format-angle.ts` are at 100%.
+All 11 survivors sit in `pose/angles.ts` (10 — `pickExtremumFrame` and
+`convertKeypoints` visibility-gate branches: `||`/`&&` in the
+`visible(wl[23]) || visible(wl[25]) || visible(wl[27])` guards, the
+`type === "BDC"` comparison) and `recommendations-prompt.ts` (1 —
+`.join("\n")` → `.join("")` on the angle list). These are real gaps in the
+Phase 1 oracle set: a spec asserting the exact visibility-gate semantics and
+the newline-joined prompt shape would close them. Tracked as advisory
+follow-ups, not a rollout phase.
 
 ## 7. What We Deliberately Don't Test
 
@@ -345,7 +402,7 @@ these unless the underlying assumption changes.
   work; see §6.6.
 - **The reference-band dimension of Risk #1 — RESOLVED (2026-09-02).** OQ-2 /
   PRD Open Question #2 is closed; this is now covered, no longer negative
-  space. *Which numeric range* each angle is judged against is fixed by change
+  space. _Which numeric range_ each angle is judged against is fixed by change
   `resolve-angle-reference-bands`: the five bands come from
   `context/foundation/reference-angles.md` (authoritative), `ANGLE_REFS` is
   pinned to that doc in `src/lib/pose/angles.test.ts`, and the
@@ -358,12 +415,22 @@ these unless the underlying assumption changes.
   computes. Phase 1's geometry/convention coverage plus this band pinning
   together defend the correctness dimension of Risk #1; kept here only as a
   pointer.
+- **Everything mutation testing does not reach.** Stryker (§6.7) is scoped to
+  the four pure-logic modules only. It says nothing about the LLM boundary,
+  the route handlers, RLS / ownership, the stuck-`processing` lifecycle, or
+  the client pipeline — those are covered (or will be) by the Phase 2–4
+  integration and e2e work, not by mutation score. It is also not a CI gate
+  and not a coverage target: a low mutation score on an _untested_ module is
+  expected and is not a finding. Re-evaluate the `mutate` scope only when a
+  new pure-logic module gains a real spec.
 
 ## 8. Freshness Ledger
 
-- Strategy (§1–§5) last reviewed: 2026-09-01
-- Stack versions last verified: 2026-09-01
-- AI-native tool references last verified: 2026-09-01
+- Strategy (§1–§2) last reviewed: 2026-09-01 (unchanged by the 2026-09-03 refresh)
+- Stack versions last verified: 2026-09-03 (StrykerJS 10 added; Vitest row corrected post-Phase 1 — Vitest 4.1.11, Zod 4.4.3 in use)
+- AI-native tool references last verified: 2026-09-01 (no AI-native test tooling in use yet — see §3 Phase 3)
+- Refresh history:
+  - 2026-09-03 — `test-plan-refresh-2026-09-03`: StrykerJS mutation testing entered the stack. §4 / §5 / §6.7 / §7 / §8 updated; §1–§2 unchanged; §3 Phase 2 reconciled `change opened` → `researched`. Config + docs only — no rollout phase, advisory gate posture.
 
 Refresh (`/10x-test-plan --refresh`) when:
 

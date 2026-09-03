@@ -1,0 +1,19 @@
+{
+  "$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
+  "packageManager": "npm",
+  "testRunner": "vitest",
+  "plugins": ["@stryker-mutator/vitest-runner"],
+  "reporters": ["html", "clear-text", "progress"],
+  "coverageAnalysis": "perTest",
+  "mutate": [
+    "src/lib/pose/angles.ts",
+    "src/lib/angle-verdict.ts",
+    "src/lib/recommendations-prompt.ts",
+    "src/lib/format-angle.ts"
+  ],
+  "thresholds": {
+    "high": 90,
+    "low": 80,
+    "break": null
+  }
+}
