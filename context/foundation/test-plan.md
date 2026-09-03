@@ -208,9 +208,65 @@ contradiction pinned rather than fixed).
 
 ### 6.2 Adding an integration test (API route + mocked Supabase + mocked OpenRouter)
 
-TBD — see §3 Phase 2. Will cover: how a route handler is exercised, the
-network-edge-only mocking policy for OpenRouter, the Supabase client stub,
-and the two-user fixture pattern for ownership assertions.
+Harness established by §3 Phase 2, plan Phase 1
+(`context/changes/testing-llm-and-ownership/`).
+
+**Two Vitest projects** (`vitest.config.ts` → `test.projects`):
+
+- **`unit`** — a plain `defineConfig` (no Astro Vite plugin). Runs the
+  pure-logic units (§6.1), **all API route-handler specs** (`src/pages/api/**`),
+  and the OpenRouter contract suite. `include: src/**/*.{test,spec}.ts`,
+  `exclude: src/pages/sessions/*.{test,spec}.ts`.
+- **`pages`** — built from `getViteConfig` (`astro/config`) so the Astro Vite
+  plugin compiles a `.astro` import (a plain config fails it at
+  `vite:import-analysis`). `configFile: false` in the inline Astro config drops
+  `astro.config.mjs` and with it the `@astrojs/cloudflare` adapter (incompatible
+  with Vitest's `ssr` env). **Scoped to `src/pages/sessions/*.{test,spec}.ts`
+  only** — the two SSR-page specs that use the Container API.
+
+**`astro:env/server` alias-stub.** Every route/service module imports required
+secrets (`SUPABASE_SERVICE_ROLE_KEY`, `OPENROUTER_API_KEY`) from the
+`astro:env/server` virtual module at import time and would throw without them
+set. Both projects alias `astro:env/server` →
+`src/test/stubs/astro-env-server.ts` (fake but well-formed values). Keep that
+stub's export list in sync with `astro.config.mjs` `env.schema` — a new required
+field there breaks every route spec at import until it is added to the stub.
+`tsc` also needs `src/test/astro-shims.d.ts` (ambient `declare module "*.astro"`)
+for the page specs' component imports.
+
+**Harness files** (all under `src/test/`):
+
+| File                         | What it gives you                                                                                                                                                                                                                                                                                                                                                                                                    |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `stubs/astro-env-server.ts`  | the alias target above                                                                                                                                                                                                                                                                                                                                                                                               |
+| `helpers/supabase-stub.ts`   | `makeSupabaseStub(script)` — chainable fake of the supabase-js query builder; `script` is keyed `"<table>.<operation>"` → `{ data, error }` so a test can return a **real error** (Risk #7). `stub.calls` records every terminal query in order (assert `select` before the admin write, assert `.eq("user_id", …)` present, assert no write on a failure path). Covers both `createClient` and `createAdminClient`. |
+| `helpers/openrouter-mock.ts` | `installOpenRouterMock()` → `{ replyWith, replyRaw, assertCalledOnce, restore }`. undici `MockAgent` on the global dispatcher; intercepts `POST https://openrouter.ai/api/v1/chat/completions` only. **Mock at this network edge — never `vi.mock` `analyzeVideo`/`generateRecommendations`.** Call `restore()` in `afterEach` or a leaked interceptor eats the next suite's fetch.                                  |
+| `helpers/api-context.ts`     | `makeApiContext({ user, params, body, headers, cookies, method })` → an object cast to `APIContext` carrying the four things handlers read (`locals.user`, `request`, `params`, `cookies`).                                                                                                                                                                                                                          |
+| `helpers/render-page.ts`     | `renderPage(Component, { request, params, locals })` → `Response`, via `experimental_AstroContainer`. Only importable from the `pages` project.                                                                                                                                                                                                                                                                      |
+
+**Exercising a route handler** (in the `unit` project): `vi.mock("@/lib/supabase", () => ({ createClient: vi.fn() }))`
+(and `@/lib/services/supabase-admin` where the route writes), then per test
+`vi.mocked(createClient).mockReturnValue(makeSupabaseStub({…}) as unknown as SupabaseClient)`.
+Import the exported `GET`/`POST` from the route module and call it with
+`makeApiContext(…)`. Assert `res.status`, `await res.json()`, and `stub.calls`.
+The `astro:env` alias is what lets `import { POST } from "./analyze"` not throw;
+`vi.mock` controls behaviour.
+
+**Exercising an SSR page** (in the `pages` project — spec file must live at
+`src/pages/sessions/*.{test,spec}.ts`): same `vi.mock` of `@/lib/supabase`, then
+`await renderPage(SessionsIndex, { locals: { user } })`, then assert `res.status`
+and run substring matches on `await res.text()`.
+
+**Spike outcome (recorded per plan Phase 1).** The Container API path works with
+the Cloudflare adapter excluded — no pure-helper fallback was needed. One
+adaptation from the plan: `getViteConfig` does **not** auto-register integration
+renderers, so the React renderer that `DeleteSessionButton client:visible` needs
+is loaded explicitly in `render-page.ts` via
+`loadRenderers([getContainerRenderer()])` from `@astrojs/react` +
+`astro:container`, not through the inline config's `integrations: [react()]`.
+
+The two-user cross-RLS fixture is **not** in this layer — see §6.4 and §3 Phase 4
+(Playwright). This layer's ownership coverage is stub-level ordering only.
 
 ### 6.3 Adding a contract test for the OpenRouter boundary
 
