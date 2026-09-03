@@ -9,7 +9,8 @@
     "src/lib/pose/angles.ts",
     "src/lib/angle-verdict.ts",
     "src/lib/recommendations-prompt.ts",
-    "src/lib/format-angle.ts"
+    "src/lib/format-angle.ts",
+    "src/lib/llm-response.ts"
   ],
   "thresholds": {
     "high": 90,

@@ -270,9 +270,79 @@ The two-user cross-RLS fixture is **not** in this layer — see §6.4 and §3 Ph
 
 ### 6.3 Adding a contract test for the OpenRouter boundary
 
-TBD — see §3 Phase 2. Will cover: the malformed / drifted / truncated
-response corpus and how each is asserted to produce a typed plain-language
-failure with no partial write.
+Established by §3 Phase 2, plan Phase 2
+(`context/changes/testing-llm-and-ownership/`).
+
+**What this layer pins.** `src/lib/services/llm.ts` is the only place the app
+talks to a model. Every response it can get back — well-formed, drifted,
+truncated, Markdown-fenced, wrong-shape, HTTP error — must resolve to either a
+**validated** value or a thrown `Error` whose `message` is one of the module's
+**fixed strings**. Never a resolved partial, never upstream text in the message
+(a direct API caller must not see OpenRouter's body or the raw completion).
+
+**Where specs live.**
+
+- `src/lib/services/llm.test.ts` — the contract suite: one case per corpus
+  entry against `analyzeVideo` and `generateRecommendations`. Runs in the
+  `unit` project (§6.2).
+- `src/lib/llm-response.test.ts` — direct branch cases for the pure
+  `src/lib/llm-response.ts` helpers (`stripJsonFence`, `timestampItemSchema`,
+  `timestampListSchema`). Pure module, **in Stryker's `mutate` scope**
+  (`stryker.config.json`) — `llm.ts` itself is not (it imports `astro:env`).
+  Anything worth mutation-testing about the parsing goes in `llm-response.ts`,
+  not `llm.ts`.
+- `src/pages/api/analyze.test.ts`, `src/pages/api/sessions/[id]/recommend.test.ts`
+  — route-level: a corpus entry from the mock → route `500` with the **generic**
+  body, and (for `recommend`) `stub.calls` shows no write.
+
+**Mock at the HTTP edge — never `vi.mock` the service.** Use
+`installOpenRouterMock()` from `src/test/helpers/openrouter-mock.ts` (undici
+`MockAgent`; §6.2 table). `replyWith(status, body)` wraps `body` in the
+OpenRouter envelope `{ choices: [{ message: { content: <stringified> } }] }`
+unless it already has a `choices` key; `replyRaw(status, text)` sets the HTTP
+body verbatim (empty body, truncated envelope, non-JSON). Call `restore()` in
+`afterEach` — a leaked dispatcher eats the next suite's real fetch.
+
+```ts
+let openrouter: OpenRouterMock;
+beforeEach(() => {
+  openrouter = installOpenRouterMock();
+});
+afterEach(() => {
+  openrouter.restore();
+});
+
+it("rejects a drifted enum value", async () => {
+  openrouter.replyWith(200, { timestamps: [{ t: 1, type: "MIDDLE" }] });
+  await expect(analyzeVideo("dGVzdA==")).rejects.toThrow("Vision LLM returned a malformed timestamp list");
+});
+```
+
+**The corpus** (each asserts a _fixed-string_ throw unless marked ✅ success):
+
+| Body                                                          | Assert                                                                                   |
+| ------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `!ok` — 429 / 500 / 403 / 451                                 | `"OpenRouter <vision\|text> request failed"`; upstream text goes to `console.error` only |
+| 200 + empty HTTP body                                         | `"OpenRouter returned a non-JSON response for <…> request"`                              |
+| 200 + `{ choices: [] }` / `content: ""`                       | `"OpenRouter returned no content for <…> request"`                                       |
+| 200 + ` ```json … ``` ` fenced JSON                           | ✅ resolves the parsed value (`stripJsonFence`)                                          |
+| 200 + `{ timestamps: [] }`                                    | ✅ resolves `{ timestamps: [] }` — the model's documented "unsure" reply                 |
+| 200 + truncated JSON in `content`                             | `"<…> LLM returned invalid JSON"`                                                        |
+| 200 + `{ timestamps: "nope" }`                                | `"Vision LLM returned a malformed timestamp list"`                                       |
+| 200 + `{ timestamps: [{ t: 1, type: "MIDDLE" }] }` (bad enum) | same                                                                                     |
+| 200 + `{ recommendations: [{ foo: 1 }] }` (bad item shape)    | `"Recommendations LLM returned a malformed recommendation list"`                         |
+| 200 + well-formed recs, `raw_llm_response` missing            | `"Recommendations LLM response missing raw_llm_response string"`                         |
+| 200 + well-formed                                             | ✅ resolves the validated value                                                          |
+
+**Per-item validation reuses the schemas.** `recommendationSchema` from
+`@/lib/schemas`; `timestampItemSchema` / `timestampListSchema` from
+`@/lib/llm-response`. `f` (frame number) is accepted-but-optional on a
+timestamp item — the request schema requires it, the return type drops it, so
+rejecting on it would be wrong.
+
+**Route wrapper rule.** `analyze.ts` / `recommend.ts` `catch` → `console.error(<detail>, err)` then a fixed
+plain-language `{ error }` at `500`. No `err.message` in the response body
+(`git grep -n "err.message" src/pages/api/analyze.ts …` stays empty).
 
 ### 6.4 Adding a test for a new API endpoint
 

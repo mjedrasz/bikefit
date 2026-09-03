@@ -45,6 +45,8 @@ export const POST: APIRoute = async (context) => {
     const result = await generateRecommendations(parsed.data.body_angles);
     return Response.json(result);
   } catch (err) {
-    return Response.json({ error: err instanceof Error ? err.message : "LLM call failed" }, { status: 500 });
+    // eslint-disable-next-line no-console -- upstream detail stays server-side; caller gets a fixed string
+    console.error("recommend LLM call failed", err);
+    return Response.json({ error: "Could not generate recommendations. Please try again." }, { status: 500 });
   }
 };

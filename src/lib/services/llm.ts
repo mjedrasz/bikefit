@@ -1,10 +1,18 @@
 import { OPENROUTER_API_KEY } from "astro:env/server";
+import { z } from "zod";
 import type { BodyAngle, Recommendation } from "@/types";
 import { buildRecommendationsSystemPrompt } from "@/lib/recommendations-prompt";
+import { recommendationSchema } from "@/lib/schemas";
+import { stripJsonFence, timestampListSchema } from "@/lib/llm-response";
 
 const VISION_MODEL = "google/gemini-3.5-flash";
 const TEXT_MODEL = "google/gemini-2.5-flash";
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
+
+// Every thrown message below is a FIXED string — no interpolation of upstream error text or
+// the model's `content`. A direct API caller must never see OpenRouter's body or the raw
+// (possibly huge / sensitive) completion. Detail that helps debugging is `console.error`-d
+// server-side (Cloudflare observability) instead. See test-plan §6.3, Risk #2.
 
 const ANALYZE_VIDEO_SYSTEM_PROMPT = `You are analyzing a cycling video. Identify keyframes where the pedal is at Bottom Dead Center (BDC, 6 o'clock) and Top Dead Center (TDC, 12 o'clock).
 Respond with this exact format:
@@ -19,6 +27,18 @@ If you are unsure, do not guess, just respond with an empty array:
 {
   "timestamps": []
 }`;
+
+interface OpenRouterEnvelope {
+  choices?: { message?: { content?: string } }[];
+}
+
+async function readEnvelope(response: Response, subject: string): Promise<OpenRouterEnvelope> {
+  try {
+    return (await response.json()) as OpenRouterEnvelope;
+  } catch {
+    throw new Error(`OpenRouter returned a non-JSON response for ${subject} request`);
+  }
+}
 
 export async function analyzeVideo(videoBase64: string): Promise<{ timestamps: { t: number; type: "BDC" | "TDC" }[] }> {
   const response = await fetch(OPENROUTER_URL, {
@@ -79,10 +99,12 @@ export async function analyzeVideo(videoBase64: string): Promise<{ timestamps: {
   });
 
   if (!response.ok) {
-    throw new Error(`OpenRouter vision request failed: ${response.status} ${await response.text()}`);
+    // eslint-disable-next-line no-console -- server-side detail for a fixed-string throw
+    console.error("OpenRouter vision request failed", response.status, await response.text());
+    throw new Error("OpenRouter vision request failed");
   }
 
-  const data = (await response.json()) as { choices?: { message?: { content?: string } }[] };
+  const data = await readEnvelope(response, "vision");
   const content = data.choices?.[0]?.message?.content;
   if (!content) {
     throw new Error("OpenRouter returned no content for vision request");
@@ -90,17 +112,17 @@ export async function analyzeVideo(videoBase64: string): Promise<{ timestamps: {
 
   let parsed: unknown;
   try {
-    parsed = JSON.parse(content);
+    parsed = JSON.parse(stripJsonFence(content));
   } catch {
-    throw new Error(`Vision LLM returned invalid JSON: ${content}`);
+    throw new Error("Vision LLM returned invalid JSON");
   }
 
-  const result = parsed as { timestamps?: unknown };
-  if (!Array.isArray(result.timestamps)) {
-    throw new Error(`Vision LLM response missing timestamps array: ${content}`);
+  const result = timestampListSchema.safeParse((parsed as { timestamps?: unknown }).timestamps);
+  if (!result.success) {
+    throw new Error("Vision LLM returned a malformed timestamp list");
   }
 
-  return { timestamps: result.timestamps as { t: number; type: "BDC" | "TDC" }[] };
+  return { timestamps: result.data };
 }
 
 export async function generateRecommendations(
@@ -135,10 +157,12 @@ export async function generateRecommendations(
   });
 
   if (!response.ok) {
-    throw new Error(`OpenRouter text request failed: ${response.status} ${await response.text()}`);
+    // eslint-disable-next-line no-console -- server-side detail for a fixed-string throw
+    console.error("OpenRouter text request failed", response.status, await response.text());
+    throw new Error("OpenRouter text request failed");
   }
 
-  const data = (await response.json()) as { choices?: { message?: { content?: string } }[] };
+  const data = await readEnvelope(response, "recommendations");
   const content = data.choices?.[0]?.message?.content;
   if (!content) {
     throw new Error("OpenRouter returned no content for recommendations request");
@@ -146,17 +170,17 @@ export async function generateRecommendations(
 
   let parsed: unknown;
   try {
-    parsed = JSON.parse(content);
+    parsed = JSON.parse(stripJsonFence(content));
   } catch {
-    throw new Error(`Recommendations LLM returned invalid JSON: ${content}`);
+    throw new Error("Recommendations LLM returned invalid JSON");
   }
 
   const result = parsed as { recommendations?: unknown; raw_llm_response?: unknown };
-  if (!Array.isArray(result.recommendations)) {
-    throw new Error(`Recommendations LLM response missing recommendations array: ${content}`);
+  if (!z.array(recommendationSchema).safeParse(result.recommendations).success) {
+    throw new Error("Recommendations LLM returned a malformed recommendation list");
   }
   if (typeof result.raw_llm_response !== "string") {
-    throw new Error(`Recommendations LLM response missing raw_llm_response string: ${content}`);
+    throw new Error("Recommendations LLM response missing raw_llm_response string");
   }
 
   return {

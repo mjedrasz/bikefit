@@ -953,18 +953,18 @@ rewrite frozen §1–§5 strategy in place beyond this pointer.
 
 #### Automated
 
-- [ ] 2.1 Contract suite passes (`npm test src/lib/services/llm.test.ts`)
-- [ ] 2.2 Every corpus entry asserts a typed `Error` (fenced + empty-`timestamps` cases assert a successful parse)
-- [ ] 2.3 Route integration tests pass; `insert` never called on a boundary failure
-- [ ] 2.4 Lint + type-check pass
-- [ ] 2.5 No `err.message` interpolation left in the `analyze`/`recommend` catch responses
-- [ ] 2.9 `stripJsonFence` branch cases live in `src/lib/llm-response.test.ts`; Stryker `mutate` includes `src/lib/llm-response.ts`
+- [x] 2.1 Contract suite passes (`npm test src/lib/services/llm.test.ts`)
+- [x] 2.2 Every corpus entry asserts a typed `Error` (fenced + empty-`timestamps` cases assert a successful parse)
+- [x] 2.3 Route integration tests pass; `insert` never called on a boundary failure
+- [x] 2.4 Lint + type-check pass
+- [x] 2.5 No `err.message` interpolation left in the `analyze`/`recommend` catch responses
+- [x] 2.9 `stripJsonFence` branch cases live in `src/lib/llm-response.test.ts`; Stryker `mutate` includes `src/lib/llm-response.ts`
 
 #### Manual
 
-- [ ] 2.6 A fenced ` ```json ` body now completes analysis instead of failing
-- [ ] 2.7 A direct call with a forced upstream 500 returns the generic string; detail in logs only
-- [ ] 2.8 §6.3 is a usable recipe
+- [x] 2.6 A fenced ` ```json ` body now completes analysis instead of failing
+- [x] 2.7 A direct call with a forced upstream 500 returns the generic string; detail in logs only
+- [x] 2.8 §6.3 is a usable recipe
 
 ### Phase 3: Distinct DB-error states (Risk #7)
 
