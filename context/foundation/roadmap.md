@@ -3,7 +3,7 @@ project: "BikeFit"
 version: 1
 status: draft
 created: 2026-05-26
-updated: 2026-09-02
+updated: 2026-09-03
 prd_version: 1
 main_goal: market-feedback
 top_blocker: decisions
@@ -36,7 +36,7 @@ Amateur cyclists who notice discomfort or wonder whether their position is effic
 | S-03 | fitting-results-display      | view fitting recommendations and body angles for a completed session               | F-01             | FR-008, US-01                         | done |
 | S-04 | session-history-list         | browse all past fitting sessions and navigate to any completed result              | S-01, F-01       | FR-009                                | done |
 | S-05 | results-display-ux-improvements | see body angles rounded to a readable precision instead of raw floating-point values | S-03              | FR-008                                | done |
-| S-06 | delete-session               | delete a selected past fitting session they own                                    | S-04             | FR-009, Access Control               | in-progress |
+| S-06 | delete-session               | delete a selected past fitting session they own                                    | S-04             | FR-009, Access Control               | done |
 
 ## Streams
 
@@ -113,9 +113,9 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Parallel with:** S-03, S-04
 - **Blockers:** —
 - **Unknowns:**
-  - Which gravel bike angle reference ranges are authoritative? — Owner: user. Block: yes. (The LLM prompt must embed domain reference ranges; without them recommendations cannot be validated against the ±10° success criterion or the reference-range success criterion. Source from bike fitting literature or certified fitter consultation before implementation.)
+  - Which gravel bike angle reference ranges are authoritative? — Owner: user. Block: yes. (The LLM prompt must embed domain reference ranges; without them recommendations cannot be validated against the ±10° success criterion or the reference-range success criterion. Source from bike fitting literature or certified fitter consultation before implementation.) — RESOLVED (2026-09-02), see context/foundation/reference-angles.md
   - Which pose estimation tool/API will be used? — Owner: user. Block: yes. (Pipeline integration, input/output format, latency budget, and accuracy on side-view cycling video all depend on which service is chosen. Must be validated on cycling footage before committing, as training data typically covers standing/walking poses.)
-- **Risk:** This is the north star slice — the product's core hypothesis lives here. Both blocking unknowns must be resolved before implementation begins. LLM hallucination risk is mitigated by embedding reference ranges in the prompt (per PRD §Business Logic), but that mitigation only activates once OQ-2 is resolved.
+- **Risk:** This is the north star slice — the product's core hypothesis lives here. Both blocking unknowns must be resolved before implementation begins. LLM hallucination risk is mitigated by embedding reference ranges in the prompt (per PRD §Business Logic); that mitigation is now active — OQ-2 RESOLVED (2026-09-02), bands fixed in `context/foundation/reference-angles.md`.
 - **Status:** done
 
 ### S-03: Fitting results display
@@ -167,7 +167,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Unknowns:**
   - Hard delete or soft delete (retain a tombstone row)? — Owner: user. Block: no. (Default to hard delete — the process-and-discard privacy posture extends to user-initiated removal; revisit only if history analytics need a trail.)
 - **Risk:** Lightweight slice over data and a list view that already exist once S-04 ships — a delete endpoint plus a confirm action in the history UI. The one real correctness concern is the ownership check: a user must never delete another user's session, so the delete must be scoped to the authenticated user and enforced by RLS, not just the UI.
-- **Status:** in-progress
+- **Status:** done
 
 ## Backlog Handoff
 
@@ -176,7 +176,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 | F-01       | db-schema-and-privacy-design | Design session + result schema with privacy-first RLS    | done                  | Implemented 2026-05-29                                           |
 | F-02       | async-job-pipeline           | Wire async analysis job queue and status tracking        | done                  | F-01 done; run `/10x-plan async-job-pipeline`                    |
 | S-01       | video-upload-and-status      | Build video upload flow with processing-status indicator | done                  | Blocked: resolve OQ-1 (min duration) and OQ-3 (tool) first      |
-| S-02       | ai-analysis-pipeline         | Integrate pose estimation + angle calc + LLM pipeline    | done                  | Blocked: resolve OQ-2 (reference ranges) and OQ-3 (tool) first  |
+| S-02       | ai-analysis-pipeline         | Integrate pose estimation + angle calc + LLM pipeline    | done                  | Was blocked on OQ-2 (reference ranges — RESOLVED 2026-09-02, see context/foundation/reference-angles.md) and OQ-3 (tool) |
 | S-03       | fitting-results-display      | Build results display: recommendations + angles + ranges | done                   | F-01 done; run `/10x-plan fitting-results-display`               |
 | S-04       | session-history-list         | Build session history list and navigation                | done                   | Depends on S-01 completing                                       |
 | S-05       | results-display-ux-improvements | Round over-precise body angle values in results display  | no                     | Depends on S-03 completing; run `/10x-new results-display-ux-improvements` once ready |
@@ -186,7 +186,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 
 1. **What is the minimum video duration for reliable angle extraction?** The 10s cap was challenged as arbitrary in the PRD; a single crank rotation (1–2s at 60 rpm) may suffice. Must be validated against the chosen pose estimation tool's accuracy requirements before upload validation (FR-003) can be implemented. Owner: user. Block: S-01.
 
-2. **Which gravel bike angle reference ranges are authoritative?** The ±10° success criterion and the reference-range recommendation criterion both require a sourced reference frame for gravel bike geometry. Must be obtained from bike fitting literature or a certified fitter consultation before LLM prompt engineering (FR-007) can begin. Owner: user. Block: S-02. Tracked as change `resolve-angle-reference-bands` (opened 2026-09-02); still unresolved.
+2. **Which gravel bike angle reference ranges are authoritative?** **RESOLVED (2026-09-02)** — the five authoritative gravel/recreational bands are fixed in `context/foundation/reference-angles.md` (promoted from a 13-source literature review; `ANGLE_REFS` pinned to it, the LLM prompt generated from it). The ±10° success criterion and the reference-range recommendation criterion both require a sourced reference frame for gravel bike geometry. Must be obtained from bike fitting literature or a certified fitter consultation before LLM prompt engineering (FR-007) can begin. Owner: user. Block: S-02. Tracked as change `resolve-angle-reference-bands` (opened 2026-09-02, resolved 2026-09-02).
 
 3. **Which third-party pose estimation tool/API will be used?** The chosen service must be validated specifically for accuracy on side-view cycling video before committing — training data typically covers standing/walking poses, which may differ materially from a pedalling cyclist. Tool choice gates both the upload routing design (S-01) and the pipeline integration (S-02). Owner: user. Block: S-01, S-02.
 
@@ -210,3 +210,4 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **S-03: view fitting recommendations and body angles for a completed session** — Archived 2026-09-01 → `context/archive/2026-08-23-fitting-results-display/`. Lesson: —.
 - **S-04: browse all past fitting sessions and navigate to any completed result** — Archived 2026-09-01 → `context/archive/2026-08-23-session-history-list/`. Lesson: —.
 - **S-05: see body angles rounded to a readable precision instead of raw floating-point values** — Archived 2026-09-01 → `context/archive/2026-09-01-results-display-ux-improvements/`. Lesson: —.
+- **S-06: delete a selected past fitting session they own** — Archived 2026-09-03 → `context/archive/2026-09-02-delete-session/`. Lesson: —.

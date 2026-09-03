@@ -612,26 +612,26 @@ runs.
 
 #### Automated
 
-- [x] 2.1 Type checking passes: `npx tsc --noEmit`
-- [x] 2.2 All specs pass incl. the new generator spec: `npm test`
-- [x] 2.3 Lint clean: `npm run lint`
-- [x] 2.4 `llm.ts` no longer hard-codes the table (`grep -E "137–147|Reference angle ranges" src/lib/services/llm.ts` empty)
-- [x] 2.5 `grep -nE "150–160|150–165|85–95|137–147" src/lib/services/llm.ts` returns nothing
+- [x] 2.1 Type checking passes: `npx tsc --noEmit` — 18f9715
+- [x] 2.2 All specs pass incl. the new generator spec: `npm test` — 18f9715
+- [x] 2.3 Lint clean: `npm run lint` — 18f9715
+- [x] 2.4 `llm.ts` no longer hard-codes the table (`grep -E "137–147|Reference angle ranges" src/lib/services/llm.ts` empty) — 18f9715
+- [x] 2.5 `grep -nE "150–160|150–165|85–95|137–147" src/lib/services/llm.ts` returns nothing — 18f9715
 
 #### Manual
 
-- [x] 2.6 Built prompt reads naturally — table shows five blessed bands, per-angle rules make sense without inline degrees
-- [x] 2.7 Real recommendations request against an out-of-range angle — no output-quality regression
+- [x] 2.6 Built prompt reads naturally — table shows five blessed bands, per-angle rules make sense without inline degrees — 18f9715
+- [x] 2.7 Real recommendations request against an out-of-range angle — no output-quality regression — 18f9715
 
 ### Phase 3: Close OQ-2 tracking
 
 #### Automated
 
-- [ ] 3.1 `grep -rn "Open Question #2\|OQ-2\|OQ#2" context/foundation/` — every hit RESOLVED-annotated
-- [ ] 3.2 `grep -rn "unresolved owner decision\|contested\|synthetic bands only" context/ src/` — nothing stale
-- [ ] 3.3 Sanity: `npm test`, `npx tsc --noEmit`, `npm run lint` still green
+- [x] 3.1 `grep -rn "Open Question #2\|OQ-2\|OQ#2" context/foundation/` — every hit RESOLVED-annotated
+- [x] 3.2 `grep -rn "unresolved owner decision\|contested\|synthetic bands only" context/ src/` — nothing stale
+- [x] 3.3 Sanity: `npm test`, `npx tsc --noEmit`, `npm run lint` still green
 
 #### Manual
 
-- [ ] 3.4 PRD OQ#2, roadmap OQ-2, test-plan §7 each read as resolved and point to `context/foundation/reference-angles.md`
-- [ ] 3.5 `change.md` `## Decision` table matches `ANGLE_REFS` exactly
+- [x] 3.4 PRD OQ#2, roadmap OQ-2, test-plan §7 each read as resolved and point to `context/foundation/reference-angles.md`
+- [x] 3.5 `change.md` `## Decision` table matches `ANGLE_REFS` exactly

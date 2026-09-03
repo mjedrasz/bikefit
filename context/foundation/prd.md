@@ -104,7 +104,7 @@ The system receives all body angles extracted from the uploaded video. It does n
 
 The fitting process is explicitly iterative: each submission is one round in a cycle of adjustment and re-analysis. The user makes the recommended adjustments, films again, submits again, and receives updated recommendations. Session history exists to track this progression over time.
 
-The reference frame for gravel bike geometry (what counts as "in range") is an open question — the specific angle ranges and adjustment thresholds must be established before recommendations can be validated against the ±10° and reference-range success criteria. See Open Questions.
+The reference frame for gravel bike geometry (what counts as "in range") is fixed in `context/foundation/reference-angles.md` — the five authoritative angle bands, promoted from a 13-source bike-fitting literature review and reconciled toward gravel/recreational tuning (resolved 2026-09-02 by change `resolve-angle-reference-bands`, closing Open Question #2).
 
 ## Access Control
 
@@ -125,7 +125,7 @@ Multi-user web app. Users register and log in with email + password, or via OAut
 
 1. **What is the minimum video duration for reliable angle extraction?** The 10s cap from idea notes was challenged as arbitrary; a single crank rotation (1–2s at 60 rpm) may suffice. The actual limit should be validated against the chosen pose estimation tool's accuracy requirements. Owner: user. Block: yes (affects FR-003 and success criterion).
 
-2. **Which gravel bike angle reference ranges are authoritative?** The ±10° success criterion and the reference-range recommendation criterion both require a known "correct" range for each relevant angle. This domain knowledge must be sourced (bike fitting literature, certified fitter consultation) before recommendations can be validated. Owner: user. Block: yes (PRD is hollow without this; affects Business Logic and success criteria).
+2. **Which gravel bike angle reference ranges are authoritative?** **RESOLVED (2026-09-02):** the five authoritative gravel/recreational bands — knee-BDC 135–145°, knee-TDC 68–74°, hip 55–70°, torso 45–55°, elbow 150–165° (included) — are fixed in `context/foundation/reference-angles.md`, promoted from a 13-source bike-fitting literature review; `ANGLE_REFS` in code is pinned to that doc and the LLM recommendations prompt is generated from it. Resolved by change `resolve-angle-reference-bands`. — Original question: the ±10° success criterion and the reference-range recommendation criterion both require a known "correct" range for each relevant angle. This domain knowledge must be sourced (bike fitting literature, certified fitter consultation) before recommendations can be validated. Owner: user. Block: yes (PRD is hollow without this; affects Business Logic and success criteria).
 
 3. **Which third-party pose estimation tool/API will be used?** The chosen service must be validated for accuracy on side-view cycling video before committing. Accuracy on cycling footage may differ from the standing/walking poses typical training data covers. Owner: user. Block: yes (affects FR-004/005 and the ±10° success criterion).
 

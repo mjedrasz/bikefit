@@ -6,7 +6,7 @@
 >
 > Refresh: re-run `/10x-test-plan --refresh` when stale (see §8).
 >
-> Last updated: 2026-09-02 (Phase 1 implemented — §6.1, §6.6, §7 filled)
+> Last updated: 2026-09-02 (OQ-2 resolved — reference-band dimension of Risk #1 now covered by `resolve-angle-reference-bands`; §2, §6.1, §6.6, §7 updated. Earlier: Phase 1 implemented — §6.1, §6.6, §7 filled)
 
 ## 1. Strategy
 
@@ -75,6 +75,15 @@ echo secrets.
 | #5 | A second user receives 404 / empty / 403 for every route and page that addresses the first user's session or results — reads *and* writes. | "The route checks `locals.user`, so it is safe" — authentication is not ownership, and the admin client bypasses RLS. | The RLS policies as deployed, which routes read with the user client vs write with the admin client, and the pre-check guarding each admin write. | integration (two distinct user fixtures) | Testing only that an anonymous request is blocked; trusting RLS without exercising a cross-user request against it. |
 | #6 | A session with no client progress for longer than a defined interval reaches a terminal `failed` state with a readable message; the results page and history never show a permanently stuck `processing`. | "The client always posts an error on failure." It cannot if the tab is gone. | The status lifecycle and who writes each transition, whether any server-side sweep or TTL exists, and what the UI renders for a long-lived `processing` session. | integration (status lifecycle) + unit (UI state mapping) | Testing only the path where the client stays alive to report completion or failure. |
 | #7 | When a Supabase query returns an error, the user sees a distinct error state (a 500 or a "couldn't load" message), never an empty list or a 404. | "`data` is null means the row does not exist." | Every query site that destructures only `data`, the difference between a query error and an empty result, and the guarantee that a `completed` session has a results row. | integration + unit (error branch) | Asserting the current `data ?? []` fallthrough behavior; mocking Supabase so it can only ever succeed. |
+
+**Risk #1 has two dimensions.** The guidance above covers the *geometry /
+convention* dimension — the angle the code computes vs. the angle the fitting
+literature means. The complementary *reference-band* dimension — which
+numeric range each angle is judged against — is OQ-2, **RESOLVED
+(2026-09-02)** and covered by change `resolve-angle-reference-bands`:
+`ANGLE_REFS` is pinned to `context/foundation/reference-angles.md` in
+`src/lib/pose/angles.test.ts` and the recommendations prompt is generated
+from it. See §7.
 
 ## 3. Phased Rollout
 
@@ -177,9 +186,11 @@ keypoint-mapping pattern: construct keypoint fixtures, call the pure
 function, and assert the returned number against a value that is **either**
 hand-derived from geometry (a straight limb is 180°; a right angle is 90°;
 a hip→shoulder line 45° above horizontal is 45°) **or** quoted from
-`context/archive/2026-05-28-ai-analysis-pipeline/bike-fitting-ref-angles.md`.
-**Never** assert that a function returns what it returns today, never
-`toMatchSnapshot`, never a real-video keypoint dump. If the only way you
+`context/foundation/reference-angles.md` (the authoritative reference-band
+doc — it carries the full 13-source literature list forward from the
+archived review it supersedes). **Never** assert that a function returns
+what it returns today, never `toMatchSnapshot`, never a real-video keypoint
+dump. If the only way you
 can state the expected value is "what the code currently produces," the
 test has no signal — stop and derive the oracle first.
 
@@ -271,9 +282,12 @@ phase taught, e.g. a fixture directory later phases should reuse.)
     only, never on coincidence. `angles.test.ts` documents the current
     behaviour; no fix this phase.
   - The **reference-band** dimension of Risk #1 (which numeric range each
-    angle is judged against) is unresolved owner decision OQ-2 — tracked as
-    change `resolve-angle-reference-bands`. Phase 1 asserts geometry and
-    convention only; `angleVerdict` is tested with synthetic bands.
+    angle is judged against) — OQ-2 — is **RESOLVED (2026-09-02)** by change
+    `resolve-angle-reference-bands`: bands sourced from
+    `context/foundation/reference-angles.md`, `ANGLE_REFS` pinned to that doc
+    in `src/lib/pose/angles.test.ts`, and the recommendations prompt
+    generated from `ANGLE_REFS` (`src/lib/recommendations-prompt.test.ts`).
+    Phase 1 itself still asserts geometry and convention only.
 
 ## 7. What We Deliberately Don't Test
 
@@ -329,18 +343,21 @@ these unless the underlying assumption changes.
   `src/lib/angle-verdict.test.ts` pins this as documented-known. Not fixed
   here — it is a display-policy decision that pairs with the S-05 rounding
   work; see §6.6.
-- **The reference-band dimension of Risk #1.** Phase 1 defends only the
-  **geometry / convention** dimension — that the code measures the angle the
-  fitting literature *means* (right vertex, included-vs-flexion, torso from
-  horizontal). *Which numeric range* each angle is judged against
-  (`ANGLE_REFS`: elbow `150–160` competitive-road in code vs `85–95`
-  gravel/hoods in
-  `context/archive/2026-05-28-ai-analysis-pipeline/angle-to-adjustment-guide.md:126–128`,
-  which flags the conflict) is unresolved owner decision OQ-2 (PRD Open
-  Question #2, Block: yes). Tracked as change
-  `resolve-angle-reference-bands`; `angleVerdict` is tested with synthetic
-  bands only. "Risk #1 defended" after Phase 1 does **not** mean the bands
-  are correct.
+- **The reference-band dimension of Risk #1 — RESOLVED (2026-09-02).** OQ-2 /
+  PRD Open Question #2 is closed; this is now covered, no longer negative
+  space. *Which numeric range* each angle is judged against is fixed by change
+  `resolve-angle-reference-bands`: the five bands come from
+  `context/foundation/reference-angles.md` (authoritative), `ANGLE_REFS` is
+  pinned to that doc in `src/lib/pose/angles.test.ts`, and the
+  recommendations prompt is generated from `ANGLE_REFS` — with
+  `src/lib/recommendations-prompt.test.ts` asserting the blessed numbers and
+  the absence of the retired ones. The elbow band is resolved at
+  `ELBOW 150–165` (the practitioner shoulder–elbow–wrist included-angle range
+  for a relaxed hoods position); the archived guide's `85–95°` was an
+  upper-arm-to-torso "shoulder forward angle" mislabel, not the angle the app
+  computes. Phase 1's geometry/convention coverage plus this band pinning
+  together defend the correctness dimension of Risk #1; kept here only as a
+  pointer.
 
 ## 8. Freshness Ledger
 
