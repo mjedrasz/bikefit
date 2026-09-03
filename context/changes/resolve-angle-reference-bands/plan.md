@@ -627,11 +627,11 @@ runs.
 
 #### Automated
 
-- [x] 3.1 `grep -rn "Open Question #2\|OQ-2\|OQ#2" context/foundation/` — every hit RESOLVED-annotated
-- [x] 3.2 `grep -rn "unresolved owner decision\|contested\|synthetic bands only" context/ src/` — nothing stale
-- [x] 3.3 Sanity: `npm test`, `npx tsc --noEmit`, `npm run lint` still green
+- [x] 3.1 `grep -rn "Open Question #2\|OQ-2\|OQ#2" context/foundation/` — every hit RESOLVED-annotated — a521fb7
+- [x] 3.2 `grep -rn "unresolved owner decision\|contested\|synthetic bands only" context/ src/` — nothing stale — a521fb7
+- [x] 3.3 Sanity: `npm test`, `npx tsc --noEmit`, `npm run lint` still green — a521fb7
 
 #### Manual
 
-- [x] 3.4 PRD OQ#2, roadmap OQ-2, test-plan §7 each read as resolved and point to `context/foundation/reference-angles.md`
-- [x] 3.5 `change.md` `## Decision` table matches `ANGLE_REFS` exactly
+- [x] 3.4 PRD OQ#2, roadmap OQ-2, test-plan §7 each read as resolved and point to `context/foundation/reference-angles.md` — a521fb7
+- [x] 3.5 `change.md` `## Decision` table matches `ANGLE_REFS` exactly — a521fb7

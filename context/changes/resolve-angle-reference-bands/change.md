@@ -1,7 +1,7 @@
 ---
 change_id: resolve-angle-reference-bands
 title: Resolve the authoritative gravel angle reference bands (PRD OQ#2 / Roadmap OQ-2)
-status: implementing
+status: implemented
 created: 2026-09-02
 updated: 2026-09-03
 archived_at: null
