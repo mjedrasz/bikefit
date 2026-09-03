@@ -143,6 +143,19 @@ describe("jointAngle", () => {
     // Callers gate on visible() only, never on coincidence. Tracked in test-plan §6.6.
     expect(Number.isNaN(jointAngle(p(0, 0), p(0, 0), p(1, 0)))).toBe(true);
   });
+
+  it("anchors both rays at the vertex — a non-origin vertex still yields the true angle", () => {
+    // Genuine 3-D angle: from the vertex, ray a runs along (1, 1, 0) and ray c along
+    // (1, 0, 1); they meet at exactly 60° (cos θ = 1/2). The vertex sits at (10, 20, 30),
+    // NOT the origin, so every `x - b.x` / `y - b.y` / `z - b.z` term in `ba` and `bc` is
+    // load-bearing — a sign flip on any component (or dropping z² from the magnitude)
+    // throws the result 20°+ off. Every earlier case puts the vertex at the origin, where
+    // those subtractions are no-ops.
+    const b = p(10, 20, 30);
+    const a = p(20, 30, 30); // vertex + (10, 10, 0)
+    const c = p(20, 20, 40); // vertex + (10, 0, 10)
+    expect(jointAngle(a, b, c)).toBeCloseTo(60, 3);
+  });
 });
 
 describe("computeTorsoAngle", () => {
@@ -272,6 +285,17 @@ describe("pickExtremumFrame", () => {
     });
   }
 
+  /** Like `kneePose`, but sets slot 23/25/27 visibility independently (`[hip, knee, ankle]`)
+   *  so a candidate can be made to fail the gate on exactly one slot. */
+  function kneePoseMissing(kneeAngleDeg: number, vis: [number, number, number]): PoseLandmark[] {
+    const rad = kneeAngleDeg / DEG;
+    return makeLandmarks({
+      23: { x: 0, y: -100, z: 0, visibility: vis[0] },
+      25: { x: 0, y: 0, z: 0, visibility: vis[1] },
+      27: { x: Math.sin(rad) * 100, y: -Math.cos(rad) * 100, z: 0, visibility: vis[2] },
+    });
+  }
+
   it("returns the highest-knee-angle frame for BDC and the lowest for TDC", () => {
     const candidates = [kneePose(120), kneePose(150), kneePose(90)];
     expect(pickExtremumFrame(candidates, "BDC")).toBe(candidates[1]);
@@ -294,6 +318,30 @@ describe("pickExtremumFrame", () => {
     const second = kneePose(140);
     expect(pickExtremumFrame([first, second], "BDC")).toBe(first);
     expect(pickExtremumFrame([first, second], "TDC")).toBe(first);
+  });
+
+  it("skips a candidate that fails the visibility gate on ANY single slot 23/25/27", () => {
+    // The gate is a three-way OR: an undetected hip, knee, OR ankle disqualifies the whole
+    // frame. Each incomplete frame below has a more extreme (higher) knee angle than the
+    // fully-visible 150° frame, so a gate that only checked slot 27 — or AND-ed the first
+    // two terms — would admit it and change the BDC pick.
+    const fullyVisible = kneePose(150);
+    for (const vis of [
+      [0, 1, 1],
+      [1, 0, 1],
+      [1, 1, 0],
+    ] as [number, number, number][]) {
+      expect(pickExtremumFrame([kneePoseMissing(175, vis), fullyVisible], "BDC")).toBe(fullyVisible);
+    }
+  });
+
+  it("keeps the earliest TDC minimum when a later candidate has a higher knee angle", () => {
+    // TDC selects the lowest hip–knee–ankle angle. The 80° frame is seen first and must
+    // survive the 160° frame that follows; a branch that runs the 'pick the maximum' arm
+    // regardless of type would swap in the 160° frame on the second pass.
+    const deepestFlexion = kneePose(80);
+    const shallower = kneePose(160);
+    expect(pickExtremumFrame([deepestFlexion, shallower], "TDC")).toBe(deepestFlexion);
   });
 });
 
