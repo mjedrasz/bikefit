@@ -6,7 +6,7 @@
 >
 > Refresh: re-run `/10x-test-plan --refresh` when stale (see §8).
 >
-> Last updated: 2026-09-02 (OQ-2 resolved — reference-band dimension of Risk #1 now covered by `resolve-angle-reference-bands`; §2, §6.1, §6.6, §7 updated. Earlier: Phase 1 implemented — §6.1, §6.6, §7 filled)
+> Last updated: 2026-09-03 (§3 Phase 1 reconciled to `complete` — `testing-angle-correctness` plan.md Progress fully shipped and impl-reviewed. Earlier: 2026-09-02 OQ-2 resolved — reference-band dimension of Risk #1 now covered by `resolve-angle-reference-bands`; §2, §6.1, §6.6, §7 updated. Phase 1 implemented — §6.1, §6.6, §7 filled)
 
 ## 1. Strategy
 
@@ -93,8 +93,8 @@ orchestrator updates Status as artifacts appear on disk.
 
 | # | Phase name | Goal (one line) | Risks covered | Test types | Status | Change folder |
 |---|------------|-----------------|---------------|------------|--------|---------------|
-| 1 | Harness bootstrap + joint-angle correctness | Stand up the test runner and prove the angle and keypoint-mapping math matches the reference-frame definitions it is judged against, including left/right side selection. | #1 | unit | change opened | context/changes/testing-angle-correctness/ |
-| 2 | LLM boundary + API-route integration | Make the OpenRouter response boundary strict and fail-clean, make every session route enforce ownership, surface DB errors as distinct states, and drive stuck-`processing` sessions to a terminal state. | #2, #5, #6, #7 | contract, integration, unit | not started | — |
+| 1 | Harness bootstrap + joint-angle correctness | Stand up the test runner and prove the angle and keypoint-mapping math matches the reference-frame definitions it is judged against, including left/right side selection. | #1 | unit | complete | context/changes/testing-angle-correctness/ |
+| 2 | LLM boundary + API-route integration | Make the OpenRouter response boundary strict and fail-clean, make every session route enforce ownership, surface DB errors as distinct states, and drive stuck-`processing` sessions to a terminal state. | #2, #5, #6, #7 | contract, integration, unit | change opened | context/changes/testing-llm-and-ownership/ |
 | 3 | Abuse & resource protection | Add server-side payload caps and rate limiting on the OpenRouter-backed routes, scope the vision route to an owned session, degrade gracefully on provider errors, and add a small dated adversarial probe on the vision boundary. | #3, #4 | integration, AI-native probe (optional) | not started | — |
 | 4 | Quality-gates wiring + one e2e smoke | Add typecheck and the new test suites as required CI gates and add a single Playwright happy-path smoke over upload → analysing → results. | cross-cutting | e2e (1 flow), gates | not started | — |
 
