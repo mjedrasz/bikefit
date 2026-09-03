@@ -492,10 +492,10 @@ hydrate.
 
 #### Automated
 
-- [x] 1.1 `npm run lint` passes
-- [x] 1.2 `npx tsc --noEmit` passes
-- [x] 1.3 `npm run build` passes
-- [x] 1.4 Migration file name matches `^\d{14}_.*\.sql$` and sorts after `20260526120000_initial_schema.sql`
+- [x] 1.1 `npm run lint` passes — 384d845
+- [x] 1.2 `npx tsc --noEmit` passes — 384d845
+- [x] 1.3 `npm run build` passes — 384d845
+- [x] 1.4 Migration file name matches `^\d{14}_.*\.sql$` and sorts after `20260526120000_initial_schema.sql` — 384d845
 
 #### Manual
 
@@ -503,29 +503,29 @@ hydrate.
 > project ref and date each check ran against, e.g. `— vs. project abcd1234,
 > 2026-09-02`. Automated checks 1.1–1.4 alone do not complete this phase.
 
-- [x] 1.5 Owner deletes own session → 200; `fitting_sessions` + `analysis_results` rows gone — vs. local Supabase, 2026-09-02
-- [x] 1.6 Non-owner DELETE of another user's session → 404; row survives — vs. local Supabase, 2026-09-02
-- [x] 1.7 Unauthenticated DELETE → 401 — vs. local Supabase, 2026-09-02
-- [x] 1.8 Double delete of same id → 200 then 404 — vs. local Supabase, 2026-09-02
-- [x] 1.9 Delete a `processing` session → 200 — vs. local Supabase, 2026-09-02
-- [x] 1.10 `GET /sessions/:id` after delete → 404 page — vs. local Supabase, 2026-09-02
+- [x] 1.5 Owner deletes own session → 200; `fitting_sessions` + `analysis_results` rows gone — vs. local Supabase, 2026-09-02 — 384d845
+- [x] 1.6 Non-owner DELETE of another user's session → 404; row survives — vs. local Supabase, 2026-09-02 — 384d845
+- [x] 1.7 Unauthenticated DELETE → 401 — vs. local Supabase, 2026-09-02 — 384d845
+- [x] 1.8 Double delete of same id → 200 then 404 — vs. local Supabase, 2026-09-02 — 384d845
+- [x] 1.9 Delete a `processing` session → 200 — vs. local Supabase, 2026-09-02 — 384d845
+- [x] 1.10 `GET /sessions/:id` after delete → 404 page — vs. local Supabase, 2026-09-02 — 384d845
 
 ### Phase 2: Frontend — history-row delete control
 
 #### Automated
 
-- [ ] 2.1 `npm run lint` passes
-- [ ] 2.2 `npx tsc --noEmit` passes
-- [ ] 2.3 `npm run build` passes
+- [x] 2.1 `npm run lint` passes
+- [x] 2.2 `npx tsc --noEmit` passes
+- [x] 2.3 `npm run build` passes
 
 #### Manual
 
-- [ ] 2.4 Each row shows a delete control; filename/pill area still navigates to the session
-- [ ] 2.5 Delete → inline Confirm / Cancel; Cancel sends no request
-- [ ] 2.6 Delete → Confirm → session removed, page reloads, session gone from list
-- [ ] 2.7 Deleting the last session → empty state renders after reload
-- [ ] 2.8 Failure path → inline red error text, row stays, no reload
-- [ ] 2.9 Delete trigger and Confirm / Cancel are keyboard-focusable and operable; sensible focus order
-- [ ] 2.10 No console errors; `Trash2` icon renders
-- [ ] 2.11 Card hover highlight spans the row; hovering the delete control does not break or double it
-- [ ] 2.12 Focus returns to the delete trigger after Cancel / failed Confirm; error `<p>` has `role="alert"`
+- [x] 2.4 Each row shows a delete control; filename/pill area still navigates to the session
+- [x] 2.5 Delete → inline Confirm / Cancel; Cancel sends no request
+- [x] 2.6 Delete → Confirm → session removed, page reloads, session gone from list
+- [x] 2.7 Deleting the last session → empty state renders after reload
+- [x] 2.8 Failure path → inline red error text, row stays, no reload
+- [x] 2.9 Delete trigger and Confirm / Cancel are keyboard-focusable and operable; sensible focus order
+- [x] 2.10 No console errors; `Trash2` icon renders
+- [x] 2.11 Card hover highlight spans the row; hovering the delete control does not break or double it
+- [x] 2.12 Focus returns to the delete trigger after Cancel / failed Confirm; error `<p>` has `role="alert"`

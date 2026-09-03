@@ -1,5 +1,6 @@
 ---
 import Layout from "@/layouts/Layout.astro";
+import DeleteSessionButton from "@/components/DeleteSessionButton";
 import { createClient } from "@/lib/supabase";
 import { SESSION_STATUS_BADGE_BASE_CLASSNAME, SESSION_STATUS_META } from "@/lib/session-status";
 import type { FittingSession } from "@/types";
@@ -68,17 +69,19 @@ const dateFormatter = new Intl.DateTimeFormat("en-US", {
             {sessions.map((session) => {
               const { label, className } = SESSION_STATUS_META[session.status];
               return (
-                <li>
-                  <a
-                    href={`/sessions/${session.id}`}
-                    class="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/10 p-4 text-white backdrop-blur-xl transition-colors hover:bg-white/20"
-                  >
-                    <div class="flex min-w-0 flex-col gap-1">
-                      <span class="truncate font-medium">{session.video_filename ?? "Untitled session"}</span>
-                      <span class="text-sm text-blue-100/70">{dateFormatter.format(new Date(session.created_at))}</span>
-                    </div>
-                    <span class:list={[SESSION_STATUS_BADGE_BASE_CLASSNAME, className, "shrink-0"]}>{label}</span>
-                  </a>
+                <li class="rounded-2xl border border-white/10 bg-white/10 p-4 text-white backdrop-blur-xl transition-colors hover:bg-white/20">
+                  <div class="flex items-center justify-between gap-4">
+                    <a href={`/sessions/${session.id}`} class="flex min-w-0 flex-1 items-center justify-between gap-4">
+                      <div class="flex min-w-0 flex-col gap-1">
+                        <span class="truncate font-medium">{session.video_filename ?? "Untitled session"}</span>
+                        <span class="text-sm text-blue-100/70">
+                          {dateFormatter.format(new Date(session.created_at))}
+                        </span>
+                      </div>
+                      <span class:list={[SESSION_STATUS_BADGE_BASE_CLASSNAME, className, "shrink-0"]}>{label}</span>
+                    </a>
+                    <DeleteSessionButton client:visible sessionId={session.id} filename={session.video_filename} />
+                  </div>
                 </li>
               );
             })}

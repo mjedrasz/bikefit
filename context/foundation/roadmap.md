@@ -36,7 +36,7 @@ Amateur cyclists who notice discomfort or wonder whether their position is effic
 | S-03 | fitting-results-display      | view fitting recommendations and body angles for a completed session               | F-01             | FR-008, US-01                         | done |
 | S-04 | session-history-list         | browse all past fitting sessions and navigate to any completed result              | S-01, F-01       | FR-009                                | done |
 | S-05 | results-display-ux-improvements | see body angles rounded to a readable precision instead of raw floating-point values | S-03              | FR-008                                | done |
-| S-06 | delete-session               | delete a selected past fitting session they own                                    | S-04             | FR-009, Access Control               | backlog |
+| S-06 | delete-session               | delete a selected past fitting session they own                                    | S-04             | FR-009, Access Control               | in-progress |
 
 ## Streams
 
@@ -167,7 +167,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Unknowns:**
   - Hard delete or soft delete (retain a tombstone row)? — Owner: user. Block: no. (Default to hard delete — the process-and-discard privacy posture extends to user-initiated removal; revisit only if history analytics need a trail.)
 - **Risk:** Lightweight slice over data and a list view that already exist once S-04 ships — a delete endpoint plus a confirm action in the history UI. The one real correctness concern is the ownership check: a user must never delete another user's session, so the delete must be scoped to the authenticated user and enforced by RLS, not just the UI.
-- **Status:** backlog
+- **Status:** in-progress
 
 ## Backlog Handoff
 
