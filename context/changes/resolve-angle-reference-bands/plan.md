@@ -597,31 +597,31 @@ runs.
 
 #### Automated
 
-- [x] 1.1 Type checking passes: `npx tsc --noEmit`
-- [x] 1.2 Unit tests pass incl. the new `ANGLE_REFS` block: `npm test`
-- [x] 1.3 Linting passes: `npm run lint`
-- [x] 1.4 `context/foundation/reference-angles.md` exists and its canonical table matches `ANGLE_REFS`
-- [x] 1.5 No stale "unresolved owner decision" / "do not treat as authoritative" text in `angles.ts` or `angle-verdict.ts`
+- [x] 1.1 Type checking passes: `npx tsc --noEmit` — 4a6acd0
+- [x] 1.2 Unit tests pass incl. the new `ANGLE_REFS` block: `npm test` — 4a6acd0
+- [x] 1.3 Linting passes: `npm run lint` — 4a6acd0
+- [x] 1.4 `context/foundation/reference-angles.md` exists and its canonical table matches `ANGLE_REFS` — 4a6acd0
+- [x] 1.5 No stale "unresolved owner decision" / "do not treat as authoritative" text in `angles.ts` or `angle-verdict.ts` — 4a6acd0
 
 #### Manual
 
-- [x] 1.6 `reference-angles.md` reads correctly end to end — reconciliation rationale, elbow explanation, all 13 sources present
-- [x] 1.7 Running app: historical session unchanged; fresh analysis renders 135–145 / 68–74 / 55–70 / 45–55 / 150–165
+- [x] 1.6 `reference-angles.md` reads correctly end to end — reconciliation rationale, elbow explanation, all 13 sources present — 4a6acd0
+- [x] 1.7 Running app: historical session unchanged; fresh analysis renders 135–145 / 68–74 / 55–70 / 45–55 / 150–165 — 4a6acd0
 
 ### Phase 2: End the triplication — generate the prompt from `ANGLE_REFS`
 
 #### Automated
 
-- [ ] 2.1 Type checking passes: `npx tsc --noEmit`
-- [ ] 2.2 All specs pass incl. the new generator spec: `npm test`
-- [ ] 2.3 Lint clean: `npm run lint`
-- [ ] 2.4 `llm.ts` no longer hard-codes the table (`grep -E "137–147|Reference angle ranges" src/lib/services/llm.ts` empty)
-- [ ] 2.5 `grep -nE "150–160|150–165|85–95|137–147" src/lib/services/llm.ts` returns nothing
+- [x] 2.1 Type checking passes: `npx tsc --noEmit`
+- [x] 2.2 All specs pass incl. the new generator spec: `npm test`
+- [x] 2.3 Lint clean: `npm run lint`
+- [x] 2.4 `llm.ts` no longer hard-codes the table (`grep -E "137–147|Reference angle ranges" src/lib/services/llm.ts` empty)
+- [x] 2.5 `grep -nE "150–160|150–165|85–95|137–147" src/lib/services/llm.ts` returns nothing
 
 #### Manual
 
-- [ ] 2.6 Built prompt reads naturally — table shows five blessed bands, per-angle rules make sense without inline degrees
-- [ ] 2.7 Real recommendations request against an out-of-range angle — no output-quality regression
+- [x] 2.6 Built prompt reads naturally — table shows five blessed bands, per-angle rules make sense without inline degrees
+- [x] 2.7 Real recommendations request against an out-of-range angle — no output-quality regression
 
 ### Phase 3: Close OQ-2 tracking
 

@@ -2,11 +2,12 @@ import { describe, it, expect } from "vitest";
 import { angleVerdict } from "@/lib/angle-verdict";
 import { formatAngle } from "@/lib/format-angle";
 
-// Unit suite for the in/out-of-range verdict. Bands here are **synthetic** (137–147 is the
-// shipped knee-BDC range only by coincidence of being a convenient example) — this suite
-// asserts inclusive-bound behaviour and pins the display/pill contradiction, and
-// deliberately does not assert against the contested `ANGLE_REFS` values (PRD Open
-// Question #2 — see test-plan.md §7).
+// Unit suite for the in/out-of-range verdict. Bands here are **synthetic** — chosen as
+// convenient round examples, not tied to any shipped reference band — and exercise the
+// generic inclusive-bound contract (strictly inside, both boundaries, just outside,
+// inverted bounds) plus the known display/pill contradiction near a boundary
+// (test-plan.md §6.6 / §7). The blessed `ANGLE_REFS` values themselves are pinned in
+// `src/lib/pose/angles.test.ts` against `context/foundation/reference-angles.md`.
 
 describe("angleVerdict", () => {
   it("is true for a value strictly inside the band", () => {
