@@ -11,9 +11,10 @@
  * which reads as inside "137–147°". That display/pill contradiction is known and tracked
  * — see `context/foundation/test-plan.md` §6.6 / §7 — not fixed here.
  *
- * The `min`/`max` bands come from `ANGLE_REFS` in `src/lib/pose/angles.ts` (themselves an
- * unresolved owner decision, PRD Open Question #2). This helper does **not** guard its
- * inputs: `value` and the bounds are all authored client-side by the browser pipeline and
+ * The `min`/`max` bands come from `ANGLE_REFS` in `src/lib/pose/angles.ts`, whose
+ * authoritative source of record is `context/foundation/reference-angles.md` (resolves PRD
+ * Open Question #2 / Roadmap OQ-2). This helper does **not** guard its inputs: `value` and
+ * the bounds are all authored client-side by the browser pipeline and
  * persisted verbatim; server-side validation of that shape is a later test-plan rollout
  * phase. Inverted bounds (`min > max`) therefore always yield `false`.
  */

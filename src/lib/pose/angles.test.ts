@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import type * as poseDetection from "@tensorflow-models/pose-detection";
 import {
+  ANGLE_REFS,
   COCO_LEFT,
   COCO_RIGHT,
   MP_SLOTS,
@@ -15,8 +16,8 @@ import {
 // Oracle-driven unit suite for the pure pose-math module. Every expected value is derived
 // from geometry (a straight limb is 180°, a right angle is 90°, a hip→shoulder line 45°
 // above horizontal is 45°) or quoted from the reference-angle definitions in
-// `context/archive/2026-05-28-ai-analysis-pipeline/bike-fitting-ref-angles.md` — never from
-// the value a function returns today, and never a snapshot.
+// `context/foundation/reference-angles.md` — never from the value a function returns today,
+// and never a snapshot.
 
 const DEG = 180 / Math.PI;
 
@@ -62,6 +63,45 @@ function mirrorKeypointsX(kps: poseDetection.Keypoint[]): poseDetection.Keypoint
   }
   return flipped;
 }
+
+describe("ANGLE_REFS — blessed gravel bands", () => {
+  // Oracle: the "Canonical bands" table in `context/foundation/reference-angles.md`
+  // (authoritative, resolves PRD Open Question #2 / Roadmap OQ-2, 2026-09-02). Each literal
+  // below is the doc's number, NOT a snapshot of today's constant — any drift of ANGLE_REFS
+  // away from the foundation doc must fail here (cookbook §6.1 oracle rule). `convention` is
+  // pinned because it feeds the generated recommendations prompt
+  // (`src/lib/recommendations-prompt.ts`); silent drift would change the prompt wording.
+
+  it("KNEE_BDC is 135–145°, included", () => {
+    expect(ANGLE_REFS.KNEE_BDC.min).toBe(135);
+    expect(ANGLE_REFS.KNEE_BDC.max).toBe(145);
+    expect(ANGLE_REFS.KNEE_BDC.convention).toBe("included");
+  });
+
+  it("KNEE_TDC is 68–74°, included", () => {
+    expect(ANGLE_REFS.KNEE_TDC.min).toBe(68);
+    expect(ANGLE_REFS.KNEE_TDC.max).toBe(74);
+    expect(ANGLE_REFS.KNEE_TDC.convention).toBe("included");
+  });
+
+  it("HIP is 55–70°, included", () => {
+    expect(ANGLE_REFS.HIP.min).toBe(55);
+    expect(ANGLE_REFS.HIP.max).toBe(70);
+    expect(ANGLE_REFS.HIP.convention).toBe("included");
+  });
+
+  it("TORSO is 45–55°, from horizontal", () => {
+    expect(ANGLE_REFS.TORSO.min).toBe(45);
+    expect(ANGLE_REFS.TORSO.max).toBe(55);
+    expect(ANGLE_REFS.TORSO.convention).toBe("from horizontal");
+  });
+
+  it("ELBOW is 150–165°, included", () => {
+    expect(ANGLE_REFS.ELBOW.min).toBe(150);
+    expect(ANGLE_REFS.ELBOW.max).toBe(165);
+    expect(ANGLE_REFS.ELBOW.convention).toBe("included");
+  });
+});
 
 describe("jointAngle", () => {
   const p = (x: number, y: number, z = 0): PoseLandmark => ({ x, y, z });

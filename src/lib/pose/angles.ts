@@ -16,16 +16,57 @@ import type * as poseDetection from "@tensorflow-models/pose-detection";
 // hard contract every downstream reader depends on, so they are preserved exactly.
 
 /** The five bike-fitting reference ranges, in degrees. Measured values are judged against
- *  these bands by `angleVerdict` (`src/lib/angle-verdict.ts`), which is the consumer that
- *  turns a raw angle into the user-visible "in range / outside range" verdict. The bands
- *  themselves are an unresolved owner decision (PRD Open Question #2) — do not treat them
- *  as authoritative for gravel/recreational positions. */
+ *  these bands by `angleVerdict` (`src/lib/angle-verdict.ts`), which turns a raw angle into
+ *  the user-visible "in range / outside range" verdict; the recommendations system prompt
+ *  is generated from them (`src/lib/recommendations-prompt.ts`), so each band number lives
+ *  in exactly one place. `measuredAt` and `convention` are labels the prompt generator
+ *  renders — no consumer of the persisted `BodyAngle` reads them.
+ *
+ *  The authoritative source of record for these values — and the reconciliation behind
+ *  each one — is `context/foundation/reference-angles.md` (resolves PRD Open Question #2 /
+ *  Roadmap OQ-2, 2026-09-02). `src/lib/pose/angles.test.ts` pins this constant to that
+ *  doc. */
 export const ANGLE_REFS = {
-  KNEE_BDC: { min: 137, max: 147, unit: "degrees", name: "Knee angle at BDC" },
-  KNEE_TDC: { min: 65, max: 75, unit: "degrees", name: "Knee angle at TDC" },
-  HIP: { min: 55, max: 65, unit: "degrees", name: "Hip angle at TDC" },
-  TORSO: { min: 45, max: 55, unit: "degrees", name: "Torso angle" },
-  ELBOW: { min: 150, max: 160, unit: "degrees", name: "Elbow angle" },
+  KNEE_BDC: {
+    min: 135,
+    max: 145,
+    unit: "degrees",
+    name: "Knee angle at BDC",
+    measuredAt: "Bottom of pedal stroke (6 o'clock)",
+    convention: "included",
+  },
+  KNEE_TDC: {
+    min: 68,
+    max: 74,
+    unit: "degrees",
+    name: "Knee angle at TDC",
+    measuredAt: "Top of pedal stroke (12 o'clock)",
+    convention: "included",
+  },
+  HIP: {
+    min: 55,
+    max: 70,
+    unit: "degrees",
+    name: "Hip angle at TDC",
+    measuredAt: "Top of pedal stroke (12 o'clock)",
+    convention: "included",
+  },
+  TORSO: {
+    min: 45,
+    max: 55,
+    unit: "degrees",
+    name: "Torso angle",
+    measuredAt: "Hands on hoods, cranks horizontal",
+    convention: "from horizontal",
+  },
+  ELBOW: {
+    min: 150,
+    max: 165,
+    unit: "degrees",
+    name: "Elbow angle",
+    measuredAt: "Riding on hoods",
+    convention: "included",
+  },
 } as const;
 
 /** COCO-17 keypoint indices for the **left**-side body landmarks, in the order
@@ -69,8 +110,8 @@ export function jointAngle(a: PoseLandmark, b: PoseLandmark, c: PoseLandmark): n
 
 /**
  * Angle of the hip→shoulder line from horizontal, as an **acute** angle in `[0, 90]`
- * degrees. `bike-fitting-ref-angles.md` defines the torso angle as "measured from
- * horizontal to a line from hip to shoulder … 45–55° from horizontal".
+ * degrees. `context/foundation/reference-angles.md` defines the torso angle as "measured
+ * from horizontal to a line from hip to shoulder … 45–55° from horizontal".
  *
  * Direction-agnostic: the magnitude is taken on each component before `atan2`, folding
  * the result to its acute complement, so a left-facing and a right-facing rider at the
@@ -83,8 +124,8 @@ export function jointAngle(a: PoseLandmark, b: PoseLandmark, c: PoseLandmark): n
  * is the image-plane projection, valid only for a true perpendicular side view.
  *
  * Frame deviation — accepted MVP gap, see `context/foundation/test-plan.md` §7: the
- * caller measures this from the **BDC** keyframe, but the reference defines the torso
- * angle at cranks-horizontal (3/9 o'clock). Torso-to-horizontal shifts only ~5° across
+ * caller measures this from the **BDC** keyframe, but `context/foundation/reference-angles.md`
+ * defines the torso angle at cranks-horizontal (3/9 o'clock). Torso-to-horizontal shifts only ~5° across
  * the pedal stroke so the practical error is small; closing it needs a third detected
  * keyframe (out of MVP scope). The **elbow** angle (`jointAngle(wl[11], wl[13], wl[15])`)
  * is likewise consumed from BDC while the reference implies cranks-horizontal — the same

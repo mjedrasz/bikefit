@@ -1,17 +1,25 @@
 ---
 change_id: resolve-angle-reference-bands
 title: Resolve the authoritative gravel angle reference bands (PRD OQ#2 / Roadmap OQ-2)
-status: open
+status: implementing
 created: 2026-09-02
-updated: 2026-09-02
+updated: 2026-09-03
 archived_at: null
 ---
 
 ## Notes
 
-**Tracking only — no implementation.** This is the durable home for the
-**reference-band dimension of Risk #1**: *which* numeric range each of the
-five body angles is judged against.
+This is the durable home for the **reference-band dimension of Risk #1**:
+*which* numeric range each of the five body angles is judged against.
+
+**Status: planned (2026-09-02).** The owner decision has been made — see
+`plan-brief.md` / `plan.md` in this folder. The plan blesses
+`context/archive/2026-05-28-ai-analysis-pipeline/bike-fitting-ref-angles.md`
+as the authoritative source (promoted to
+`context/foundation/reference-angles.md`), reconciles the three shifted
+bands toward the gravel-adjustment guide, keeps the elbow at the
+included-angle literature value, collapses the triplicated prompt copy into
+a generator sourced from `ANGLE_REFS`, and closes OQ-2 everywhere.
 
 ### Why this exists
 
