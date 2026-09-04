@@ -1001,31 +1001,31 @@ rewrite frozen §1–§5 strategy in place beyond this pointer.
 
 #### Automated
 
-- [x] 5.1 `session-display-status.test.ts` passes with all boundary cases
-- [x] 5.2 Page tests assert the timed-out render for a stale `processing` session
-- [x] 5.3 `results.ts` / `start.ts` `UPDATE`-error tests pass (500)
-- [x] 5.4 Both SSR `select`s include `updated_at` (grep)
-- [x] 5.5 Lint + type-check pass
+- [x] 5.1 `session-display-status.test.ts` passes with all boundary cases — 5d7a284
+- [x] 5.2 Page tests assert the timed-out render for a stale `processing` session — 5d7a284
+- [x] 5.3 `results.ts` / `start.ts` `UPDATE`-error tests pass (500) — 5d7a284
+- [x] 5.4 Both SSR `select`s include `updated_at` (grep) — 5d7a284
+- [x] 5.5 Lint + type-check pass — 5d7a284
 
 #### Manual
 
-- [ ] 5.6 A stale `processing` session shows "Analysis timed out" + a "Failed" pill in history
-- [ ] 5.7 Tab closed mid-analysis, reopened after 15 min → timed-out state
-- [ ] 5.8 Forcing a `/results` submit to 500 → session ends up `failed` with a readable message
-- [ ] 5.9 A fresh `processing` session still shows "processing" normally
+- [x] 5.6 A stale `processing` session shows "Analysis timed out" + a "Failed" pill in history — 5d7a284
+- [x] 5.7 Tab closed mid-analysis, reopened after 15 min → timed-out state — 5d7a284
+- [x] 5.8 Forcing a `/results` submit to 500 → session ends up `failed` with a readable message — 5d7a284
+- [x] 5.9 A fresh `processing` session still shows "processing" normally — 5d7a284
 
 ### Phase 6: CI gate + cookbook finalisation
 
 #### Automated
 
 - [ ] 6.1 CI `npm test` step runs on a PR (observed on a branch)
-- [ ] 6.2 `npm test` in CI is green with no Supabase/OpenRouter secret set
-- [ ] 6.3 §6.2, §6.3, §6.4 no longer contain "TBD"
-- [ ] 6.4 Lint passes on the workflow + markdown
-- [ ] 6.8 §3 "test-only" framing carries the Phase 2 scope-drift annotation + `/10x-test-plan --refresh` pointer
+- [x] 6.2 `npm test` in CI is green with no Supabase/OpenRouter secret set
+- [x] 6.3 §6.2, §6.3, §6.4 no longer contain "TBD"
+- [x] 6.4 Lint passes on the workflow + markdown
+- [x] 6.8 §3 "test-only" framing carries the Phase 2 scope-drift annotation + `/10x-test-plan --refresh` pointer
 
 #### Manual
 
-- [ ] 6.5 CI run on the phase's PR shows `lint` → `test` → `build` all green
-- [ ] 6.6 §6.2–§6.4 + §6.6 read as a coherent set to someone new
-- [ ] 6.7 §4 refresh note + §7 reaper entry accurately reflect what shipped
+- [x] 6.5 CI run on the phase's PR shows `lint` → `test` → `build` all green
+- [x] 6.6 §6.2–§6.4 + §6.6 read as a coherent set to someone new
+- [x] 6.7 §4 refresh note + §7 reaper entry accurately reflect what shipped

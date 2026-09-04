@@ -105,6 +105,11 @@ Phase 3 is partly feature work: rate limiting and server-side caps do not
 exist yet, so that phase builds the mitigation and the test together. All
 other phases are test-only against behavior that already exists.
 
+**Phase 2 scope-drift note (added plan Phase 6).** Phase 2 also shipped the
+minimal display-time reconciliation + client-side hardening the risk
+responses required — see this change's §4/§7 notes; reconcile the
+"test-only" framing in the next `/10x-test-plan --refresh`.
+
 ## 4. Stack
 
 The classic test base for this project. AI-native tools (if any) carry a
@@ -119,6 +124,20 @@ The classic test base for this project. AI-native tools (if any) carry a
 | e2e                   | Playwright                                                             | none yet — see Phase 4               | One happy-path flow only; seed Supabase through the admin API as the archived `session-history-list` verification did.                                                                                                                                                                                |
 | validation            | Zod                                                                    | 4.4.3 (in use)                       | Format errors with `z.treeifyError`, never `.flatten()` (see `context/foundation/lessons.md`).                                                                                                                                                                                                        |
 | CI                    | GitHub Actions                                                         | in use                               | Today runs `lint` + `build` only. `astro build` does not type-check TS and `@astrojs/check` is installed but never invoked — typecheck is currently ungated.                                                                                                                                          |
+
+**§4 refresh note (added §3 Phase 2, plan Phase 6).** Several rows above are
+now stale in the details, not just the version numbers: Vitest `4.1.11` has
+been in use since §3 Phase 1; `astro:env` is resolved via an alias-stub
+(`src/test/stubs/astro-env-server.ts`), **not** `getViteConfig` for the `unit`
+project — but the `pages` project (added §3 Phase 2) *does* use
+`getViteConfig`, which the Vitest row's "not `getViteConfig`" note no longer
+reflects in full — see §6.2 for the real two-project shape. API/network
+mocking: `undici` `MockAgent` (added as a devDependency in Phase 2), MSW not
+adopted. Supabase: a hand-rolled stub
+(`src/test/helpers/supabase-stub.ts`), not a real client. The CI row is also
+now behind — `npm test` is a blocking step as of Phase 6 (§6). A full
+`/10x-test-plan --refresh` is due to reconcile the §4 table rows themselves
+rather than carry this note indefinitely.
 
 **Stack grounding tools (current session):**
 
@@ -499,6 +518,53 @@ phase taught, e.g. a fixture directory later phases should reuse.)
     generated from `ANGLE_REFS` (`src/lib/recommendations-prompt.test.ts`).
     Phase 1 itself still asserts geometry and convention only.
 
+#### Phase 2 — LLM boundary + API-route integration
+
+- **Harness locations.** All under `src/test/`: `stubs/astro-env-server.ts`
+  (the `astro:env/server` alias target), `helpers/supabase-stub.ts`
+  (`makeSupabaseStub`), `helpers/openrouter-mock.ts` (`installOpenRouterMock`,
+  undici `MockAgent`), `helpers/api-context.ts` (`makeApiContext`),
+  `helpers/render-page.ts` (`renderPage`, Container API — `pages` project
+  only). See §6.2's table for what each gives you.
+- **The `astro:env` import hazard, resolved.** Phase 1's smoke spec had
+  dodged it by importing a module with no `astro:env` in its transitive
+  graph (§6.6 Phase 1 note). Phase 2 resolves it for real: a static
+  `resolve.alias` on `"astro:env/server"` pointed at the stub module, applied
+  in **both** Vitest projects (`unit` and `pages`) so any route/service
+  module — including `llm.ts`, which needs `OPENROUTER_API_KEY` — imports
+  without throwing. The alias only stops the throw; `vi.mock("@/lib/supabase")`
+  / `vi.mock("@/lib/services/supabase-admin")` per test file is what controls
+  behaviour.
+- **The `stub.calls` ordering idiom.** Point both `createClient` and
+  `createAdminClient` mocks at the *same* `makeSupabaseStub` instance so its
+  shared `calls` array records the RLS pre-check read and the admin write in
+  one sequence — `operations.indexOf("select") < operations.indexOf("update")`
+  proves pre-check-before-write, and `stub.calls[...].filters` proves the
+  `.eq("user_id", …)` guard is actually present, not just that the route
+  returned the right status. See §6.4's worked example.
+- **The `renderPage` Container API pattern.** `experimental_AstroContainer`
+  with the Cloudflare adapter excluded (`getViteConfig` + an inline Astro
+  config with `configFile: false` and only `integrations: [react()]`) renders
+  `sessions/index.astro` / `sessions/[id].astro` to a real `Response` —
+  `res.status` and substring matches on `await res.text()` cover both the
+  happy path and the error-branch rendering (§6.2's "asserting a page's error
+  branch"). The plan's pure-helper fallback was not needed — see the spike
+  outcome recorded in §6.2.
+- **The deferred real-RLS check.** Every ownership assertion this phase
+  ships is stub-level: it proves the handler's *ordering* and *filter*
+  discipline, not that the deployed `sessions_select_own` policy itself
+  denies a cross-user read. That proof is deliberately deferred to §3
+  Phase 4 (Playwright, two real signed-in users, seeded via the Supabase
+  Auth admin API) — see §6.4's closing note. Don't read the stub floor as a
+  substitute for that check; it is the always-on CI gate that runs long
+  before Phase 4 exists.
+- **Scope note.** Unlike Phase 1, this phase was not test-only — it shipped
+  real behaviour changes the risk responses required (the
+  `effectiveSessionStatus` staleness rule + page wiring, `/analyze`'s new
+  `session_id` binding + the `VideoAnalyzer` client change, the Step-7
+  `postError` fix, and the `maybeSingle()` error/absent split). See §3's
+  Phase 2 row for the scope-drift annotation.
+
 ### 6.7 Checking a suite with mutation testing (StrykerJS)
 
 Added by `--refresh` on 2026-09-03 (`context/changes/test-plan-refresh-2026-09-03/`).
@@ -630,6 +696,11 @@ these unless the underlying assumption changes.
   and not a coverage target: a low mutation score on an _untested_ module is
   expected and is not a finding. Re-evaluate the `mutate` scope only when a
   new pure-logic module gains a real spec.
+- **A server-side reaper for stuck `processing` sessions.** Phase 2 closed
+  Risk #6 with a display-time staleness rule (`effectiveSessionStatus`), not
+  a DB write-back. A real sweep/cron is deliberately not built; re-evaluate
+  only if display-time reconciliation proves insufficient (e.g. a downstream
+  consumer needs the DB status to be terminal).
 
 ## 8. Freshness Ledger
 
