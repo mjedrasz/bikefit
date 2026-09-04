@@ -6,14 +6,15 @@
 
 set -euo pipefail
 
-VIDEO="${1:?Usage: $0 <video.mp4> <session-cookie>}"
-COOKIE="${2:?Usage: $0 <video.mp4> <session-cookie>}"
-API="http://localhost:4321/api/analyze"
+VIDEO="${1:?Usage: $0 <video.mp4> <session-cookie> <session-id>}"
+COOKIE="${2:?Usage: $0 <video.mp4> <session-cookie> <session-id>}"
+SESSION_ID="${3:?Usage: $0 <video.mp4> <session-cookie> <session-id>}"
+API="http://localhost:4322/api/analyze"
 
 echo "Base64-encoding video: $VIDEO"
 B64=$(base64 -w 0 "$VIDEO")
 
-PAYLOAD="{\"video\":\"$B64\"}"
+PAYLOAD="{\"video\":\"$B64\", \"session_id\":\"$SESSION_ID\"}"
 
 echo "$PAYLOAD" > payload.json
 echo "Sending to $API ..."
