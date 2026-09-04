@@ -1018,14 +1018,14 @@ rewrite frozen §1–§5 strategy in place beyond this pointer.
 
 #### Automated
 
-- [ ] 6.1 CI `npm test` step runs on a PR (observed on a branch)
-- [x] 6.2 `npm test` in CI is green with no Supabase/OpenRouter secret set
-- [x] 6.3 §6.2, §6.3, §6.4 no longer contain "TBD"
-- [x] 6.4 Lint passes on the workflow + markdown
-- [x] 6.8 §3 "test-only" framing carries the Phase 2 scope-drift annotation + `/10x-test-plan --refresh` pointer
+- [x] 6.1 CI `npm test` step runs on a PR (observed on a branch)
+- [x] 6.2 `npm test` in CI is green with no Supabase/OpenRouter secret set — 1cf10d7
+- [x] 6.3 §6.2, §6.3, §6.4 no longer contain "TBD" — 1cf10d7
+- [x] 6.4 Lint passes on the workflow + markdown — 1cf10d7
+- [x] 6.8 §3 "test-only" framing carries the Phase 2 scope-drift annotation + `/10x-test-plan --refresh` pointer — 1cf10d7
 
 #### Manual
 
-- [x] 6.5 CI run on the phase's PR shows `lint` → `test` → `build` all green
-- [x] 6.6 §6.2–§6.4 + §6.6 read as a coherent set to someone new
-- [x] 6.7 §4 refresh note + §7 reaper entry accurately reflect what shipped
+- [x] 6.5 CI run on the phase's PR shows `lint` → `test` → `build` all green — 1cf10d7
+- [x] 6.6 §6.2–§6.4 + §6.6 read as a coherent set to someone new — 1cf10d7
+- [x] 6.7 §4 refresh note + §7 reaper entry accurately reflect what shipped — 1cf10d7
