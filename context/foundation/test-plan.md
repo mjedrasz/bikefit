@@ -6,7 +6,7 @@
 >
 > Refresh: re-run `/10x-test-plan --refresh` when stale (see §8).
 >
-> Last updated: 2026-09-03 (`--refresh`: StrykerJS mutation testing entered the stack — §4, §5, §6.7, §7, §8 updated; §1–§2 unchanged; §3 Phase 2 reconciled to `researched`. See `context/changes/test-plan-refresh-2026-09-03/`. Earlier same day: §3 Phase 1 reconciled to `complete` — `testing-angle-correctness` shipped and impl-reviewed. 2026-09-02: OQ-2 resolved — reference-band dimension of Risk #1 covered by `resolve-angle-reference-bands`; §2, §6.1, §6.6, §7 updated. Phase 1 implemented — §6.1, §6.6, §7 filled)
+> Last updated: 2026-09-04 (`--refresh`: local git-hook layer entered the stack (Lefthook pre-commit, live; a Claude Code per-edit hook configured but not enabled) — §4, §5, §6.8, §8 updated; §1–§2 unchanged; §3 Phase 2 reconciled `researched` → `complete` (`testing-llm-and-ownership` shipped and closed) and its "test-only" framing corrected. See `context/changes/test-plan-refresh-2026-09-04/`. 2026-09-03: StrykerJS mutation testing entered the stack — §4, §5, §6.7, §7, §8 updated; §1–§2 unchanged; §3 Phase 2 reconciled to `researched`. See `context/changes/test-plan-refresh-2026-09-03/`. Earlier same day: §3 Phase 1 reconciled to `complete` — `testing-angle-correctness` shipped and impl-reviewed. 2026-09-02: OQ-2 resolved — reference-band dimension of Risk #1 covered by `resolve-angle-reference-bands`; §2, §6.1, §6.6, §7 updated. Phase 1 implemented — §6.1, §6.6, §7 filled)
 
 ## 1. Strategy
 
@@ -94,21 +94,25 @@ orchestrator updates Status as artifacts appear on disk.
 | #   | Phase name                                  | Goal (one line)                                                                                                                                                                                                                    | Risks covered  | Test types                              | Status      | Change folder                              |
 | --- | ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- | --------------------------------------- | ----------- | ------------------------------------------ |
 | 1   | Harness bootstrap + joint-angle correctness | Stand up the test runner and prove the angle and keypoint-mapping math matches the reference-frame definitions it is judged against, including left/right side selection.                                                          | #1             | unit                                    | complete    | context/changes/testing-angle-correctness/ |
-| 2   | LLM boundary + API-route integration        | Make the OpenRouter response boundary strict and fail-clean, make every session route enforce ownership, surface DB errors as distinct states, and drive stuck-`processing` sessions to a terminal state.                          | #2, #5, #6, #7 | contract, integration, unit             | researched  | context/changes/testing-llm-and-ownership/ |
+| 2   | LLM boundary + API-route integration        | Make the OpenRouter response boundary strict and fail-clean, make every session route enforce ownership, surface DB errors as distinct states, and drive stuck-`processing` sessions to a terminal state.                          | #2, #5, #6, #7 | contract, integration, unit             | complete    | context/changes/testing-llm-and-ownership/ |
 | 3   | Abuse & resource protection                 | Add server-side payload caps and rate limiting on the OpenRouter-backed routes, scope the vision route to an owned session, degrade gracefully on provider errors, and add a small dated adversarial probe on the vision boundary. | #3, #4         | integration, AI-native probe (optional) | not started | —                                          |
 | 4   | Quality-gates wiring + one e2e smoke        | Add typecheck and the new test suites as required CI gates and add a single Playwright happy-path smoke over upload → analysing → results.                                                                                         | cross-cutting  | e2e (1 flow), gates                     | not started | —                                          |
 
 **Status vocabulary** (fixed — parser literals): `not started` →
 `change opened` → `researched` → `planned` → `implementing` → `complete`.
 
-Phase 3 is partly feature work: rate limiting and server-side caps do not
-exist yet, so that phase builds the mitigation and the test together. All
-other phases are test-only against behavior that already exists.
+Phase 1 and Phase 4 are test-only against behavior that already exists.
+Phase 2 also shipped minimal behavior hardening the risk responses required
+(the `effectiveSessionStatus` staleness rule + page wiring, `/analyze`'s
+`session_id` binding, the `VideoAnalyzer` client change, and the
+`maybeSingle()` error/absent split — see §6.6 Phase 2 notes) alongside its
+tests. Phase 3 is partly feature work: rate limiting and server-side caps
+do not exist yet, so that phase builds the mitigation and the test
+together.
 
-**Phase 2 scope-drift note (added plan Phase 6).** Phase 2 also shipped the
-minimal display-time reconciliation + client-side hardening the risk
-responses required — see this change's §4/§7 notes; reconcile the
-"test-only" framing in the next `/10x-test-plan --refresh`.
+**Phase 2 scope-drift note — resolved (2026-09-04 refresh).** The
+"test-only" framing above is now corrected to name Phase 2's shipped
+hardening explicitly; no further action.
 
 ## 4. Stack
 
@@ -123,7 +127,9 @@ The classic test base for this project. AI-native tools (if any) carry a
 | API / network mocking | MSW, or undici `MockAgent`                                             | none yet — see Phase 2               | Mock OpenRouter at the HTTP edge only. Supabase: use a thin client stub — the local Supabase stack has been unreliable in this environment (noted in two archived impl-reviews) so CI should not depend on it.                                                                                        |
 | e2e                   | Playwright                                                             | none yet — see Phase 4               | One happy-path flow only; seed Supabase through the admin API as the archived `session-history-list` verification did.                                                                                                                                                                                |
 | validation            | Zod                                                                    | 4.4.3 (in use)                       | Format errors with `z.treeifyError`, never `.flatten()` (see `context/foundation/lessons.md`).                                                                                                                                                                                                        |
-| CI                    | GitHub Actions                                                         | in use                               | Today runs `lint` + `build` only. `astro build` does not type-check TS and `@astrojs/check` is installed but never invoked — typecheck is currently ungated.                                                                                                                                          |
+| CI                    | GitHub Actions                                                         | in use                               | Runs `lint` + `test` + `build` on every push/PR to `master`. `astro build` does not type-check TS and `@astrojs/check` is installed but never invoked — typecheck is currently ungated in CI (see the git-hooks row below for the local gate).                                                       |
+| local git hooks (pre-commit) | Lefthook                                                       | 2.1.12 (in use); checked: 2026-09-04 | `lefthook.yml` — three parallel commands: `lint` (`eslint --fix` on staged `*.{ts,tsx,js,jsx}`, then re-stages), `typecheck` (full `npx tsc --noEmit`, not scoped to staged files), `test` (`vitest related {staged_files} --run` on staged `*.{ts,tsx}`). Runs on every commit; catches manual edits and anything the per-edit hook (row below) would catch once active. Not yet mirrored in CI. See §6.8.                                                        |
+| per-edit agent hook   | Claude Code `PostToolUse` (`.claude/settings.json.bkp`)                | configured, not enabled              | Matcher `Write\|Edit`: `eslint --fix .`, `npx tsc --noEmit`, and a `vitest run src/lib/pose/angles.test.ts` scoped to edits under `pose/angles.ts`. File suffixed `.bkp`, not the live `.claude/settings.json` — Claude Code does not read it. Confirmed intentionally inactive/experimental in the 2026-09-04 refresh interview; activate by renaming to `settings.json`. See §6.8.                                                                                  |
 
 **§4 refresh note (added §3 Phase 2, plan Phase 6).** Several rows above are
 now stale in the details, not just the version numbers: Vitest `4.1.11` has
@@ -134,10 +140,19 @@ project — but the `pages` project (added §3 Phase 2) *does* use
 reflects in full — see §6.2 for the real two-project shape. API/network
 mocking: `undici` `MockAgent` (added as a devDependency in Phase 2), MSW not
 adopted. Supabase: a hand-rolled stub
-(`src/test/helpers/supabase-stub.ts`), not a real client. The CI row is also
-now behind — `npm test` is a blocking step as of Phase 6 (§6). A full
-`/10x-test-plan --refresh` is due to reconcile the §4 table rows themselves
-rather than carry this note indefinitely.
+(`src/test/helpers/supabase-stub.ts`), not a real client. ~~The CI row is
+also now behind — `npm test` is a blocking step as of Phase 6 (§6).~~
+**Resolved by the 2026-09-04 refresh** — the CI row above now reads `lint`
++ `test` + `build`. The Vitest-row and mocking-row staleness described here
+is still open; a full `/10x-test-plan --refresh` is due to reconcile those
+rows themselves rather than carry this note indefinitely.
+
+**§4 refresh note (added 2026-09-04 refresh).** Local git-hook layer
+entered the stack: `lefthook` 2.1.12 wires a live pre-commit gate (lint,
+full typecheck, `vitest related` on staged files) — see the git-hooks row
+above and §6.8. A per-edit Claude Code hook also exists
+(`.claude/settings.json.bkp`) but is confirmed not currently active — see
+the per-edit-hook row above. Neither is mirrored in CI yet.
 
 **Stack grounding tools (current session):**
 
@@ -155,11 +170,12 @@ phase lands; before that, the gate is planned.
 | Gate                                       | Where                  | Required?                    | Catches                                                                                                                                                                                                                                                                                                                      |
 | ------------------------------------------ | ---------------------- | ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | lint (eslint)                              | local + CI             | required (wired)             | syntactic drift, a11y-lint, deprecated-API lint                                                                                                                                                                                                                                                                              |
-| typecheck (`npx tsc --noEmit`)             | local + CI             | required after §3 Phase 4    | type drift; not gated today                                                                                                                                                                                                                                                                                                  |
-| unit + integration (Vitest)                | local + CI             | required after §3 Phase 2    | angle-math regressions, LLM-boundary regressions, ownership regressions, swallowed-error regressions                                                                                                                                                                                                                         |
+| pre-commit gate (lefthook)                 | local                  | required (wired)             | manual edits and any change that skipped or predates the per-edit hook — full lint + full typecheck + related tests on every staged change, before it can be committed. See §6.8.                                                                                                                                          |
+| typecheck (`npx tsc --noEmit`)             | local (lefthook) + CI  | required locally (wired); required in CI after §3 Phase 4 | type drift; enforced on every commit via the pre-commit gate above, still not a CI step                                                                                                                                                                                                                     |
+| unit + integration (Vitest)                | local + CI             | required (wired) — §3 Phase 2 complete 2026-09-04 | angle-math regressions, LLM-boundary regressions, ownership regressions, swallowed-error regressions                                                                                                                                                                                                     |
 | mutation score (Stryker)                   | local + on-demand      | advisory (not gated)         | tests that execute a line without asserting its behaviour — tautological / oracle-problem tests that raise line coverage but would not fail on a real regression. Run when touching the pure-logic modules in `stryker.config.json`; treat a new survivor as a prompt to strengthen the test or record why it is acceptable. |
 | e2e smoke — happy path                     | CI on PR               | required after §3 Phase 4    | the upload → analysing → results flow being broken end to end                                                                                                                                                                                                                                                                |
-| post-edit hook (run related tests on save) | local (agent loop)     | recommended after §3 Phase 4 | regressions at edit time; not a CI substitute                                                                                                                                                                                                                                                                                |
+| post-edit hook (run related tests on save) | local (agent loop)     | configured, not enabled — recommended after §3 Phase 4 | regressions at edit time on `pose/angles.ts`; `.claude/settings.json.bkp` holds the config but is not the live `settings.json` (2026-09-04 refresh interview: intentional/experimental for now). Not a CI substitute even once active — the pre-commit gate above already covers what it would catch. |
 | multimodal visual review                   | CI on PR               | optional                     | visual regressions on the results screen only (1 screen); classic assertions cover the rest                                                                                                                                                                                                                                  |
 | pre-prod smoke                             | between merge and prod | optional                     | Cloudflare Workers environment-specific failures (`nodejs_compat`, adapter)                                                                                                                                                                                                                                                  |
 
@@ -619,6 +635,64 @@ Phase 1 oracle set: a spec asserting the exact visibility-gate semantics and
 the newline-joined prompt shape would close them. Tracked as advisory
 follow-ups, not a rollout phase.
 
+### 6.8 Local quality-gate layers (git hooks)
+
+Added by `--refresh` on 2026-09-04 (`context/changes/test-plan-refresh-2026-09-04/`).
+Documents the local hook layers as actually wired in this project — see the
+project's Lesson-3 hooks material for how to configure a hook; this section
+only records current state so `test-plan.md` stays the source of truth for
+"what actually runs and where."
+
+**What's live: `lefthook` pre-commit.** `lefthook.yml` at the repo root
+runs three commands in parallel on every `git commit`:
+
+- `lint` — `eslint --fix {staged_files}` on staged `*.{ts,tsx,js,jsx}`, then
+  `git add {staged_files}` to re-stage the fixed files.
+- `typecheck` — `npx tsc --noEmit`, **not** scoped to staged files (a full
+  project typecheck; TypeScript has no cheap single-file mode that respects
+  cross-file types).
+- `test` — `npx vitest related {staged_files} --run` on staged
+  `*.{ts,tsx}` — only the tests whose dependency graph touches a staged
+  file, not the whole suite.
+
+This is the commit-gate layer in the per-edit → pre-commit → pre-push → CI
+model: it catches whatever slipped past per-edit checks (manual edits, a
+teammate's commit, an editor that bypassed the agent loop) before it can
+land. It is **not yet mirrored in CI** — a contributor who skips hooks
+locally (`--no-verify`) is only caught by CI's `lint` + `test`, and CI still
+has no `tsc` step (§5).
+
+**What's configured but not live: the per-edit hook.** A Claude Code
+`PostToolUse` hook exists at `.claude/settings.json.bkp` — matcher
+`Write|Edit`, running `eslint --fix .`, `npx tsc --noEmit`, and a
+`pose/angles.ts`-scoped `vitest run src/lib/pose/angles.test.ts` (fires
+only when the edited file path matches `*/pose/angles.ts` or
+`*/pose/angles.test.ts`, per the `jq -r .tool_input.file_path` / `case`
+pattern in the hook command). Because the file is suffixed `.bkp` rather
+than `.claude/settings.json`, Claude Code does not load it — there is
+currently no live per-edit layer. Confirmed intentional/experimental as of
+the 2026-09-04 refresh interview, not a gap to close automatically:
+activate it by renaming the file to `.claude/settings.json` when ready, and
+re-run `/10x-test-plan --refresh` if its scope (which files, which tests)
+changes materially from what's described here.
+
+**Why the per-edit hook is scoped to one file.** Per this plan's cost ×
+signal principle (§1) and the guidance to run only tests related to a risk
+area (not the whole suite) on every edit: `pose/angles.ts` is Risk #1's
+pure-logic core (§3 Phase 1) — cheap to re-run on every save and high-value
+given the oracle-problem risk §6.1 and §6.7 both guard against. Widen the
+`case` pattern only when a second file earns the same edit-time signal;
+don't default to running the whole suite per edit (that reintroduces the
+"slow per-edit hook blocks the agent loop" failure mode).
+
+**Relationship to the other gates.** The pre-commit gate (lefthook)
+subsumes what the per-edit hook would catch — both run the same
+lint/typecheck, and lefthook's `vitest related` is broader than the
+per-edit hook's single-file scope. The per-edit hook's value, once active,
+is feedback *inside* the agent loop (mid-edit, before a commit is even
+attempted) rather than a faster/different check — see the project's
+Lesson-3 hooks material for that distinction.
+
 ## 7. What We Deliberately Don't Test
 
 Exclusions agreed during the rollout. Future contributors should respect
@@ -704,10 +778,11 @@ these unless the underlying assumption changes.
 
 ## 8. Freshness Ledger
 
-- Strategy (§1–§2) last reviewed: 2026-09-01 (unchanged by the 2026-09-03 refresh)
-- Stack versions last verified: 2026-09-03 (StrykerJS 10 added; Vitest row corrected post-Phase 1 — Vitest 4.1.11, Zod 4.4.3 in use)
+- Strategy (§1–§2) last reviewed: 2026-09-01 (unchanged by the 2026-09-03 and 2026-09-04 refreshes)
+- Stack versions last verified: 2026-09-04 (Lefthook 2.1.12 added — pre-commit gate, live; StrykerJS 10 added 2026-09-03; Vitest 4.1.11, Zod 4.4.3 in use)
 - AI-native tool references last verified: 2026-09-01 (no AI-native test tooling in use yet — see §3 Phase 3)
 - Refresh history:
+  - 2026-09-04 — `test-plan-refresh-2026-09-04`: local git-hook layer entered the stack — Lefthook pre-commit (live), a Claude Code per-edit hook (configured, not enabled). §3 / §4 / §5 / §6.8 / §8 updated; §1–§2 unchanged; §3 Phase 2 reconciled `researched` → `complete` (`testing-llm-and-ownership` shipped and closed) and its "test-only" framing corrected. Config + docs only — no rollout phase.
   - 2026-09-03 — `test-plan-refresh-2026-09-03`: StrykerJS mutation testing entered the stack. §4 / §5 / §6.7 / §7 / §8 updated; §1–§2 unchanged; §3 Phase 2 reconciled `change opened` → `researched`. Config + docs only — no rollout phase, advisory gate posture.
 
 Refresh (`/10x-test-plan --refresh`) when:
