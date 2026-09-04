@@ -10,7 +10,8 @@
     "src/lib/angle-verdict.ts",
     "src/lib/recommendations-prompt.ts",
     "src/lib/format-angle.ts",
-    "src/lib/llm-response.ts"
+    "src/lib/llm-response.ts",
+    "src/lib/session-display-status.ts"
   ],
   "thresholds": {
     "high": 90,
