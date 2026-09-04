@@ -1,5 +1,6 @@
 import type { APIRoute } from "astro";
 import { z } from "zod";
+import { createClient } from "@/lib/supabase";
 import { analyzeVideo } from "@/lib/services/llm";
 import { analyzeRequestSchema } from "@/lib/schemas";
 
@@ -20,6 +21,32 @@ export const POST: APIRoute = async (context) => {
   const parsed = analyzeRequestSchema.safeParse(body);
   if (!parsed.success) {
     return Response.json({ error: z.treeifyError(parsed.error) }, { status: 400 });
+  }
+
+  const supabase = createClient(context.request.headers, context.cookies);
+  if (!supabase) {
+    return new Response("Service unavailable", { status: 503 });
+  }
+
+  // Bind the vision call to an owned, in-flight session (project Risk #5 — "/analyze" was
+  // not session-scoped, so any authed user could burn vision-model budget on any blob).
+  // `.maybeSingle()` so a genuine query failure (500) is distinguished from a missing/
+  // not-owned session (404) — a query error is not "session not found" (project Risk #7).
+  // Mirrors `recommend.ts`'s pre-check exactly.
+  const { data: session, error } = await supabase
+    .from("fitting_sessions")
+    .select("id, status")
+    .eq("id", parsed.data.session_id)
+    .maybeSingle();
+
+  if (error) {
+    return Response.json({ error: "Could not load session" }, { status: 500 });
+  }
+  if (!session) {
+    return Response.json({ error: "Session not found" }, { status: 404 });
+  }
+  if (session.status !== "processing") {
+    return Response.json({ error: "Session is not in processing state" }, { status: 409 });
   }
 
   try {

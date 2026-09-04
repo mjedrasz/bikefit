@@ -36,7 +36,16 @@ export const POST: APIRoute = async (context) => {
   }
 
   const admin = createAdminClient();
-  await admin.from("fitting_sessions").update({ status: "processing" }).eq("id", context.params.id);
+  // Belt-and-braces ownership guard (project Risk #5): the RLS pre-check above is the
+  // primary guard, but the admin (service-role) write bypasses RLS entirely, so it carries
+  // its own `.eq("user_id", …)` in case the pre-check were ever refactored away or failed
+  // open — mirrors the hardened `DELETE [id]` pattern. Result-checking (silent-failure →
+  // 500) lands in §3 Phase 5.
+  await admin
+    .from("fitting_sessions")
+    .update({ status: "processing" })
+    .eq("id", context.params.id)
+    .eq("user_id", context.locals.user.id);
 
   return Response.json({ ok: true });
 };

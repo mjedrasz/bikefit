@@ -970,32 +970,32 @@ rewrite frozen §1–§5 strategy in place beyond this pointer.
 
 #### Automated
 
-- [x] 3.1 All route/page error-branch tests pass
-- [x] 3.2 No `const { data } = await supabase` left in a pre-check (grep clean)
-- [x] 3.3 Lint + type-check pass
-- [x] 3.4 Spot-checked: 2 new tests fail when reverted against the pre-change handler
+- [x] 3.1 All route/page error-branch tests pass — fd0d448
+- [x] 3.2 No `const { data } = await supabase` left in a pre-check (grep clean) — fd0d448
+- [x] 3.3 Lint + type-check pass — fd0d448
+- [x] 3.4 Spot-checked: 2 new tests fail when reverted against the pre-change handler — fd0d448
 
 #### Manual
 
-- [x] 3.5 Forced DB error on the results page → "couldn't load your results", not a blank card
-- [x] 3.6 Forced DB error on `GET /api/sessions/[id]` → 500, not 404
-- [x] 3.7 Happy paths (real completed session, real history list) still render correctly
+- [x] 3.5 Forced DB error on the results page → "couldn't load your results", not a blank card — fd0d448
+- [x] 3.6 Forced DB error on `GET /api/sessions/[id]` → 500, not 404 — fd0d448
+- [x] 3.7 Happy paths (real completed session, real history list) still render correctly — fd0d448
 
 ### Phase 4: Session-route ownership (Risk #5)
 
 #### Automated
 
-- [ ] 4.1 Ownership tests pass for all six surfaces
-- [ ] 4.2 `eq("user_id"` guard present on `start`, `results` (×2), `[id].ts` DELETE (grep)
-- [ ] 4.3 `analyzeRequestSchema` requires `session_id`; `analyze.test.ts` covers 401/404/409/200
-- [ ] 4.4 Lint + type-check pass
-- [ ] 4.5 `VideoAnalyzer` Step 4 sends `session_id`
+- [x] 4.1 Ownership tests pass for all six surfaces
+- [x] 4.2 `eq("user_id"` guard present on `start`, `results` (×2), `[id].ts` DELETE (grep)
+- [x] 4.3 `analyzeRequestSchema` requires `session_id`; `analyze.test.ts` covers 401/404/409/200
+- [x] 4.4 Lint + type-check pass
+- [x] 4.5 `VideoAnalyzer` Step 4 sends `session_id`
 
 #### Manual
 
-- [ ] 4.6 Full pipeline still completes end to end with the new `/analyze` contract
-- [ ] 4.7 `curl` to `/api/analyze` with an unowned `session_id` → 404, no vision call
-- [ ] 4.8 §6.4 is a usable recipe and the Phase 4 deferral is unambiguous
+- [x] 4.6 Full pipeline still completes end to end with the new `/analyze` contract
+- [x] 4.7 `curl` to `/api/analyze` with an unowned `session_id` → 404, no vision call
+- [x] 4.8 §6.4 is a usable recipe and the Phase 4 deferral is unambiguous
 
 ### Phase 5: Stuck-processing terminal state (Risk #6)
 

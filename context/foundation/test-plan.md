@@ -360,10 +360,77 @@ plain-language `{ error }` at `500`. No `err.message` in the response body
 
 ### 6.4 Adding a test for a new API endpoint
 
-TBD — see §3 Phase 2. Default to integration: assert request → response
-shape and the DB side-effect, mock only the external HTTP edge. Promote to
-e2e only if the failure mode needs the deployed auth + cookie + handler
-crossing.
+**Default to integration.** Assert request → response shape and the DB
+side-effect via `makeSupabaseStub` (§6.2); mock only the external HTTP edge
+(§6.3's `installOpenRouterMock`, if the route calls an LLM). Promote to e2e
+only if the failure mode needs the deployed auth + cookie + handler crossing
+— see §6.5 and the RLS note below.
+
+**Ownership discipline (Risk #5) — the pattern every session-mutation route
+follows, generalised from the hardened `DELETE [id]` (`2026-09-02-delete-
+session`) in §3 Phase 4:**
+
+1. RLS pre-check first: `.select(...).eq("id", id).maybeSingle()` on the
+   cookie-bound (`createClient`) client — `error` → 500, `!data` → 404. A
+   route whose only mutation is a read-then-LLM-call (`recommend`,
+   `analyze`) stops here; the pre-check *is* the ownership guard.
+2. Only then does the admin (`createAdminClient`, RLS-bypassing) write run
+   — and it carries an explicit `.eq("user_id", context.locals.user.id)` in
+   addition to `.eq("id", ...)`, belt-and-braces in case the pre-check is
+   ever refactored away or `sessions_select_own` fails open. `analysis_
+   results` has no `user_id` column — its ownership guarantee is the
+   pre-check plus the FK to an now-guarded `fitting_sessions` row (see the
+   comment in `results.ts`).
+
+**Asserting it with the stub.** Point **both** `createClient` and
+`createAdminClient` mocks at the *same* `makeSupabaseStub` instance — its
+shared `calls` array then records the RLS read and the admin write in one
+sequence, so a single test proves ordering:
+
+```ts
+function stubReturns(script: Parameters<typeof makeSupabaseStub>[0]) {
+  const stub = makeSupabaseStub(script);
+  mockedCreateClient.mockReturnValue(stub as unknown as SupabaseClient);
+  mockedCreateAdminClient.mockReturnValue(stub as unknown as SupabaseClient);
+  return stub;
+}
+// ...
+const operations = stub.calls.map((c) => c.operation);
+expect(operations.indexOf("select")).toBeLessThan(operations.indexOf("update"));
+expect(stub.calls[operations.indexOf("update")].filters).toContainEqual({
+  column: "user_id",
+  value: user.id,
+});
+```
+
+Per route, the floor is four cases: (a) `makeApiContext({ user: undefined })`
+→ 401, no Supabase call; (b) pre-check → `{ data: null }` → 404, and
+`stub.calls` shows no `update`/`insert`/`delete`; (c) pre-check → a row →
+happy path, with the ordering + `user_id`-filter assertion above; (d) for a
+route with no admin write (`recommend`), (c) collapses to "no write to
+assert" — the 404 case alone proves the guard. **Reset call history between
+tests** (`beforeEach(() => { mockedCreateClient.mockClear();
+mockedCreateAdminClient.mockClear(); })`) — the stub's own `calls` array is
+fresh per `makeSupabaseStub()`, but the `vi.mocked(...)` call *counts*
+persist across tests in the same file, so a later "no Supabase call at all"
+assertion sees a prior test's calls unless cleared first.
+
+**This is stub-level ordering, not a real cross-user RLS check.** The stub
+proves the handler *would* scope correctly if `sessions_select_own` denies a
+cross-user read; it cannot prove the deployed policy itself does. The real
+two-user assertion — user B's real, signed-in request against user A's real
+session, hitting deployed RLS — is deferred to **§3 Phase 4 (Playwright,
+seeded via the Supabase Auth admin API)**. Don't skip the stub floor waiting
+for that: it is the always-on CI gate; the Playwright check is the
+one-time proof the policy itself holds.
+
+**New request field on an existing schema.** `analyzeRequestSchema` gained a
+required `session_id: z.uuid()` (Phase 4, binding `/analyze` to an owned,
+`processing` session) — note `z.uuid()`, not the deprecated
+`z.string().uuid()` (`@typescript-eslint/no-deprecated`). A schema change
+like this is also a client contract change: update the caller
+(`VideoAnalyzer.tsx`'s fetch body) in the **same** phase, not after — there
+is no version-skew window for an app-internal route.
 
 ### 6.5 Adding an e2e test
 

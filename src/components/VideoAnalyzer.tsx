@@ -174,7 +174,7 @@ export default function VideoAnalyzer({ sessionId, file, onComplete, onError }: 
         const res = await fetch("/api/analyze", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ video: videoBase64 }),
+          body: JSON.stringify({ video: videoBase64, session_id: sessionId }),
         });
         if (!res.ok) throw new Error(`Server returned HTTP ${res.status}`);
         const data = (await res.json()) as { timestamps?: { t: number; type: "BDC" | "TDC" }[] };

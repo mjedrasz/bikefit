@@ -53,6 +53,9 @@ export const POST: APIRoute = async (context) => {
   const payload = result.data;
 
   if (!payload.error) {
+    // `analysis_results` has no `user_id` column; the RLS pre-check above (which already
+    // proved `context.params.id` belongs to `context.locals.user`) plus the FK to a now
+    // ownership-guarded `fitting_sessions` row is the ownership guarantee here.
     const { error: insertError } = await admin.from("analysis_results").insert({
       session_id: context.params.id,
       recommendations: payload.recommendations,
@@ -64,12 +67,19 @@ export const POST: APIRoute = async (context) => {
       return new Response(null, { status: 500 });
     }
 
-    await admin.from("fitting_sessions").update({ status: "completed" }).eq("id", context.params.id);
+    // Belt-and-braces ownership guard (project Risk #5), mirroring `start.ts` / `DELETE
+    // [id]`. Result-checking (silent-failure → 500) lands in §3 Phase 5.
+    await admin
+      .from("fitting_sessions")
+      .update({ status: "completed" })
+      .eq("id", context.params.id)
+      .eq("user_id", context.locals.user.id);
   } else {
     await admin
       .from("fitting_sessions")
       .update({ status: "failed", error_message: payload.error_message })
-      .eq("id", context.params.id);
+      .eq("id", context.params.id)
+      .eq("user_id", context.locals.user.id);
   }
 
   return Response.json({ ok: true });

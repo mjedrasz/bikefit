@@ -98,4 +98,19 @@ describe("POST /api/sessions/[id]/recommend", () => {
       openrouter.assertCalledOnce();
     }).toThrow();
   });
+
+  // Risk #5 ownership (test-plan §6.4, §3 Phase 4): a no-row pre-check is 404 with no
+  // OpenRouter call — `recommend` has no admin write, so the pre-check IS the ownership
+  // guard here (no `.eq("user_id")` write to additionally assert, unlike `start`/`results`).
+  it("404 when the pre-check finds no row, and no OpenRouter call follows", async () => {
+    const stub = stubReturns({ "fitting_sessions.select": { data: null, error: null } });
+
+    const res = await POST(makeApiContext({ user, params: { id: "s1" }, body: validBody }));
+
+    expect(res.status).toBe(404);
+    expect(stub.calls.map((c) => c.operation)).toEqual(["select"]);
+    expect(() => {
+      openrouter.assertCalledOnce();
+    }).toThrow();
+  });
 });
