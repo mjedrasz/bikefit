@@ -16,13 +16,18 @@ export const POST: APIRoute = async (context) => {
     return new Response("Service unavailable", { status: 503 });
   }
 
+  // `.maybeSingle()` so a genuine query failure (500) is distinguished from a missing/
+  // not-owned row (404) — a query error is not "session not found" (project Risk #7).
   const { data: session, error } = await supabase
     .from("fitting_sessions")
     .select("id, status")
     .eq("id", context.params.id)
-    .single();
+    .maybeSingle();
 
   if (error) {
+    return Response.json({ error: "Could not load session" }, { status: 500 });
+  }
+  if (!session) {
     return Response.json({ error: "Session not found" }, { status: 404 });
   }
   if (session.status !== "processing") {

@@ -953,33 +953,33 @@ rewrite frozen §1–§5 strategy in place beyond this pointer.
 
 #### Automated
 
-- [x] 2.1 Contract suite passes (`npm test src/lib/services/llm.test.ts`)
-- [x] 2.2 Every corpus entry asserts a typed `Error` (fenced + empty-`timestamps` cases assert a successful parse)
-- [x] 2.3 Route integration tests pass; `insert` never called on a boundary failure
-- [x] 2.4 Lint + type-check pass
-- [x] 2.5 No `err.message` interpolation left in the `analyze`/`recommend` catch responses
-- [x] 2.9 `stripJsonFence` branch cases live in `src/lib/llm-response.test.ts`; Stryker `mutate` includes `src/lib/llm-response.ts`
+- [x] 2.1 Contract suite passes (`npm test src/lib/services/llm.test.ts`) — 0f5fbd7
+- [x] 2.2 Every corpus entry asserts a typed `Error` (fenced + empty-`timestamps` cases assert a successful parse) — 0f5fbd7
+- [x] 2.3 Route integration tests pass; `insert` never called on a boundary failure — 0f5fbd7
+- [x] 2.4 Lint + type-check pass — 0f5fbd7
+- [x] 2.5 No `err.message` interpolation left in the `analyze`/`recommend` catch responses — 0f5fbd7
+- [x] 2.9 `stripJsonFence` branch cases live in `src/lib/llm-response.test.ts`; Stryker `mutate` includes `src/lib/llm-response.ts` — 0f5fbd7
 
 #### Manual
 
-- [x] 2.6 A fenced ` ```json ` body now completes analysis instead of failing
-- [x] 2.7 A direct call with a forced upstream 500 returns the generic string; detail in logs only
-- [x] 2.8 §6.3 is a usable recipe
+- [x] 2.6 A fenced ` ```json ` body now completes analysis instead of failing — 0f5fbd7
+- [x] 2.7 A direct call with a forced upstream 500 returns the generic string; detail in logs only — 0f5fbd7
+- [x] 2.8 §6.3 is a usable recipe — 0f5fbd7
 
 ### Phase 3: Distinct DB-error states (Risk #7)
 
 #### Automated
 
-- [ ] 3.1 All route/page error-branch tests pass
-- [ ] 3.2 No `const { data } = await supabase` left in a pre-check (grep clean)
-- [ ] 3.3 Lint + type-check pass
-- [ ] 3.4 Spot-checked: 2 new tests fail when reverted against the pre-change handler
+- [x] 3.1 All route/page error-branch tests pass
+- [x] 3.2 No `const { data } = await supabase` left in a pre-check (grep clean)
+- [x] 3.3 Lint + type-check pass
+- [x] 3.4 Spot-checked: 2 new tests fail when reverted against the pre-change handler
 
 #### Manual
 
-- [ ] 3.5 Forced DB error on the results page → "couldn't load your results", not a blank card
-- [ ] 3.6 Forced DB error on `GET /api/sessions/[id]` → 500, not 404
-- [ ] 3.7 Happy paths (real completed session, real history list) still render correctly
+- [x] 3.5 Forced DB error on the results page → "couldn't load your results", not a blank card
+- [x] 3.6 Forced DB error on `GET /api/sessions/[id]` → 500, not 404
+- [x] 3.7 Happy paths (real completed session, real history list) still render correctly
 
 ### Phase 4: Session-route ownership (Risk #5)
 

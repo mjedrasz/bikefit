@@ -268,6 +268,20 @@ is loaded explicitly in `render-page.ts` via
 The two-user cross-RLS fixture is **not** in this layer — see §6.4 and §3 Phase 4
 (Playwright). This layer's ownership coverage is stub-level ordering only.
 
+**Asserting a page's error branch (Risk #7, added §3 Phase 3).** The `.maybeSingle()` +
+split-error/absent pattern (§2's DELETE-handler template) applies to page frontmatter the
+same way it applies to a route handler — script the pre-check's `{ data: null, error: {…} }`
+and assert the page's early `return new Response(null, { status: 500 })` comes back through
+`renderPage`'s `res.status`, exactly like a route. For a render-branch assertion (a query
+error mid-page, after the early-exit checks already passed) script the second query's
+`error`, then assert on `await res.text()`: the distinct "couldn't load" copy is present and
+the copy/section for the branch that *should not* have rendered is absent —
+`expect(html).not.toContain(...)` is as load-bearing as the positive assertion, since a
+regression here is exactly "silently renders nothing" (the original bug). A genuinely absent
+row (`data: null, error: null`) must route to the **same** error branch as a real error — the
+fixed contract is "never distinguish these two for the caller," so cover both scripts against
+one assertion, not just the error one.
+
 ### 6.3 Adding a contract test for the OpenRouter boundary
 
 Established by §3 Phase 2, plan Phase 2

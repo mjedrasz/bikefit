@@ -15,8 +15,17 @@ export const POST: APIRoute = async (context) => {
     return new Response("Service unavailable", { status: 503 });
   }
 
-  const { data } = await supabase.from("fitting_sessions").select("id, status").eq("id", context.params.id).single();
+  // `.maybeSingle()` so a genuine query failure surfaces as its own `error` instead of
+  // being indistinguishable from "row absent" (project Risk #7).
+  const { data, error } = await supabase
+    .from("fitting_sessions")
+    .select("id, status")
+    .eq("id", context.params.id)
+    .maybeSingle();
 
+  if (error) {
+    return new Response(null, { status: 500 });
+  }
   if (!data) {
     return new Response(null, { status: 404 });
   }

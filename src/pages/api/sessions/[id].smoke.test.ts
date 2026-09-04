@@ -8,7 +8,8 @@ import { GET } from "./[id]";
 // Harness smoke for the `unit` Vitest project on the simplest route: proves a route module
 // imports without throwing (the `astro:env/server` alias-stub works), `makeApiContext` +
 // the Supabase stub drive the auth / not-found / found branches, and `stub.calls` records
-// the query. Ownership + error-branch hardening lands in Phases 3–4.
+// the query. Error-branch hardening lives in `[id].test.ts` (§3 Phase 3); ownership
+// hardening lands in Phase 4.
 
 vi.mock("@/lib/supabase", () => ({ createClient: vi.fn() }));
 
@@ -36,7 +37,7 @@ describe("GET /api/sessions/[id] — harness smoke", () => {
 
     expect(res.status).toBe(404);
     expect(stub.calls).toEqual([
-      expect.objectContaining({ table: "fitting_sessions", operation: "select", terminal: "single" }),
+      expect.objectContaining({ table: "fitting_sessions", operation: "select", terminal: "maybeSingle" }),
     ]);
   });
 

@@ -79,4 +79,23 @@ describe("POST /api/sessions/[id]/recommend", () => {
     expect(res.status).toBe(500);
     expect(await res.json()).toEqual({ error: "Could not generate recommendations. Please try again." });
   });
+
+  // Risk #7 (test-plan §6.2 addendum): a genuine pre-check query failure is a distinct
+  // 500 — never the same "Session not found" 404 as a missing/not-owned row.
+  it("500 — not 404 — when the session pre-check query errors, and no OpenRouter call follows", async () => {
+    const stub = stubReturns({
+      "fitting_sessions.select": { data: null, error: { message: "boom", code: "XX000" } },
+    });
+
+    const res = await POST(makeApiContext({ user, params: { id: "s1" }, body: validBody }));
+
+    expect(res.status).toBe(500);
+    expect(await res.json()).toEqual({ error: "Could not load session" });
+    expect(stub.calls).toEqual([
+      expect.objectContaining({ table: "fitting_sessions", operation: "select", terminal: "maybeSingle" }),
+    ]);
+    expect(() => {
+      openrouter.assertCalledOnce();
+    }).toThrow();
+  });
 });

@@ -56,4 +56,21 @@ describe("sessions/index.astro — harness smoke", () => {
     expect(html).toContain("morning-ride.mp4");
     expect(html).toContain("Completed");
   });
+
+  // Risk #7 regression lock (test-plan §6.2 addendum): this branch is already correct
+  // (archived S-04 fix) — pin it so a future refactor can't regress it back to a blank
+  // list or a silently-empty state.
+  it("renders the 'couldn't load your sessions' state — not an empty list — on a query error", async () => {
+    stubReturns({ "fitting_sessions.select": { data: null, error: { message: "boom", code: "XX000" } } });
+
+    const res = await renderPage(SessionsIndex, {
+      request: makeApiContext({ user, url: "http://test.local/sessions" }).request,
+      locals: { user },
+    });
+
+    expect(res.status).toBe(500);
+    const html = await res.text();
+    expect(html).toContain("Couldn't load your sessions");
+    expect(html).not.toContain("haven't submitted any bike-fitting sessions yet");
+  });
 });

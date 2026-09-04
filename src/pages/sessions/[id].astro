@@ -12,12 +12,17 @@ if (!supabase) {
   return new Response("Service unavailable", { status: 503 });
 }
 
-const { data: sessionData } = await supabase
+// `.maybeSingle()` so a genuine query failure surfaces as its own `error` instead of
+// being indistinguishable from "row absent" (project Risk #7).
+const { data: sessionData, error: sessionError } = await supabase
   .from("fitting_sessions")
   .select("id, status, error_message, video_filename, created_at")
   .eq("id", id)
-  .single();
+  .maybeSingle();
 
+if (sessionError) {
+  return new Response(null, { status: 500 });
+}
 if (!sessionData) {
   return new Response(null, { status: 404 });
 }
@@ -28,14 +33,22 @@ const session = sessionData as Pick<
 >;
 
 let results: Pick<AnalysisResult, "recommendations" | "body_angles"> | null = null;
+let resultsLoadError = false;
 
 if (session.status === "completed") {
-  const { data: resultsData } = await supabase
+  const { data: resultsData, error: resultsError } = await supabase
     .from("analysis_results")
     .select("recommendations, body_angles")
     .eq("session_id", session.id)
-    .single();
-  results = resultsData;
+    .maybeSingle();
+  // A `completed` session should always have a results row (test-plan §5) — a query
+  // error OR a genuinely absent row both route to the same "couldn't load" state
+  // rather than the blank card that renders when no branch below matches (Risk #7).
+  if (resultsError || !resultsData) {
+    resultsLoadError = true;
+  } else {
+    results = resultsData;
+  }
 }
 
 const bodyAngles =
@@ -94,6 +107,15 @@ const bodyAngles =
                 ))}
               </ul>
             </section>
+          </div>
+        )
+      }
+
+      {
+        session.status === "completed" && resultsLoadError && (
+          <div class="flex flex-col items-center gap-4 p-8 text-center">
+            <h1 class="text-xl font-semibold">Couldn't load your results</h1>
+            <p class="text-destructive">We couldn't load your results — please refresh.</p>
           </div>
         )
       }
