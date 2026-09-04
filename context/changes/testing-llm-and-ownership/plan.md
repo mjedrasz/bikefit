@@ -985,27 +985,27 @@ rewrite frozen §1–§5 strategy in place beyond this pointer.
 
 #### Automated
 
-- [x] 4.1 Ownership tests pass for all six surfaces
-- [x] 4.2 `eq("user_id"` guard present on `start`, `results` (×2), `[id].ts` DELETE (grep)
-- [x] 4.3 `analyzeRequestSchema` requires `session_id`; `analyze.test.ts` covers 401/404/409/200
-- [x] 4.4 Lint + type-check pass
-- [x] 4.5 `VideoAnalyzer` Step 4 sends `session_id`
+- [x] 4.1 Ownership tests pass for all six surfaces — af21b91
+- [x] 4.2 `eq("user_id"` guard present on `start`, `results` (×2), `[id].ts` DELETE (grep) — af21b91
+- [x] 4.3 `analyzeRequestSchema` requires `session_id`; `analyze.test.ts` covers 401/404/409/200 — af21b91
+- [x] 4.4 Lint + type-check pass — af21b91
+- [x] 4.5 `VideoAnalyzer` Step 4 sends `session_id` — af21b91
 
 #### Manual
 
-- [x] 4.6 Full pipeline still completes end to end with the new `/analyze` contract
-- [x] 4.7 `curl` to `/api/analyze` with an unowned `session_id` → 404, no vision call
-- [x] 4.8 §6.4 is a usable recipe and the Phase 4 deferral is unambiguous
+- [x] 4.6 Full pipeline still completes end to end with the new `/analyze` contract — af21b91
+- [x] 4.7 `curl` to `/api/analyze` with an unowned `session_id` → 404, no vision call — af21b91
+- [x] 4.8 §6.4 is a usable recipe and the Phase 4 deferral is unambiguous — af21b91
 
 ### Phase 5: Stuck-processing terminal state (Risk #6)
 
 #### Automated
 
-- [ ] 5.1 `session-display-status.test.ts` passes with all boundary cases
-- [ ] 5.2 Page tests assert the timed-out render for a stale `processing` session
-- [ ] 5.3 `results.ts` / `start.ts` `UPDATE`-error tests pass (500)
-- [ ] 5.4 Both SSR `select`s include `updated_at` (grep)
-- [ ] 5.5 Lint + type-check pass
+- [x] 5.1 `session-display-status.test.ts` passes with all boundary cases
+- [x] 5.2 Page tests assert the timed-out render for a stale `processing` session
+- [x] 5.3 `results.ts` / `start.ts` `UPDATE`-error tests pass (500)
+- [x] 5.4 Both SSR `select`s include `updated_at` (grep)
+- [x] 5.5 Lint + type-check pass
 
 #### Manual
 

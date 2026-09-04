@@ -313,9 +313,10 @@ export default function VideoAnalyzer({ sessionId, file, onComplete, onError }: 
         });
         if (!res.ok) throw new Error(`Server returned HTTP ${res.status}`);
       } catch (err) {
-        const msg = err instanceof Error ? err.message : "Failed to save results";
-        setErrorMessage(msg);
-        onError(msg);
+        // A 409 here (session already left `processing`) is backstopped by the staleness
+        // rule (§3 Phase 5) — the display-time rule flips a stuck render to "timed out"
+        // even if this second `/results` POST below also fails.
+        await postError("submitting", err instanceof Error ? err.message : "Failed to save results");
         return;
       }
 

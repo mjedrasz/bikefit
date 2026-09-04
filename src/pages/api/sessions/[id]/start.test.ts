@@ -14,6 +14,10 @@ import { POST } from "./start";
 // write, a no-row pre-check yields 404 with no write, and the admin write carries the
 // `.eq("user_id")` guard. This is stub-level ordering, not a real cross-user RLS check
 // (that is §3 Phase 4's Playwright deferral — see §6.4).
+//
+// Risk #6 (test-plan §3 Phase 5): the status `UPDATE` is now checked — a silently-failed
+// `queued -> processing` write is how a session sticks in `queued` forever (research §4c
+// item 4), so a failed write is a 500.
 
 vi.mock("@/lib/supabase", () => ({ createClient: vi.fn() }));
 vi.mock("@/lib/services/supabase-admin", () => ({ createAdminClient: vi.fn() }));
@@ -79,5 +83,18 @@ describe("POST /api/sessions/[id]/start — ownership (Risk #5)", () => {
     expect(operations.indexOf("select")).toBeLessThan(operations.indexOf("update"));
     const updateCall = stub.calls[operations.indexOf("update")];
     expect(updateCall.filters).toContainEqual({ column: "user_id", value: user.id });
+  });
+});
+
+describe("POST /api/sessions/[id]/start — status UPDATE failure is checked (Risk #6)", () => {
+  it("500 when the admin update fails", async () => {
+    stubReturns({
+      "fitting_sessions.select": { data: { id: "s1", status: "queued" } },
+      "fitting_sessions.update": { data: null, error: { message: "boom", code: "XX000" } },
+    });
+
+    const res = await POST(makeApiContext({ user, params: { id: "s1" } }));
+
+    expect(res.status).toBe(500);
   });
 });

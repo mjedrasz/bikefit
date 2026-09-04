@@ -15,6 +15,11 @@ import { POST } from "./results";
 // write, a no-row pre-check yields 404 with no write, and both admin writes (`completed`
 // and `failed`) carry the `.eq("user_id")` guard. Stub-level ordering only — the real
 // cross-user RLS check is §3 Phase 4's Playwright deferral (see §6.4).
+//
+// Risk #6 (test-plan §3 Phase 5): the status `UPDATE`s are now checked. A failed
+// `completed`-status write is a 500 (documented orphan-row edge — see Critical
+// Implementation Details); a failed `failed`-status write still reports success
+// (best-effort, backstopped by the staleness rule).
 
 vi.mock("@/lib/supabase", () => ({ createClient: vi.fn() }));
 vi.mock("@/lib/services/supabase-admin", () => ({ createAdminClient: vi.fn() }));
@@ -97,5 +102,30 @@ describe("POST /api/sessions/[id]/results — ownership (Risk #5)", () => {
     expect(operations).toEqual(["select", "update"]);
     const updateCall = stub.calls[operations.indexOf("update")];
     expect(updateCall.filters).toContainEqual({ column: "user_id", value: user.id });
+  });
+});
+
+describe("POST /api/sessions/[id]/results — status UPDATE failures are checked (Risk #6)", () => {
+  it("500 when the completed-status admin update fails, after the insert already succeeded", async () => {
+    stubReturns({
+      "fitting_sessions.select": { data: { id: "s1", status: "processing" } },
+      "fitting_sessions.update": { data: null, error: { message: "boom", code: "XX000" } },
+    });
+
+    const res = await POST(makeApiContext({ user, params: { id: "s1" }, body: validBody }));
+
+    expect(res.status).toBe(500);
+  });
+
+  it("still returns 200 (best-effort) when the failed-status admin update fails", async () => {
+    stubReturns({
+      "fitting_sessions.select": { data: { id: "s1", status: "processing" } },
+      "fitting_sessions.update": { data: null, error: { message: "boom", code: "XX000" } },
+    });
+    const errorBody = { error: true, error_message: "Analysis failed" };
+
+    const res = await POST(makeApiContext({ user, params: { id: "s1" }, body: errorBody }));
+
+    expect(res.status).toBe(200);
   });
 });

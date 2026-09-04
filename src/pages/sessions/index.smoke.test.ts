@@ -73,4 +73,31 @@ describe("sessions/index.astro — harness smoke", () => {
     expect(html).toContain("Couldn't load your sessions");
     expect(html).not.toContain("haven't submitted any bike-fitting sessions yet");
   });
+
+  // Risk #6 (test-plan §3 Phase 5): a session stuck `processing` past the staleness
+  // threshold shows a "Failed" pill here instead of a permanent blue "Processing" one.
+  it("renders a 'Failed' pill for a stale processing session", async () => {
+    stubReturns({
+      "fitting_sessions.select": {
+        data: [
+          {
+            id: "11111111-1111-1111-1111-111111111111",
+            video_filename: "stuck-ride.mp4",
+            status: "processing",
+            created_at: "2026-09-01T08:00:00Z",
+            updated_at: new Date(Date.now() - 20 * 60_000).toISOString(),
+          },
+        ],
+      },
+    });
+
+    const res = await renderPage(SessionsIndex, {
+      request: makeApiContext({ user, url: "http://test.local/sessions" }).request,
+      locals: { user },
+    });
+
+    expect(res.status).toBe(200);
+    const html = await res.text();
+    expect(html).toContain("Failed");
+  });
 });

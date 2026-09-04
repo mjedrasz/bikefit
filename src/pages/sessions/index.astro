@@ -3,9 +3,10 @@ import Layout from "@/layouts/Layout.astro";
 import DeleteSessionButton from "@/components/DeleteSessionButton";
 import { createClient } from "@/lib/supabase";
 import { SESSION_STATUS_BADGE_BASE_CLASSNAME, SESSION_STATUS_META } from "@/lib/session-status";
+import { effectiveSessionStatus } from "@/lib/session-display-status";
 import type { FittingSession } from "@/types";
 
-type SessionRow = Pick<FittingSession, "id" | "video_filename" | "status" | "created_at">;
+type SessionRow = Pick<FittingSession, "id" | "video_filename" | "status" | "created_at" | "updated_at">;
 
 const supabase = createClient(Astro.request.headers, Astro.cookies);
 
@@ -16,7 +17,7 @@ if (!supabase) {
 } else {
   const { data, error } = await supabase
     .from("fitting_sessions")
-    .select("id, video_filename, status, created_at")
+    .select("id, video_filename, status, created_at, updated_at")
     .order("created_at", { ascending: false });
   if (error) {
     Astro.response.status = 500;
@@ -67,7 +68,11 @@ const dateFormatter = new Intl.DateTimeFormat("en-US", {
         ) : (
           <ul class="flex flex-col gap-3">
             {sessions.map((session) => {
-              const { label, className } = SESSION_STATUS_META[session.status];
+              // Display-time-only reconciliation (Risk #6, test-plan §3 Phase 5): a stale
+              // `processing`/`queued` row shows the "Failed" pill instead of staying blue
+              // forever. The stored row is never written back.
+              const { label, className } =
+                SESSION_STATUS_META[effectiveSessionStatus(session.status, session.updated_at, Date.now())];
               return (
                 <li class="rounded-2xl border border-white/10 bg-white/10 p-4 text-white backdrop-blur-xl transition-colors hover:bg-white/20">
                   <div class="flex items-center justify-between gap-4">

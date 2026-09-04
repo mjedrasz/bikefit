@@ -3,6 +3,7 @@ import Layout from "@/layouts/Layout.astro";
 import { angleVerdict } from "@/lib/angle-verdict";
 import { formatAngle } from "@/lib/format-angle";
 import { createClient } from "@/lib/supabase";
+import { effectiveSessionStatus, STALE_PROCESSING_MESSAGE } from "@/lib/session-display-status";
 import type { AnalysisResult, FittingSession } from "@/types";
 
 const { id } = Astro.params;
@@ -16,7 +17,7 @@ if (!supabase) {
 // being indistinguishable from "row absent" (project Risk #7).
 const { data: sessionData, error: sessionError } = await supabase
   .from("fitting_sessions")
-  .select("id, status, error_message, video_filename, created_at")
+  .select("id, status, error_message, video_filename, created_at, updated_at")
   .eq("id", id)
   .maybeSingle();
 
@@ -29,8 +30,13 @@ if (!sessionData) {
 
 const session = sessionData as Pick<
   FittingSession,
-  "id" | "status" | "error_message" | "video_filename" | "created_at"
+  "id" | "status" | "error_message" | "video_filename" | "created_at" | "updated_at"
 >;
+
+// Display-time-only reconciliation (Risk #6, test-plan §3 Phase 5): a `processing` or
+// stuck `queued` session with no progress past `STALE_PROCESSING_MS` renders as a terminal
+// "timed out" failure. The stored row is never written back.
+const displayStatus = effectiveSessionStatus(session.status, session.updated_at, Date.now());
 
 let results: Pick<AnalysisResult, "recommendations" | "body_angles"> | null = null;
 let resultsLoadError = false;
@@ -121,7 +127,7 @@ const bodyAngles =
       }
 
       {
-        (session.status === "queued" || session.status === "processing") && (
+        (displayStatus === "queued" || displayStatus === "processing") && (
           <div class="flex flex-col items-center gap-4 p-8 text-center">
             <h1 class="text-xl font-semibold">Still processing</h1>
             <p class="text-blue-100/70">Your analysis is still processing — check back soon.</p>
@@ -130,10 +136,12 @@ const bodyAngles =
       }
 
       {
-        session.status === "failed" && (
+        displayStatus === "failed" && (
           <div class="flex flex-col items-center gap-4 p-8 text-center">
             <h1 class="text-xl font-semibold">Analysis failed</h1>
-            <p class="text-destructive">{session.error_message}</p>
+            <p class="text-destructive">
+              {session.status === "failed" ? session.error_message : STALE_PROCESSING_MESSAGE}
+            </p>
           </div>
         )
       }

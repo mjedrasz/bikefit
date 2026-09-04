@@ -68,18 +68,35 @@ export const POST: APIRoute = async (context) => {
     }
 
     // Belt-and-braces ownership guard (project Risk #5), mirroring `start.ts` / `DELETE
-    // [id]`. Result-checking (silent-failure → 500) lands in §3 Phase 5.
-    await admin
+    // [id]`.
+    const { error: updateError } = await admin
       .from("fitting_sessions")
       .update({ status: "completed" })
       .eq("id", context.params.id)
       .eq("user_id", context.locals.user.id);
+
+    // A silently-failed UPDATE here leaves an orphan `analysis_results` row against a
+    // still-`processing` session (test-plan Critical Implementation Details — accepted,
+    // documented there). It's not rendered until the staleness rule (§3 Phase 5) flips the
+    // display to "timed out"; surfacing the 500 here lets the caller retry instead of
+    // silently drifting.
+    if (updateError) {
+      console.error("results.ts: completed status update failed", updateError);
+      return new Response(null, { status: 500 });
+    }
   } else {
-    await admin
+    const { error: updateError } = await admin
       .from("fitting_sessions")
       .update({ status: "failed", error_message: payload.error_message })
       .eq("id", context.params.id)
       .eq("user_id", context.locals.user.id);
+
+    // Best-effort: the client already records its own error state regardless of this
+    // response, and the staleness rule (§3 Phase 5) backstops the render if this write
+    // itself silently failed — so this path still reports success.
+    if (updateError) {
+      console.error("results.ts: failed status update failed", updateError);
+    }
   }
 
   return Response.json({ ok: true });

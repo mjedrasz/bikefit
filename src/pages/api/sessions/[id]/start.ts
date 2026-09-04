@@ -39,13 +39,20 @@ export const POST: APIRoute = async (context) => {
   // Belt-and-braces ownership guard (project Risk #5): the RLS pre-check above is the
   // primary guard, but the admin (service-role) write bypasses RLS entirely, so it carries
   // its own `.eq("user_id", …)` in case the pre-check were ever refactored away or failed
-  // open — mirrors the hardened `DELETE [id]` pattern. Result-checking (silent-failure →
-  // 500) lands in §3 Phase 5.
-  await admin
+  // open — mirrors the hardened `DELETE [id]` pattern.
+  const { error: updateError } = await admin
     .from("fitting_sessions")
     .update({ status: "processing" })
     .eq("id", context.params.id)
     .eq("user_id", context.locals.user.id);
+
+  // A silently-failed UPDATE here is how a session sticks in `queued` forever (research
+  // §4c item 4) — every downstream step would 409. Surface it as a 500 so `VideoAnalyzer`
+  // Step 1's `!res.ok` handling fires `postError` instead of proceeding on a false premise.
+  if (updateError) {
+    console.error("start.ts: processing status update failed", updateError);
+    return new Response(null, { status: 500 });
+  }
 
   return Response.json({ ok: true });
 };
