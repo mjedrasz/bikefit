@@ -3,10 +3,15 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase";
 import { createAdminClient } from "@/lib/services/supabase-admin";
 import { checkRateLimit } from "@/lib/services/rate-limit";
+import { readJsonWithCap } from "@/lib/capped-json-body";
 import { analyzeVideo } from "@/lib/services/llm";
 import { analyzeRequestSchema } from "@/lib/schemas";
 
 export const prerender = false;
+
+// Sized just above the existing 140,000,000-char schema cap on `video` plus JSON-envelope
+// overhead (field names, `session_id`) — see plan Definitions for the exact math.
+const MAX_ANALYZE_BODY_BYTES = 140_100_000;
 
 export const POST: APIRoute = async (context) => {
   if (!context.locals.user) {
@@ -25,14 +30,17 @@ export const POST: APIRoute = async (context) => {
     return Response.json({ error: "Too many requests. Please try again later." }, { status: 429 });
   }
 
-  let body: unknown;
-  try {
-    body = await context.request.json();
-  } catch {
+  // Reject an oversized body before it's buffered (test-plan §3 Phase 3, Risk #3) — the
+  // existing `.max(140_000_000)` schema check below still runs unchanged as a second gate.
+  const capped = await readJsonWithCap(context.request, MAX_ANALYZE_BODY_BYTES);
+  if (!capped.ok) {
+    if (capped.reason === "too-large") {
+      return Response.json({ error: "Request body too large" }, { status: 413 });
+    }
     return Response.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const parsed = analyzeRequestSchema.safeParse(body);
+  const parsed = analyzeRequestSchema.safeParse(capped.data);
   if (!parsed.success) {
     return Response.json({ error: z.treeifyError(parsed.error) }, { status: 400 });
   }

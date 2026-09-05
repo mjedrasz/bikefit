@@ -16,6 +16,10 @@ import { POST } from "./recommend";
 // Every test below scripts the admin client's `.rpc()` with a default "allowed" response via
 // `beforeEach` so unrelated tests aren't coupled to the rate-limit path; the dedicated
 // rate-limit tests override it per case.
+//
+// Risk #3 payload cap (test-plan §3 Phase 3): `body_angles` gets its first-ever size bound —
+// an array over 20 items, or a `name`/`unit` string over 200 chars, rejects 400 with no
+// OpenRouter call; the boundary (20 items, 200-char strings) still succeeds.
 
 vi.mock("@/lib/supabase", () => ({ createClient: vi.fn() }));
 vi.mock("@/lib/services/supabase-admin", () => ({ createAdminClient: vi.fn() }));
@@ -26,6 +30,16 @@ const user = { id: "user-1" } as User;
 const validBody = {
   body_angles: [{ name: "Knee extension", value: 145, reference_min: 140, reference_max: 150, unit: "°" }],
 };
+
+function makeBodyAngle(overrides: Partial<{ name: string; unit: string }> = {}) {
+  return {
+    name: overrides.name ?? "Knee extension",
+    value: 145,
+    reference_min: 140,
+    reference_max: 150,
+    unit: overrides.unit ?? "°",
+  };
+}
 
 let openrouter: OpenRouterMock;
 
@@ -100,6 +114,58 @@ describe("POST /api/sessions/[id]/recommend", () => {
       raw_llm_response: "raw",
     });
     expect(stub.calls.map((c) => c.operation)).toEqual(["select"]);
+  });
+
+  it("400 when body_angles has more than 20 items, with no OpenRouter call", async () => {
+    stubReturns({ "fitting_sessions.select": { data: { id: "s1", status: "processing" } } });
+    const bodyAngles = Array.from({ length: 21 }, () => makeBodyAngle());
+
+    const res = await POST(makeApiContext({ user, params: { id: "s1" }, body: { body_angles: bodyAngles } }));
+
+    expect(res.status).toBe(400);
+    expect(() => {
+      openrouter.assertCalledOnce();
+    }).toThrow();
+  });
+
+  it("400 when a body_angles name exceeds 200 chars", async () => {
+    stubReturns({ "fitting_sessions.select": { data: { id: "s1", status: "processing" } } });
+    const bodyAngles = [makeBodyAngle({ name: "a".repeat(201) })];
+
+    const res = await POST(makeApiContext({ user, params: { id: "s1" }, body: { body_angles: bodyAngles } }));
+
+    expect(res.status).toBe(400);
+    expect(() => {
+      openrouter.assertCalledOnce();
+    }).toThrow();
+  });
+
+  it("400 when a body_angles unit exceeds 200 chars", async () => {
+    stubReturns({ "fitting_sessions.select": { data: { id: "s1", status: "processing" } } });
+    const bodyAngles = [makeBodyAngle({ unit: "a".repeat(201) })];
+
+    const res = await POST(makeApiContext({ user, params: { id: "s1" }, body: { body_angles: bodyAngles } }));
+
+    expect(res.status).toBe(400);
+    expect(() => {
+      openrouter.assertCalledOnce();
+    }).toThrow();
+  });
+
+  it("still succeeds at the boundary — 20 items, 200-char name/unit", async () => {
+    stubReturns({ "fitting_sessions.select": { data: { id: "s1", status: "processing" } } });
+    openrouter.replyWith(200, {
+      recommendations: [{ adjustment: "Raise saddle 5mm", rationale: "Knee angle below reference band" }],
+      raw_llm_response: "raw",
+    });
+    const bodyAngles = Array.from({ length: 20 }, () =>
+      makeBodyAngle({ name: "a".repeat(200), unit: "b".repeat(200) }),
+    );
+
+    const res = await POST(makeApiContext({ user, params: { id: "s1" }, body: { body_angles: bodyAngles } }));
+
+    expect(res.status).toBe(200);
+    openrouter.assertCalledOnce();
   });
 
   it("500 with a generic body — not the upstream text — and no DB write on an upstream error", async () => {

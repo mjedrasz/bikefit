@@ -11,11 +11,11 @@ export const recommendationSchema = z.object({
 });
 
 export const bodyAngleSchema = z.object({
-  name: z.string(),
+  name: z.string().max(200),
   value: z.number(),
   reference_min: z.number(),
   reference_max: z.number(),
-  unit: z.string(),
+  unit: z.string().max(200),
 });
 
 export const analyzeRequestSchema = z.object({
@@ -24,7 +24,7 @@ export const analyzeRequestSchema = z.object({
 });
 
 export const recommendRequestSchema = z.object({
-  body_angles: z.array(bodyAngleSchema).min(1),
+  body_angles: z.array(bodyAngleSchema).min(1).max(20),
 });
 
 export const resultsPayloadSchema = z.discriminatedUnion("error", [

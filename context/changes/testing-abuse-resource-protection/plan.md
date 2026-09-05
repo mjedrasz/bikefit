@@ -554,29 +554,29 @@ We're NOT Doing); acceptable for MVP scale.
 
 #### Automated
 
-- [x] 1.1 Migration applies cleanly against a local Supabase instance
-- [x] 1.2 `npx tsc --noEmit` passes
-- [x] 1.3 `npm run lint` passes
+- [x] 1.1 Migration applies cleanly against a local Supabase instance — faf9692
+- [x] 1.2 `npx tsc --noEmit` passes — faf9692
+- [x] 1.3 `npm run lint` passes — faf9692
 - [x] 1.4 `npm test` passes, including new `rate-limit.test.ts` and updated
-      route specs
+      route specs — faf9692
 
 #### Manual
 
-- [x] 1.5 11th request within a 10-minute window returns 429
-- [x] 1.6 A request in the following window succeeds again
+- [x] 1.5 11th request within a 10-minute window returns 429 — faf9692
+- [x] 1.6 A request in the following window succeeds again — faf9692
 
 ### Phase 2: Payload-size caps, enforced early
 
 #### Automated
 
-- [ ] 2.1 `npx tsc --noEmit` passes
-- [ ] 2.2 `npm run lint` passes
-- [ ] 2.3 `npm test` passes, including new `capped-json-body.test.ts` and
+- [x] 2.1 `npx tsc --noEmit` passes
+- [x] 2.2 `npm run lint` passes
+- [x] 2.3 `npm test` passes, including new `capped-json-body.test.ts` and
       updated route specs
 
 #### Manual
 
-- [ ] 2.4 Spoofed large `Content-Length` request to `/api/analyze` returns
+- [x] 2.4 Spoofed large `Content-Length` request to `/api/analyze` returns
       413 immediately
 
 ### Phase 3: Output-contract boundary + adversarial probe

@@ -21,6 +21,10 @@ import { POST } from "./analyze";
 // Every test below scripts the admin client's `.rpc()` with a default "allowed" response via
 // `beforeEach` so unrelated tests aren't coupled to the rate-limit path; the dedicated
 // rate-limit tests override it per case.
+//
+// Risk #3 payload cap (test-plan §3 Phase 3): a spoofed `Content-Length` above the cap must
+// reject 413 before any ownership query or OpenRouter call — the byte-level streaming path
+// itself is covered directly in `capped-json-body.test.ts`.
 
 vi.mock("@/lib/supabase", () => ({ createClient: vi.fn() }));
 vi.mock("@/lib/services/supabase-admin", () => ({ createAdminClient: vi.fn() }));
@@ -82,6 +86,16 @@ describe("POST /api/analyze", () => {
 
     expect(res.status).toBe(500);
     expect(await res.json()).toEqual({ error: "Could not verify request. Please try again." });
+    expect(mockedCreateClient).not.toHaveBeenCalled();
+    expect(() => {
+      openrouter.assertCalledOnce();
+    }).toThrow();
+  });
+
+  it("413 when the body is too large (spoofed Content-Length), before any ownership query or OpenRouter call", async () => {
+    const res = await POST(makeApiContext({ user, body: validBody, headers: { "content-length": "999999999" } }));
+
+    expect(res.status).toBe(413);
     expect(mockedCreateClient).not.toHaveBeenCalled();
     expect(() => {
       openrouter.assertCalledOnce();
