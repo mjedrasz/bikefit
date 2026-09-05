@@ -30,16 +30,24 @@ export async function readJsonWithCap(request: Request, maxBytes: number): Promi
 
   if (request.body) {
     const reader = request.body.getReader();
-    for (;;) {
-      const { done, value } = await reader.read();
-      if (done) break;
+    try {
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
 
-      total += value.byteLength;
-      if (total > maxBytes) {
-        await reader.cancel();
-        return { ok: false, reason: "too-large" };
+        total += value.byteLength;
+        if (total > maxBytes) {
+          await reader.cancel();
+          return { ok: false, reason: "too-large" };
+        }
+        chunks.push(value);
       }
-      chunks.push(value);
+    } catch {
+      // A genuine stream error (e.g. the client drops the connection mid-upload) — degrade to
+      // the same structured error the JSON.parse failure below returns, not an unhandled
+      // rejection out of the route handler.
+      await reader.cancel().catch(() => undefined);
+      return { ok: false, reason: "invalid-json" };
     }
   }
 

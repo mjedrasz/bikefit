@@ -27,6 +27,19 @@ function requestWithStreamedBody(chunks: string[]): Request {
   } as RequestInit & { duplex: "half" });
 }
 
+function requestWithErroringBody(): Request {
+  const stream = new ReadableStream<Uint8Array>({
+    start(controller) {
+      controller.error(new Error("simulated connection drop"));
+    },
+  });
+  return new Request("http://test.local/api", {
+    method: "POST",
+    body: stream,
+    duplex: "half",
+  } as RequestInit & { duplex: "half" });
+}
+
 describe("readJsonWithCap", () => {
   it("parses a well-formed body under the cap", async () => {
     const req = requestWithBody(JSON.stringify({ a: 1 }));
@@ -65,6 +78,14 @@ describe("readJsonWithCap", () => {
 
   it("returns invalid-json for a well-formed, under-cap body that isn't valid JSON", async () => {
     const req = requestWithBody("not json");
+
+    const result = await readJsonWithCap(req, 1_000);
+
+    expect(result).toEqual({ ok: false, reason: "invalid-json" });
+  });
+
+  it("returns invalid-json (not an unhandled rejection) when the stream errors mid-read", async () => {
+    const req = requestWithErroringBody();
 
     const result = await readJsonWithCap(req, 1_000);
 
