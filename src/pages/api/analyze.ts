@@ -1,6 +1,8 @@
 import type { APIRoute } from "astro";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase";
+import { createAdminClient } from "@/lib/services/supabase-admin";
+import { checkRateLimit } from "@/lib/services/rate-limit";
 import { analyzeVideo } from "@/lib/services/llm";
 import { analyzeRequestSchema } from "@/lib/schemas";
 
@@ -9,6 +11,18 @@ export const prerender = false;
 export const POST: APIRoute = async (context) => {
   if (!context.locals.user) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Cheapest rejection first (project convention — auth check is already here): reject an
+  // over-limit caller before any DB ownership query or LLM call runs (test-plan §3 Phase 3,
+  // Risk #3). Keyed on the server-resolved user id, never a client-suppliable value.
+  const admin = createAdminClient();
+  const rl = await checkRateLimit(admin, context.locals.user.id, "analyze");
+  if (!rl.ok) {
+    return Response.json({ error: "Could not verify request. Please try again." }, { status: 500 });
+  }
+  if (!rl.allowed) {
+    return Response.json({ error: "Too many requests. Please try again later." }, { status: 429 });
   }
 
   let body: unknown;

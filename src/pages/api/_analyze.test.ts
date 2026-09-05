@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase";
+import { createAdminClient } from "@/lib/services/supabase-admin";
 import { makeApiContext } from "@/test/helpers/api-context";
 import { makeSupabaseStub } from "@/test/helpers/supabase-stub";
 import { installOpenRouterMock, type OpenRouterMock } from "@/test/helpers/openrouter-mock";
@@ -14,10 +15,18 @@ import { POST } from "./analyze";
 // `processing` session — the pre-check runs before any vision-model call, so a missing or
 // not-owned / not-in-flight session never burns vision budget. Stub-level ordering only;
 // the real cross-user RLS check is §3 Phase 4's Playwright deferral (see §6.4).
+//
+// Risk #3 rate limiting (test-plan §3 Phase 3): the rate-limit RPC (via the admin client) is
+// the new first gate after auth, ahead of the ownership pre-check and the OpenRouter call.
+// Every test below scripts the admin client's `.rpc()` with a default "allowed" response via
+// `beforeEach` so unrelated tests aren't coupled to the rate-limit path; the dedicated
+// rate-limit tests override it per case.
 
 vi.mock("@/lib/supabase", () => ({ createClient: vi.fn() }));
+vi.mock("@/lib/services/supabase-admin", () => ({ createAdminClient: vi.fn() }));
 
 const mockedCreateClient = vi.mocked(createClient);
+const mockedCreateAdminClient = vi.mocked(createAdminClient);
 let openrouter: OpenRouterMock;
 const user = { id: "user-1" } as User;
 const sessionId = "11111111-1111-4111-8111-111111111111";
@@ -29,8 +38,15 @@ function stubReturns(script: Parameters<typeof makeSupabaseStub>[0]) {
   return stub;
 }
 
+function stubAdminRpc(script: Parameters<typeof makeSupabaseStub>[0]) {
+  const stub = makeSupabaseStub(script);
+  mockedCreateAdminClient.mockReturnValue(stub as unknown as SupabaseClient);
+  return stub;
+}
+
 beforeEach(() => {
   openrouter = installOpenRouterMock();
+  stubAdminRpc({ "rpc.check_and_increment_rate_limit": { data: 1 } });
 });
 
 afterEach(() => {
@@ -43,6 +59,33 @@ describe("POST /api/analyze", () => {
 
     expect(res.status).toBe(401);
     expect(mockedCreateClient).not.toHaveBeenCalled();
+    expect(mockedCreateAdminClient).not.toHaveBeenCalled();
+  });
+
+  it("429 when the rate limit is exceeded, before any ownership query or OpenRouter call", async () => {
+    stubAdminRpc({ "rpc.check_and_increment_rate_limit": { data: 11 } });
+
+    const res = await POST(makeApiContext({ user, body: validBody }));
+
+    expect(res.status).toBe(429);
+    expect(await res.json()).toEqual({ error: "Too many requests. Please try again later." });
+    expect(mockedCreateClient).not.toHaveBeenCalled();
+    expect(() => {
+      openrouter.assertCalledOnce();
+    }).toThrow();
+  });
+
+  it("500 when the rate-limit RPC errors, before any ownership query or OpenRouter call", async () => {
+    stubAdminRpc({ "rpc.check_and_increment_rate_limit": { data: null, error: { message: "boom" } } });
+
+    const res = await POST(makeApiContext({ user, body: validBody }));
+
+    expect(res.status).toBe(500);
+    expect(await res.json()).toEqual({ error: "Could not verify request. Please try again." });
+    expect(mockedCreateClient).not.toHaveBeenCalled();
+    expect(() => {
+      openrouter.assertCalledOnce();
+    }).toThrow();
   });
 
   it("400 when the payload is missing `video`", async () => {

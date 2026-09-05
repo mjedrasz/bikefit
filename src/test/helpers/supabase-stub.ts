@@ -16,7 +16,7 @@
 //   // ...run the handler...
 //   expect(stub.calls.map((c) => c.operation)).toEqual(["select", "update"]);
 
-export type SupabaseOperation = "select" | "insert" | "update" | "delete";
+export type SupabaseOperation = "select" | "insert" | "update" | "delete" | "rpc";
 
 /** What a scripted query resolves to. Both fields optional — omitted means `null`. */
 export interface ScriptEntry {
@@ -39,11 +39,16 @@ export interface RecordedCall {
   payload: unknown;
 }
 
-/** Script keyed by `"<table>.<operation>"`, e.g. `"fitting_sessions.select"`. */
+/**
+ * Script keyed by `"<table>.<operation>"`, e.g. `"fitting_sessions.select"`. An RPC call is
+ * scripted the same way under `"rpc.<name>"`, e.g. `"rpc.check_and_increment_rate_limit"`.
+ */
 export type SupabaseStubScript = Record<string, ScriptEntry>;
 
 export interface SupabaseStub {
   from(table: string): SupabaseQueryBuilder;
+  /** Scripted via `"rpc.<name>"`. Recorded into `calls` with `operation: "rpc"`, `table: name`. */
+  rpc(name: string, args?: unknown): PromiseLike<{ data: unknown; error: ScriptEntry["error"] }>;
   /** Every terminal query, in call order. Assert ordering / filters / no-write here. */
   calls: RecordedCall[];
 }
@@ -133,6 +138,10 @@ export function makeSupabaseStub(script: SupabaseStubScript = {}): SupabaseStub 
     calls,
     from(table: string) {
       return new SupabaseQueryBuilder(table, calls, scriptMap);
+    },
+    rpc(name: string, args?: unknown) {
+      calls.push({ table: name, operation: "rpc", terminal: "await", filters: [], payload: args });
+      return Promise.resolve(resolved(scriptMap.get(`rpc.${name}`)));
     },
   };
 }
