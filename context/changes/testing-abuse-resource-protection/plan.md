@@ -569,22 +569,22 @@ We're NOT Doing); acceptable for MVP scale.
 
 #### Automated
 
-- [x] 2.1 `npx tsc --noEmit` passes
-- [x] 2.2 `npm run lint` passes
+- [x] 2.1 `npx tsc --noEmit` passes — 1896bc4
+- [x] 2.2 `npm run lint` passes — 1896bc4
 - [x] 2.3 `npm test` passes, including new `capped-json-body.test.ts` and
-      updated route specs
+      updated route specs — 1896bc4
 
 #### Manual
 
 - [x] 2.4 Spoofed large `Content-Length` request to `/api/analyze` returns
-      413 immediately
+      413 immediately — 1896bc4
 
 ### Phase 3: Output-contract boundary + adversarial probe
 
 #### Automated
 
-- [ ] 3.1 `npx tsc --noEmit` passes
-- [ ] 3.2 `npm run lint` passes
-- [ ] 3.3 `npm test` passes, including the new adversarial corpus
-- [ ] 3.4 Existing recommend route regression case passes against the new
+- [x] 3.1 `npx tsc --noEmit` passes
+- [x] 3.2 `npm run lint` passes
+- [x] 3.3 `npm test` passes, including the new adversarial corpus
+- [x] 3.4 Existing recommend route regression case passes against the new
       `.data` return path

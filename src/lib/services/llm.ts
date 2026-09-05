@@ -176,7 +176,8 @@ export async function generateRecommendations(
   }
 
   const result = parsed as { recommendations?: unknown; raw_llm_response?: unknown };
-  if (!z.array(recommendationSchema).safeParse(result.recommendations).success) {
+  const recsResult = z.array(recommendationSchema).safeParse(result.recommendations);
+  if (!recsResult.success) {
     throw new Error("Recommendations LLM returned a malformed recommendation list");
   }
   if (typeof result.raw_llm_response !== "string") {
@@ -184,7 +185,7 @@ export async function generateRecommendations(
   }
 
   return {
-    recommendations: result.recommendations as Recommendation[],
+    recommendations: recsResult.data,
     raw_llm_response: result.raw_llm_response,
   };
 }
