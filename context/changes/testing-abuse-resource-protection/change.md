@@ -1,7 +1,7 @@
 ---
 change_id: testing-abuse-resource-protection
 title: Testing abuse resource protection
-status: implementing
+status: implemented
 created: 2026-09-04
 updated: 2026-09-05
 archived_at: null

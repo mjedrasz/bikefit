@@ -583,8 +583,8 @@ We're NOT Doing); acceptable for MVP scale.
 
 #### Automated
 
-- [x] 3.1 `npx tsc --noEmit` passes
-- [x] 3.2 `npm run lint` passes
-- [x] 3.3 `npm test` passes, including the new adversarial corpus
+- [x] 3.1 `npx tsc --noEmit` passes — 4c9d765
+- [x] 3.2 `npm run lint` passes — 4c9d765
+- [x] 3.3 `npm test` passes, including the new adversarial corpus — 4c9d765
 - [x] 3.4 Existing recommend route regression case passes against the new
-      `.data` return path
+      `.data` return path — 4c9d765
