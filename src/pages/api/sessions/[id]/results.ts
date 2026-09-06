@@ -81,6 +81,7 @@ export const POST: APIRoute = async (context) => {
     // display to "timed out"; surfacing the 500 here lets the caller retry instead of
     // silently drifting.
     if (updateError) {
+      // eslint-disable-next-line no-console -- server-side diagnostic for a 500; response body stays empty
       console.error("results.ts: completed status update failed", updateError);
       return new Response(null, { status: 500 });
     }
@@ -95,6 +96,7 @@ export const POST: APIRoute = async (context) => {
     // response, and the staleness rule (§3 Phase 5) backstops the render if this write
     // itself silently failed — so this path still reports success.
     if (updateError) {
+      // eslint-disable-next-line no-console -- best-effort server-side diagnostic; this path still reports success
       console.error("results.ts: failed status update failed", updateError);
     }
   }

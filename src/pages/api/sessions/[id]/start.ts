@@ -50,6 +50,7 @@ export const POST: APIRoute = async (context) => {
   // §4c item 4) — every downstream step would 409. Surface it as a 500 so `VideoAnalyzer`
   // Step 1's `!res.ok` handling fires `postError` instead of proceeding on a false premise.
   if (updateError) {
+    // eslint-disable-next-line no-console -- server-side diagnostic for a 500; response body stays empty
     console.error("start.ts: processing status update failed", updateError);
     return new Response(null, { status: 500 });
   }
