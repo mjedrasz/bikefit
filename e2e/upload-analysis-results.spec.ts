@@ -35,7 +35,7 @@ test("uploads a video and reaches the fitting results page", async ({ browser, r
   const page = await context.newPage();
 
   await page.goto("/dashboard");
-  await expect(page.getByRole("heading", { name: "Upload your riding video" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Upload your riding videoZZZ" })).toBeVisible();
 
   // The file input is visually hidden but present in the DOM (VideoUpload.tsx).
   await page.setInputFiles('input[type="file"]', FIXTURE);
