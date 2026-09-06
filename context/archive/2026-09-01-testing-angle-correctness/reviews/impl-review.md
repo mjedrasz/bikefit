@@ -1,4 +1,5 @@
 <!-- IMPL-REVIEW-REPORT -->
+
 # Implementation Review: Test Harness Bootstrap + Joint-Angle Correctness
 
 - **Plan**: context/changes/testing-angle-correctness/plan.md
@@ -9,23 +10,23 @@
 
 ## Triage Outcome (2026-09-02)
 
-| Finding | Decision | Notes |
-|---------|----------|-------|
-| F1 — Vitest config deviation + stale cookbook | FIXED (doc) | `test-plan.md` §6.1 rewritten (+ new Config paragraph); `format-angle.test.ts` comment; `plan.md` Key Discoveries bullet. No code change. |
-| F2 — `23c0413` bundled 7 unplanned files | FIXED (doc) | `plan.md` gained an "Addendum — Out-of-Plan Changes During Rollout" section. Code unchanged. |
-| F3 — `test-plan.md` first committed in Phase 5 | ACKNOWLEDGED | No action; content coherent. Workflow note: commit foundation docs at creation. |
-| F4 — `sessions/index.ts` lost `!data` guard | FIXED (code) | Guard restored via `const row: unknown = data` to stay lint-clean. lint + tsc + tests green. |
+| Finding                                        | Decision     | Notes                                                                                                                                     |
+| ---------------------------------------------- | ------------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| F1 — Vitest config deviation + stale cookbook  | FIXED (doc)  | `test-plan.md` §6.1 rewritten (+ new Config paragraph); `format-angle.test.ts` comment; `plan.md` Key Discoveries bullet. No code change. |
+| F2 — `23c0413` bundled 7 unplanned files       | FIXED (doc)  | `plan.md` gained an "Addendum — Out-of-Plan Changes During Rollout" section. Code unchanged.                                              |
+| F3 — `test-plan.md` first committed in Phase 5 | ACKNOWLEDGED | No action; content coherent. Workflow note: commit foundation docs at creation.                                                           |
+| F4 — `sessions/index.ts` lost `!data` guard    | FIXED (code) | Guard restored via `const row: unknown = data` to stay lint-clean. lint + tsc + tests green.                                              |
 
 ## Verdicts
 
-| Dimension | Verdict |
-|-----------|---------|
-| Plan Adherence | WARNING |
-| Scope Discipline | WARNING |
-| Safety & Quality | PASS |
-| Architecture | PASS |
-| Pattern Consistency | PASS |
-| Success Criteria | PASS |
+| Dimension           | Verdict |
+| ------------------- | ------- |
+| Plan Adherence      | WARNING |
+| Scope Discipline    | WARNING |
+| Safety & Quality    | PASS    |
+| Architecture        | PASS    |
+| Pattern Consistency | PASS    |
+| Success Criteria    | PASS    |
 
 ## Summary
 
@@ -99,7 +100,7 @@ one of them (`llm.ts`) explicitly on the "What We're NOT Doing" list.
 - **Dimension**: Scope Discipline
 - **Location**: commit 23c0413 — src/lib/services/llm.ts:140,196; src/components/VideoUpload.tsx (−91 lines); eslint.config.js:64-72; src/pages/api/sessions/index.ts:40; src/pages/api/analyze.ts; src/pages/api/sessions/[id].ts
 - **Detail**:
-  `plan.md:176-177` "What We're NOT Doing": *"No changes to `src/lib/services/llm.ts`."*
+  `plan.md:176-177` "What We're NOT Doing": _"No changes to `src/lib/services/llm.ts`."_
   Commit `23c0413` changes it anyway (response type `choices` → `choices?`, defensive).
   It also deletes ~91 lines of polling machinery from `VideoUpload.tsx` (the
   `polling` state, `startPolling`, `StatusBadge`, error-retry refs), adds an
@@ -135,8 +136,8 @@ one of them (`llm.ts`) explicitly on the "What We're NOT Doing" list.
 - **Location**: context/foundation/test-plan.md (first commit acf86e2)
 - **Detail**: `git log -- context/foundation/test-plan.md` shows a single commit —
   `acf86e2` (Phase 5). The file is absent from `ebd9351` (pre-branch master). Phase 5
-  #1–#3 phrase the work as *"Replace the §6.1 placeholder"* / *"Fill §6.6"* /
-  *"Extend §7"* — edits to an existing frozen document — but the commit adds the
+  #1–#3 phrase the work as _"Replace the §6.1 placeholder"_ / _"Fill §6.6"_ /
+  _"Extend §7"_ — edits to an existing frozen document — but the commit adds the
   entire file. Phases 1–4 (research, plan, plan-review) all cite `test-plan.md` as
   ground truth while it was untracked, and there is no committed baseline to verify
   §1–§5 (which "only `/10x-test-plan --refresh` may edit") were untouched during the

@@ -32,8 +32,8 @@ Before a plan can be written, this phase needs the code grounded:
 2. The **keypoint-index contract** and how the pose model's coordinates map onto the reference
    definitions (`context/archive/2026-05-28-ai-analysis-pipeline/bike-fitting-ref-angles.md`,
    `.../angle-to-adjustment-guide.md`).
-3. Whether the two "must challenge" claims hold: *"the angle the code computes is the angle the
-   fitting literature means"* and *"the server would catch a bad result."*
+3. Whether the two "must challenge" claims hold: _"the angle the code computes is the angle the
+   fitting literature means"_ and _"the server would catch a bad result."_
 4. What is unit-testable today, what must be **extracted** first, and where the **oracle** comes from.
 
 ## Summary
@@ -62,7 +62,7 @@ Findings against the two "must challenge" claims:
     from-horizontal angle for a **right-facing** rider but `180° − true` for a **left-facing** rider
     (verified numerically: a true 50° torso → `50.00` right-facing, `130.00` left-facing). This is
     exactly the "a left-facing and a right-facing clip both resolve to the correct body side" case
-    the test plan calls out. `convertKeypoints()` selects the correct *body side* but does **not**
+    the test plan calls out. `convertKeypoints()` selects the correct _body side_ but does **not**
     mirror coordinates, so facing direction survives in `x` and reaches this formula unhandled.
   - **Torso and elbow are measured from the BDC frame**, but both reference docs define torso (and
     imply elbow) at **"cranks horizontal"** (3/9 o'clock). No crank-horizontal keyframe is ever
@@ -71,13 +71,13 @@ Findings against the two "must challenge" claims:
     archived reference docs disagree; the shipped `ANGLE_REFS` matches one, the other, or neither,
     depending on the angle. **Elbow is the worst**: code uses `150–160°` (road/competitive
     convention) while `angle-to-adjustment-guide.md:126-128` explicitly recommends `85–95°` included
-    for gravel/recreational *and flags this exact conflict*. This is PRD Open Question #2
+    for gravel/recreational _and flags this exact conflict_. This is PRD Open Question #2
     (`context/foundation/prd.md:128`, Block: yes) and **must be resolved by the owner** before any
     range-membership assertion can be written. Geometry/convention assertions do **not** depend on it.
 
 **The oracle** for Phase 1 must be hand-constructed geometry (a straight limb = 180°, a right angle
-= 90°, a 45°-from-horizontal torso = 45° for *both* facings, mirrored poses produce equal angles) and
-the *convention* statements in `bike-fitting-ref-angles.md` — never the value a function returns today
+= 90°, a 45°-from-horizontal torso = 45° for _both_ facings, mirrored poses produce equal angles) and
+the _convention_ statements in `bike-fitting-ref-angles.md` — never the value a function returns today
 and never a snapshot of real-video output.
 
 ## Detailed Findings
@@ -87,16 +87,16 @@ and never a snapshot of real-video output.
 Every piece of trig, keypoint, and pose logic in the project is **module-scoped (not exported)**
 inside `src/components/VideoAnalyzer.tsx`:
 
-| Symbol | Lines | What it is | Pure? |
-|---|---|---|---|
-| `ANGLE_REFS` | 22–28 | The five reference ranges, hard-coded | data |
-| `PoseLandmark` | 40–45 | `{ x, y, z, visibility? }` local type | type |
-| `jointAngle(a, b, c)` | 47–53 | 3-point included angle at vertex `b`, degrees | ✅ pure |
-| `computeTorsoAngle(wl)` | 55–58 | `atan2`-based hip→shoulder vector angle from horizontal | ✅ pure |
-| `visible(lm)` | 60–62 | visibility ≥ 0.5 gate | ✅ pure |
-| `convertKeypoints(keypoints)` | 103–137 | MoveNet COCO-17 → 33-slot array, side auto-select | ✅ pure |
-| `seekTo` / `fileToBase64` / `loadVideoElement` / `detectPoseAt` | 64–151 | DOM + video + detector I/O | ❌ I/O |
-| BDC/TDC extremum scan + angle emission | 251–339 | inline in `runPipeline()`, interleaved with `await detectPoseAt` | ❌ as written |
+| Symbol                                                          | Lines   | What it is                                                       | Pure?         |
+| --------------------------------------------------------------- | ------- | ---------------------------------------------------------------- | ------------- |
+| `ANGLE_REFS`                                                    | 22–28   | The five reference ranges, hard-coded                            | data          |
+| `PoseLandmark`                                                  | 40–45   | `{ x, y, z, visibility? }` local type                            | type          |
+| `jointAngle(a, b, c)`                                           | 47–53   | 3-point included angle at vertex `b`, degrees                    | ✅ pure       |
+| `computeTorsoAngle(wl)`                                         | 55–58   | `atan2`-based hip→shoulder vector angle from horizontal          | ✅ pure       |
+| `visible(lm)`                                                   | 60–62   | visibility ≥ 0.5 gate                                            | ✅ pure       |
+| `convertKeypoints(keypoints)`                                   | 103–137 | MoveNet COCO-17 → 33-slot array, side auto-select                | ✅ pure       |
+| `seekTo` / `fileToBase64` / `loadVideoElement` / `detectPoseAt` | 64–151  | DOM + video + detector I/O                                       | ❌ I/O        |
+| BDC/TDC extremum scan + angle emission                          | 251–339 | inline in `runPipeline()`, interleaved with `await detectPoseAt` | ❌ as written |
 
 Grep confirmation (whole `src/` tree): no `Math.acos`, `Math.atan2`, `jointAngle`, `computeTorsoAngle`,
 `estimatePoses`, `keypoint`, or `landmark` occurrences outside `VideoAnalyzer.tsx`. The only
@@ -145,12 +145,12 @@ function jointAngle(a, b, c): number {
 Per-angle usage (`src/components/VideoAnalyzer.tsx:286-339`), against
 `bike-fitting-ref-angles.md`:
 
-| Angle | Code (MediaPipe slots) | Vertex | Reference definition | Frame used | Verdict |
-|---|---|---|---|---|---|
-| Knee @ BDC | `jointAngle(wl[23], wl[25], wl[27])` hip–knee–ankle | knee | "Included angle (180° = straight leg)… bottom of pedal stroke (6 o'clock)" | BDC | ✅ vertex + convention + frame |
-| Knee @ TDC | `jointAngle(wl[23], wl[25], wl[27])` hip–knee–ankle | knee | "Minimum knee angle (top of stroke, 12 o'clock)" | TDC | ✅ vertex + convention + frame |
-| Hip @ TDC | `jointAngle(wl[11], wl[23], wl[25])` shoulder–hip–knee | hip | "between thigh and torso at the top of the pedal stroke (12 o'clock)" | TDC | ✅ vertex + convention + frame |
-| Elbow | `jointAngle(wl[11], wl[13], wl[15])` shoulder–elbow–wrist | elbow | "Elbow flexion from straight 20–30° (150–160° included)… riding on hoods" | **BDC** | ✅ vertex + convention; ⚠️ frame (see §4) |
+| Angle      | Code (MediaPipe slots)                                    | Vertex | Reference definition                                                       | Frame used | Verdict                                   |
+| ---------- | --------------------------------------------------------- | ------ | -------------------------------------------------------------------------- | ---------- | ----------------------------------------- |
+| Knee @ BDC | `jointAngle(wl[23], wl[25], wl[27])` hip–knee–ankle       | knee   | "Included angle (180° = straight leg)… bottom of pedal stroke (6 o'clock)" | BDC        | ✅ vertex + convention + frame            |
+| Knee @ TDC | `jointAngle(wl[23], wl[25], wl[27])` hip–knee–ankle       | knee   | "Minimum knee angle (top of stroke, 12 o'clock)"                           | TDC        | ✅ vertex + convention + frame            |
+| Hip @ TDC  | `jointAngle(wl[11], wl[23], wl[25])` shoulder–hip–knee    | hip    | "between thigh and torso at the top of the pedal stroke (12 o'clock)"      | TDC        | ✅ vertex + convention + frame            |
+| Elbow      | `jointAngle(wl[11], wl[13], wl[15])` shoulder–elbow–wrist | elbow  | "Elbow flexion from straight 20–30° (150–160° included)… riding on hoods"  | **BDC**    | ✅ vertex + convention; ⚠️ frame (see §4) |
 
 ### 3. `computeTorsoAngle()` — confirmed left/right-facing bug
 
@@ -163,8 +163,8 @@ function computeTorsoAngle(wl): number {
 ```
 
 `wl[11]` = shoulder, `wl[23]` = hip (the slots `convertKeypoints` writes the chosen side into).
-The reference definition (`bike-fitting-ref-angles.md:27`): *"Measured from horizontal to a line
-from hip to shoulder… 45–55° from horizontal."*
+The reference definition (`bike-fitting-ref-angles.md:27`): _"Measured from horizontal to a line
+from hip to shoulder… 45–55° from horizontal."_
 
 **The `Math.abs()` folds the sign but not the 180° complement.** MoveNet returns **pixel
 coordinates** (`x` rightward, `y` downward — no `keypoints3D` for MoveNet). Working through it:
@@ -186,7 +186,7 @@ against `45–55`, and fed to the LLM as "torso far too upright" → a bogus "re
 recommendation. `jointAngle`-based angles are immune (they are reflection-invariant); **only the
 torso angle carries this fault.**
 
-`convertKeypoints` (§5) chooses the correct *body side* but performs **no coordinate mirroring**, and
+`convertKeypoints` (§5) chooses the correct _body side_ but performs **no coordinate mirroring**, and
 this formula sits downstream of it. The `estimatePoses` call passes no `flipHorizontal` config
 (`src/components/VideoAnalyzer.tsx:148`), so facing direction is preserved end-to-end. The code
 comment "Y increases downward in world coords" is a stale leftover from the abandoned MediaPipe
@@ -195,7 +195,7 @@ comment "Y increases downward in world coords" is a stale leftover from the aban
 **A correct formula** would be direction-agnostic, e.g. `atan2(|dy|, |dx|)`, or fold to the acute
 complement: `θ = abs(...); return θ > 90 ? 180 - θ : θ`. Whether this phase **fixes** it or only lands
 the failing test is an open question (see §9) — the change brief says Phase 1 is "test-only," but a
-test asserting the *current* left-facing output (130) would enshrine the bug (the oracle
+test asserting the _current_ left-facing output (130) would enshrine the bug (the oracle
 anti-pattern).
 
 ### 4. Frame-selection mismatches vs the reference definitions
@@ -204,13 +204,13 @@ The pipeline only ever detects **BDC** and **TDC** keyframes (via the vision LLM
 `src/lib/services/llm.ts:64-76`). Each angle is then emitted from one of those two frames
 (`src/components/VideoAnalyzer.tsx:286-339`):
 
-| Angle | `bike-fitting-ref-angles.md` "measured at" | Code measures at | Match? |
-|---|---|---|---|
-| Knee @ BDC | 6 o'clock (BDC) | BDC frame | ✅ |
-| Knee @ TDC | 12 o'clock (TDC) | TDC frame | ✅ |
-| Hip | 12 o'clock (TDC) | TDC frame | ✅ |
-| **Torso** | **"hands on hoods, cranks horizontal"** (3/9 o'clock) | **BDC frame** | ❌ |
-| **Elbow** | **"riding on hoods"** (crank-horizontal implied) | **BDC frame** | ⚠️ |
+| Angle      | `bike-fitting-ref-angles.md` "measured at"            | Code measures at | Match? |
+| ---------- | ----------------------------------------------------- | ---------------- | ------ |
+| Knee @ BDC | 6 o'clock (BDC)                                       | BDC frame        | ✅     |
+| Knee @ TDC | 12 o'clock (TDC)                                      | TDC frame        | ✅     |
+| Hip        | 12 o'clock (TDC)                                      | TDC frame        | ✅     |
+| **Torso**  | **"hands on hoods, cranks horizontal"** (3/9 o'clock) | **BDC frame**    | ❌     |
+| **Elbow**  | **"riding on hoods"** (crank-horizontal implied)      | **BDC frame**    | ⚠️     |
 
 Torso-to-horizontal changes only a few degrees across the pedal stroke (it is set by saddle-to-bar
 drop and reach, not pedal position — pelvic rock is ~5°), so the practical error is small. But it is
@@ -254,6 +254,7 @@ Not a correctness bug.
 pushed. If fewer than two angles survive, the pipeline throws "Pose not detected clearly" (`:341-343`).
 
 **Testable invariants for Phase 1:**
+
 - Left-side scores dominate → mapped points come from COCO `5/7/9/11/13/15`; right-side dominate →
   from `6/8/10/12/14/16`; exact tie → left.
 - **Mirror invariance**: a pose and its `x`-mirror (with the dominant side's scores swapped) must
@@ -318,40 +319,40 @@ The five ranges exist in **three** places that can drift apart:
 
 Shipped values vs the two archived reference docs:
 
-| Angle | Shipped (`ANGLE_REFS`) | `bike-fitting-ref-angles.md` | `angle-to-adjustment-guide.md` | Assessment |
-|---|---|---|---|---|
-| Knee @ BDC | `137–147` | `137–147` included `[3][12]` | `135–145` included (`:23`); perf riders `135–140` (`:25`) | matches doc 1; 2° above doc 2 |
-| Knee @ TDC | `65–75` | "~65°; **floor 70**" (`:79`) — self-contradictory | `68–74` included, "no primary research consensus" (`:61`) | **matches neither**; looks like ±5 on "~65" |
-| Hip @ TDC | `55–65` | `55–65` (`:46`) | `55–65` road; **up to 70 gravel/recreational** (`:69`) | uses the tighter road value for a gravel product |
-| Torso | `45–55` from horizontal | `45–55` from horizontal (`:27`) | `45–55` from horizontal (`:97`) | ✅ ranges agree (frame differs — §4) |
-| **Elbow** | **`150–160` included** | `20–30°` flexion = `150–160` included `[13]` (`:58`) | **`85–95` included** for gravel/hoods (`:126`); **explicitly flags the conflict** (`:128`) | **largest discrepancy (~60–75°)** — code took the road/competitive convention |
+| Angle      | Shipped (`ANGLE_REFS`)  | `bike-fitting-ref-angles.md`                         | `angle-to-adjustment-guide.md`                                                             | Assessment                                                                    |
+| ---------- | ----------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------- |
+| Knee @ BDC | `137–147`               | `137–147` included `[3][12]`                         | `135–145` included (`:23`); perf riders `135–140` (`:25`)                                  | matches doc 1; 2° above doc 2                                                 |
+| Knee @ TDC | `65–75`                 | "~65°; **floor 70**" (`:79`) — self-contradictory    | `68–74` included, "no primary research consensus" (`:61`)                                  | **matches neither**; looks like ±5 on "~65"                                   |
+| Hip @ TDC  | `55–65`                 | `55–65` (`:46`)                                      | `55–65` road; **up to 70 gravel/recreational** (`:69`)                                     | uses the tighter road value for a gravel product                              |
+| Torso      | `45–55` from horizontal | `45–55` from horizontal (`:27`)                      | `45–55` from horizontal (`:97`)                                                            | ✅ ranges agree (frame differs — §4)                                          |
+| **Elbow**  | **`150–160` included**  | `20–30°` flexion = `150–160` included `[13]` (`:58`) | **`85–95` included** for gravel/hoods (`:126`); **explicitly flags the conflict** (`:128`) | **largest discrepancy (~60–75°)** — code took the road/competitive convention |
 
-`angle-to-adjustment-guide.md:128` verbatim: *"sources targeting competitive road cyclists (Burt
-2014) recommend 20–30° flexion from full extension (≈ 150–160° included)… The 85–95° included-angle
-target here is consistent with a gravel/recreational position where the upper body is more upright."*
+`angle-to-adjustment-guide.md:128` verbatim: _"sources targeting competitive road cyclists (Burt 2014) recommend 20–30° flexion from full extension (≈ 150–160° included)… The 85–95° included-angle
+target here is consistent with a gravel/recreational position where the upper body is more upright."_
 The shipped app judges gravel riders by the competitive-road elbow band — so a correctly bent,
 upright-posture elbow (~90°) is scored "Outside range" and the LLM is told to "shorten stem by 10 mm
 increments" (`llm.ts:36`).
 
-This is **PRD Open Question #2** — *"Which gravel bike angle reference ranges are authoritative?"* —
+This is **PRD Open Question #2** — _"Which gravel bike angle reference ranges are authoritative?"_ —
 marked **Block: yes** (`context/foundation/prd.md:128`). Two archived docs that were supposed to
 resolve it disagree, and the code sometimes matches neither.
 
 **Bearing on Phase 1:** range-**membership** assertions ("value X is in/out of range") cannot be
 written until the owner freezes one canonical band per angle. **Geometry and convention assertions
 are independent of that decision** and can proceed now:
-- `jointAngle` on a straight limb → ~180 (not ~0) — proves *included*, not *flexion*.
+
+- `jointAngle` on a straight limb → ~180 (not ~0) — proves _included_, not _flexion_.
 - `jointAngle` on a constructed 140° → 140 ± tol.
 - `computeTorsoAngle` on a 45°-from-horizontal hip→shoulder line → 45 for **both** facings.
 - mirror invariance of knee/hip/elbow.
 
 ### 9. "Server would catch a bad result" — it does not
 
-| Route | Validation | Persists / forwards |
-|---|---|---|
-| `POST /api/analyze` (`src/pages/api/analyze.ts:20-26`) | `{ video: z.string().min(1).max(140_000_000) }` — auth-gated, **not session-scoped** | forwards video to vision LLM |
-| `POST /api/sessions/[id]/recommend` (`recommend.ts:39-45`) | `{ body_angles: z.array(bodyAngleSchema).min(1) }` — type-only | forwards angles **incl. client `reference_min/max`** to text LLM (`llm.ts:164-168`) |
-| `POST /api/sessions/[id]/results` (`results.ts:22, 47-52`) | `resultsPayloadSchema` — type-only; requires session `status === 'processing'` | **`admin.from('analysis_results').insert({ body_angles: payload.body_angles, … })` verbatim**, RLS bypassed |
+| Route                                                      | Validation                                                                           | Persists / forwards                                                                                         |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------- |
+| `POST /api/analyze` (`src/pages/api/analyze.ts:20-26`)     | `{ video: z.string().min(1).max(140_000_000) }` — auth-gated, **not session-scoped** | forwards video to vision LLM                                                                                |
+| `POST /api/sessions/[id]/recommend` (`recommend.ts:39-45`) | `{ body_angles: z.array(bodyAngleSchema).min(1) }` — type-only                       | forwards angles **incl. client `reference_min/max`** to text LLM (`llm.ts:164-168`)                         |
+| `POST /api/sessions/[id]/results` (`results.ts:22, 47-52`) | `resultsPayloadSchema` — type-only; requires session `status === 'processing'`       | **`admin.from('analysis_results').insert({ body_angles: payload.body_angles, … })` verbatim**, RLS bypassed |
 
 `bodyAngleSchema` (`src/lib/schemas.ts:13-19`): `{ name: string, value: number, reference_min:
 number, reference_max: number, unit: string }`. No numeric bounds, no `0 ≤ value ≤ 180` plausibility
@@ -381,7 +382,7 @@ Two-stage (`context/archive/2026-05-28-ai-analysis-pipeline/plan.md:70`;
    timestamp keep the frame with the **highest** knee angle (most-extended leg); for TDC the
    **lowest** (deepest flexion). First usable BDC and first usable TDC win.
 
-Stage 1 is **non-deterministic** → `test-plan.md §7` excludes it. Stage 2's selector *is*
+Stage 1 is **non-deterministic** → `test-plan.md §7` excludes it. Stage 2's selector _is_
 deterministic and unit-testable **if extracted** (feed synthetic landmark sets, assert the pick).
 Known accuracy gap, already deferred (`plan.md:51`, "No Cloudflare Container"): the scan window
 (±0.066 s ≈ ±2 frames) is far narrower than the documented ±0.5 s decoder-seek error
@@ -458,7 +459,7 @@ Reproduction script (not committed):
 - `context/archive/2026-05-28-ai-analysis-pipeline/reviews/plan-review.md` (F2) — the BDC/TDC scan
   was **forward-only** until review; fixed to the 5-offset bidirectional scan now in the code.
 - `context/archive/2026-05-28-ai-analysis-pipeline/reviews/impl-review.md` (F2) — `VISION_MODEL =
-  "google/gemini-3.5-flash"` flagged as non-existent, **DISMISSED** on the user's assertion that it
+"google/gemini-3.5-flash"` flagged as non-existent, **DISMISSED** on the user's assertion that it
   exists; plan text still says `gemini-2.5-flash`. Unresolved; affects keyframe quality/reproducibility.
 - `context/archive/2026-05-28-ai-analysis-pipeline/reviews/impl-review.md` (F5) — server had **no
   size cap** on the base64 video; fixed with `.max(140_000_000)`. (F6) — a Supabase error in
@@ -496,7 +497,7 @@ Reproduction script (not committed):
    Question #2, Block: yes. The owner must pick before any range-**membership** assertion is written.
    Geometry/convention assertions do not wait on this.
 3. **Is the verdict map (`sessions/[id].astro:43`) + the round-vs-raw display contradiction in
-   Phase 1 scope?** It is a pure `(value, min, max) → bool` and it *is* the "in range / outside
+   Phase 1 scope?** It is a pure `(value, min, max) → bool` and it _is_ the "in range / outside
    range verdict" Risk #1 names, but the brief says "pure functions only." Recommend: extract a tiny
    `angleVerdict()` and include it; flag the scope nuance.
 4. **Torso/elbow measured at BDC, not crank-horizontal** — accept and document in `test-plan.md §7`,

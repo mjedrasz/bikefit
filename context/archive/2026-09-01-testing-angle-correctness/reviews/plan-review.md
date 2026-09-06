@@ -1,4 +1,5 @@
 <!-- PLAN-REVIEW-REPORT -->
+
 # Plan Review: Test Harness Bootstrap + Joint-Angle Correctness
 
 - **Plan**: context/changes/testing-angle-correctness/plan.md
@@ -19,13 +20,13 @@ precedent. Findings are refinements, not approach problems.
 
 ## Verdicts
 
-| Dimension | Verdict (at review) | After triage |
-|-----------|---------|---------|
-| End-State Alignment | WARNING | PASS (F5 fixed) |
-| Lean Execution | PASS | PASS |
-| Architectural Fitness | WARNING | PASS (F6, F7 fixed) |
-| Blind Spots | WARNING | PASS (F1, F4 fixed) |
-| Plan Completeness | WARNING | PASS (F2, F3 fixed) |
+| Dimension             | Verdict (at review) | After triage        |
+| --------------------- | ------------------- | ------------------- |
+| End-State Alignment   | WARNING             | PASS (F5 fixed)     |
+| Lean Execution        | PASS                | PASS                |
+| Architectural Fitness | WARNING             | PASS (F6, F7 fixed) |
+| Blind Spots           | WARNING             | PASS (F1, F4 fixed) |
+| Plan Completeness     | WARNING             | PASS (F2, F3 fixed) |
 
 ## Grounding
 
@@ -51,7 +52,7 @@ docs verbatim (`getViteConfig` + `environment: "node"`, verified via Context7
   Two behaviours the plan never pins:
   (a) The current outer `for (const {t,type} of timestamps)` loop tries the NEXT
   timestamp when a timestamp yields no usable pick (`if (type==="BDC" &&
-  bdcLandmarks) continue` — `null` is falsy). If the component instead collects
+bdcLandmarks) continue` — `null` is falsy). If the component instead collects
   candidates across ALL BDC timestamps into one array and calls
   `pickExtremumFrame` once, it picks a global extremum rather than "first usable
   timestamp's extremum" — a different frame for any video with multiple BDC/TDC

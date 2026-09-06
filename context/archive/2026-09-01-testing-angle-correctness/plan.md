@@ -7,7 +7,7 @@ Test-plan rollout **Phase 1**, defending the **geometry / convention dimension o
 reference-frame definitions they are judged against, so every "in range / outside range"
 verdict and every fitting recommendation built on them is confidently wrong.
 
-Risk #1 has a second, **reference-band dimension** — *which numeric range* each angle is
+Risk #1 has a second, **reference-band dimension** — _which numeric range_ each angle is
 judged against (elbow `150–160` road vs `85–95` gravel/hoods, etc.). That is **PRD Open
 Question #2 / Roadmap OQ-2, Block: yes**, an owner decision this plan cannot make.
 Phase 1 does not resolve it and does not assert against the shipped `ANGLE_REFS` values;
@@ -32,16 +32,16 @@ This plan does five things:
 **All trigonometry, keypoint mapping, and extremum selection lives module-scoped and
 un-exported inside one React island**, `src/components/VideoAnalyzer.tsx`:
 
-| Symbol | Lines | Pure? | Role |
-|---|---|---|---|
-| `ANGLE_REFS` | 22–28 | data | The five reference ranges, hard-coded |
-| `PoseLandmark` | 40–45 | type | `{ x, y, z, visibility? }` |
-| `jointAngle(a,b,c)` | 47–53 | ✅ | 3-point included angle at vertex `b`, degrees |
-| `computeTorsoAngle(wl)` | 55–58 | ✅ | `atan2` hip→shoulder vector from horizontal |
-| `visible(lm)` | 60–62 | ✅ | `visibility >= 0.5` gate |
-| `convertKeypoints(keypoints)` | 103–137 | ✅ | MoveNet COCO-17 → 33-slot array + body-side auto-select |
-| BDC/TDC extremum scan | 264–283 | ✅ logic, ❌ as written (welded to `await detectPoseAt`) | "BDC = highest knee angle, TDC = lowest" |
-| `seekTo` / `fileToBase64` / `loadVideoElement` / `detectPoseAt` | 64–151 | ❌ I/O | DOM + video + detector |
+| Symbol                                                          | Lines   | Pure?                                                    | Role                                                    |
+| --------------------------------------------------------------- | ------- | -------------------------------------------------------- | ------------------------------------------------------- |
+| `ANGLE_REFS`                                                    | 22–28   | data                                                     | The five reference ranges, hard-coded                   |
+| `PoseLandmark`                                                  | 40–45   | type                                                     | `{ x, y, z, visibility? }`                              |
+| `jointAngle(a,b,c)`                                             | 47–53   | ✅                                                       | 3-point included angle at vertex `b`, degrees           |
+| `computeTorsoAngle(wl)`                                         | 55–58   | ✅                                                       | `atan2` hip→shoulder vector from horizontal             |
+| `visible(lm)`                                                   | 60–62   | ✅                                                       | `visibility >= 0.5` gate                                |
+| `convertKeypoints(keypoints)`                                   | 103–137 | ✅                                                       | MoveNet COCO-17 → 33-slot array + body-side auto-select |
+| BDC/TDC extremum scan                                           | 264–283 | ✅ logic, ❌ as written (welded to `await detectPoseAt`) | "BDC = highest knee angle, TDC = lowest"                |
+| `seekTo` / `fileToBase64` / `loadVideoElement` / `detectPoseAt` | 64–151  | ❌ I/O                                                   | DOM + video + detector                                  |
 
 Grep of the whole `src/` tree confirms nothing else does trig, keypoint, or pose work.
 The only angle-adjacent code elsewhere:
@@ -65,16 +65,16 @@ only. CI runs `lint` + `build`. `@astrojs/check` is installed but never invoked.
 - **`jointAngle()` convention is correct** — included angle at the vertex (180° =
   straight), clamped to `[-1,1]` before `acos` (no `NaN` from float error), and
   numerically verified **reflection-invariant**. Matches every row of
-  `bike-fitting-ref-angles.md`. (A *zero-length* vector — two coincident keypoints —
+  `bike-fitting-ref-angles.md`. (A _zero-length_ vector — two coincident keypoints —
   still yields `0/0 = NaN`; callers gate on `visible()` but not on coincidence.)
 - **`computeTorsoAngle()` has a confirmed left/right-facing bug.** `Math.abs()` folds the
   sign but not the 180° complement. Verified numerically (hip at (100,300), true lean
   50°): right-facing → `50.00`, left-facing → `130.00`. A perfectly-fitted left-facing
   rider is scored "Outside range" against `45–55` and the LLM is told "torso far too
-  upright." `convertKeypoints` selects the correct body *side* but does **no** coordinate
+  upright." `convertKeypoints` selects the correct body _side_ but does **no** coordinate
   mirroring, so facing direction survives in `x` and reaches this formula unhandled.
 - **"The server would catch a bad result" — FALSE.** The browser authors both the
-  measured `value` *and* the `reference_min`/`reference_max`
+  measured `value` _and_ the `reference_min`/`reference_max`
   (`VideoAnalyzer.tsx:290-338`). `POST /api/sessions/[id]/results` inserts `body_angles`
   verbatim through the RLS-bypassing service-role client
   (`results.ts:47-52`). No DB `CHECK` on the `body_angles` JSONB column. The verdict is
@@ -175,7 +175,7 @@ only. CI runs `lint` + `build`. `@astrojs/check` is installed but never invoked.
   synthetic bands. OQ-2 is the reference-band dimension of Risk #1 and does not fall off
   the radar: Phase 5 opens a `resolve-angle-reference-bands` stub change and points
   Roadmap OQ-2 at it.
-- **No fix to the display/pill contradiction.** The `angleVerdict` spec *documents* it
+- **No fix to the display/pill contradiction.** The `angleVerdict` spec _documents_ it
   (raw `147.4` → verdict `false`, but `formatAngle(147.4)` displays `147°` inside
   `137–147°`); the fix is a display-policy call that pairs with the S-05 rounding work,
   tracked as a follow-up in §6.6 and §7.
@@ -215,13 +215,13 @@ Five phases, each with a clean verification boundary:
 
 **Extraction must be byte-for-byte behaviour-preserving (Phase 2).** Every downstream
 reader uses only 33-slot indices `11, 13, 15, 23, 25, 27`. `convertKeypoints` writes the
-*chosen physical side* into those *MediaPipe LEFT-side* slots regardless of which side was
+_chosen physical side_ into those _MediaPipe LEFT-side_ slots regardless of which side was
 detected — this is deliberate and must not be "cleaned up." The vestigial MediaPipe
 framing (the project runs MoveNet, never MediaPipe — `lessons.md:19-24`) may be
 renamed/commented but not restructured.
 
 **`pickExtremumFrame` signature is a contract (Phase 2).** The current loop interleaves
-`await detectPoseAt(...)` with the extremum comparison. Extract only the *pure selection*:
+`await detectPoseAt(...)` with the extremum comparison. Extract only the _pure selection_:
 the function receives already-detected candidate landmark sets and returns the pick; the
 `await` stays in the component. Proposed:
 `pickExtremumFrame(candidates: PoseLandmark[][], type: "BDC" | "TDC"): PoseLandmark[] | null`
@@ -463,7 +463,7 @@ oracle taken from geometry and `bike-fitting-ref-angles.md` — never from curre
 
 - **`jointAngle`**
   - straight limb (collinear `a`, `b`, `c` with `b` between) → `180 ± 0.001` — proves
-    *included*, not *flexion*
+    _included_, not _flexion_
   - right angle (e.g. `a=(0,1)`, `b=(0,0)`, `c=(1,0)`) → `90 ± 0.001`
   - constructed 140° knee → `140 ± 0.01`
   - fully folded (`a` and `c` coincident on one side of `b`) → `~0`
@@ -486,7 +486,7 @@ oracle taken from geometry and `bike-fitting-ref-angles.md` — never from curre
     is `false`
   - mirror invariance: a pose and its `x`-mirror (dominant-side scores swapped) →
     **equal** knee, hip, and elbow angles (torso is excluded — it is the one that must
-    be *made* mirror-safe by the fix)
+    be _made_ mirror-safe by the fix)
 - **`pickExtremumFrame`**
   - three synthetic candidate sets with known knee angles → `"BDC"` returns the
     highest-knee-angle set, `"TDC"` the lowest
@@ -692,7 +692,7 @@ unresolved owner decision OQ-2, tracked as change `resolve-angle-reference-bands
 **File**: `context/changes/resolve-angle-reference-bands/change.md` (new stub),
 `context/foundation/roadmap.md`
 
-**Intent**: The reference-band dimension of Risk #1 — *which* numeric range each angle is
+**Intent**: The reference-band dimension of Risk #1 — _which_ numeric range each angle is
 judged against — is an unresolved owner decision (PRD OQ#2 / Roadmap OQ-2, Block: yes)
 that S-02 shipped without. Once §3 Phase 1 is marked `complete`, "Risk #1 defended" must
 not be read as covering it; give it a durable home.
@@ -717,7 +717,7 @@ Question 2 to append: "Tracked as change `resolve-angle-reference-bands` (opened
 
 **Contract**: `test-plan.md` header `Last updated:` → the implement date. `change.md`
 `status:` → `implemented` (or per `/10x-implement` convention), `updated:` → date. The
-only `roadmap.md` edit is the OQ-2 pointer from change #4 — no roadmap *slice* row
+only `roadmap.md` edit is the OQ-2 pointer from change #4 — no roadmap _slice_ row
 changes (no matching Change ID for this rollout phase — confirmed).
 
 ### Success Criteria

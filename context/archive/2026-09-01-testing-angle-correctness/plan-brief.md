@@ -31,18 +31,19 @@ archived reference-angle docs, never against current output. The test-plan cookb
 
 ## Key Decisions Made
 
-| Decision | Choice | Why (1 sentence) | Source |
-| --- | --- | --- | --- |
-| Torso left/right-facing bug | Fix it **and** land the test together in Phase 3 | The bug is squarely Risk #1, the fix is one line and reflection-symmetric, and the same spec verifies it | Plan |
-| In/out-of-range verdict | Extract `angleVerdict()` and unit-test it | It *is* the "in range / outside range verdict" Risk #1 names; pure `(value,min,max)→bool` | Plan |
-| Contested reference bands (elbow 150–160 vs 85–95) | Geometry + convention assertions only; no membership assertions against shipped `ANGLE_REFS` | Convention is provably independent of PRD Open Question #2 (Block: yes); unblocks the high-value tests now | Plan |
-| Display/pill contradiction (raw 147.4 → "147°" but "Outside range") | Document in a spec, don't fix | It's a display-policy call that pairs with the S-05 rounding work, not the geometry | Plan |
-| Extraction surface | Pure helpers + constants **+** `pickExtremumFrame` | The BDC/TDC extremum rule is deterministic and worth a test; the `await` loop stays in the component | Plan |
-| DOM environment | `environment: "node"`, defer `happy-dom` to rollout Phase 2 | Astro 6 forbids component render in client envs anyway, and the Phase 1 helpers are pure over plain objects | Plan / Research |
+| Decision                                                            | Choice                                                                                       | Why (1 sentence)                                                                                            | Source          |
+| ------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | --------------- |
+| Torso left/right-facing bug                                         | Fix it **and** land the test together in Phase 3                                             | The bug is squarely Risk #1, the fix is one line and reflection-symmetric, and the same spec verifies it    | Plan            |
+| In/out-of-range verdict                                             | Extract `angleVerdict()` and unit-test it                                                    | It _is_ the "in range / outside range verdict" Risk #1 names; pure `(value,min,max)→bool`                   | Plan            |
+| Contested reference bands (elbow 150–160 vs 85–95)                  | Geometry + convention assertions only; no membership assertions against shipped `ANGLE_REFS` | Convention is provably independent of PRD Open Question #2 (Block: yes); unblocks the high-value tests now  | Plan            |
+| Display/pill contradiction (raw 147.4 → "147°" but "Outside range") | Document in a spec, don't fix                                                                | It's a display-policy call that pairs with the S-05 rounding work, not the geometry                         | Plan            |
+| Extraction surface                                                  | Pure helpers + constants **+** `pickExtremumFrame`                                           | The BDC/TDC extremum rule is deterministic and worth a test; the `await` loop stays in the component        | Plan            |
+| DOM environment                                                     | `environment: "node"`, defer `happy-dom` to rollout Phase 2                                  | Astro 6 forbids component render in client envs anyway, and the Phase 1 helpers are pure over plain objects | Plan / Research |
 
 ## Scope
 
 **In scope:**
+
 - Vitest via `getViteConfig`, `test` scripts, one smoke spec
 - Extract `jointAngle`, `computeTorsoAngle`, `visible`, `convertKeypoints`,
   `pickExtremumFrame`, `ANGLE_REFS`, types + index constants → `src/lib/pose/angles.ts`
@@ -52,6 +53,7 @@ archived reference-angle docs, never against current output. The test-plan cookb
 - Fill `test-plan.md` §6.1 / §6.6 / §7
 
 **Out of scope:**
+
 - Integration / e2e tests, DOM env, I/O-helper tests, `astro:env` test-setup (rollout Ph 2/4)
 - Resolving PRD Open Question #2 / the elbow band / any assertion on shipped `ANGLE_REFS`
 - Fixing the display/pill contradiction; detecting a crank-horizontal keyframe
@@ -71,13 +73,13 @@ current-output assertions.
 
 ## Phases at a Glance
 
-| Phase | What it delivers | Key risk |
-| --- | --- | --- |
-| 1. Harness bootstrap | Green Vitest suite, one smoke spec, `test` scripts | `getViteConfig` / `astro:env` resolution in a Cloudflare-adapter project |
-| 2. Extract pose-math module | `src/lib/pose/angles.ts`, island rewired, zero behaviour change | An accidental behaviour change in `convertKeypoints`'s 33-slot remap or the extremum loop |
+| Phase                            | What it delivers                                                | Key risk                                                                                                 |
+| -------------------------------- | --------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| 1. Harness bootstrap             | Green Vitest suite, one smoke spec, `test` scripts              | `getViteConfig` / `astro:env` resolution in a Cloudflare-adapter project                                 |
+| 2. Extract pose-math module      | `src/lib/pose/angles.ts`, island rewired, zero behaviour change | An accidental behaviour change in `convertKeypoints`'s 33-slot remap or the extremum loop                |
 | 3. Correctness specs + torso fix | Oracle-driven suite; `computeTorsoAngle` fixed for both facings | Getting the oracle wrong (must be geometry, not current output); historical rows keep wrong torso values |
-| 4. Verdict helper + specs | `angleVerdict()` extracted from `.astro`, tested | Touching an SSR page; the round-vs-raw contradiction must be documented, not silently "fixed" |
-| 5. Cookbook + §7 | `test-plan.md` §6.1 / §6.6 / §7 filled | Cookbook too thin to be the canonical answer `/10x-tdd` reads later |
+| 4. Verdict helper + specs        | `angleVerdict()` extracted from `.astro`, tested                | Touching an SSR page; the round-vs-raw contradiction must be documented, not silently "fixed"            |
+| 5. Cookbook + §7                 | `test-plan.md` §6.1 / §6.6 / §7 filled                          | Cookbook too thin to be the canonical answer `/10x-tdd` reads later                                      |
 
 **Prerequisites:** none — research is complete; no roadmap dependency (this is a
 test-plan rollout phase, not a roadmap slice).
