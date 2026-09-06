@@ -607,14 +607,14 @@ real project and the e2e gate.
 
 #### Automated
 
-- [x] 3.1 `npx playwright test --list` runs cleanly (0 tests)
-- [x] 3.2 Both webServer entries boot; preview health-check passes
-- [x] 3.3 Manual curl against the mock server returns the canned envelope
-- [x] 3.4 `npm test` still green after the `llm.ts` + stub changes
+- [x] 3.1 `npx playwright test --list` runs cleanly (0 tests) — 8470eb0
+- [x] 3.2 Both webServer entries boot; preview health-check passes — 8470eb0
+- [x] 3.3 Manual curl against the mock server returns the canned envelope — 8470eb0
+- [x] 3.4 `npm test` still green after the `llm.ts` + stub changes — 8470eb0
 
 #### Manual
 
-- [x] 3.5 Confirmed the workerd sandbox received `OPENROUTER_BASE_URL` and `SUPABASE_URL` resolved to the e2e project, not `.dev.vars`
+- [x] 3.5 Confirmed the workerd sandbox received `OPENROUTER_BASE_URL` and `SUPABASE_URL` resolved to the e2e project, not `.dev.vars` — 8470eb0
 
 ### Phase 4: Seeding helper, video fixture, and the two e2e tests
 
