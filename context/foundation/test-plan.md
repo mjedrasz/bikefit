@@ -95,8 +95,8 @@ orchestrator updates Status as artifacts appear on disk.
 | --- | ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- | --------------------------------------- | ------------- | -------------------------------------------------- |
 | 1   | Harness bootstrap + joint-angle correctness | Stand up the test runner and prove the angle and keypoint-mapping math matches the reference-frame definitions it is judged against, including left/right side selection.                                                          | #1             | unit                                    | complete      | context/changes/testing-angle-correctness/         |
 | 2   | LLM boundary + API-route integration        | Make the OpenRouter response boundary strict and fail-clean, make every session route enforce ownership, surface DB errors as distinct states, and drive stuck-`processing` sessions to a terminal state.                          | #2, #5, #6, #7 | contract, integration, unit             | complete      | context/changes/testing-llm-and-ownership/         |
-| 3   | Abuse & resource protection                 | Add server-side payload caps and rate limiting on the OpenRouter-backed routes, scope the vision route to an owned session, degrade gracefully on provider errors, and add a small dated adversarial probe on the vision boundary. | #3, #4         | integration, AI-native probe (optional) | change opened | context/changes/testing-abuse-resource-protection/ |
-| 4   | Quality-gates wiring + one e2e smoke        | Add typecheck and the new test suites as required CI gates and add a single Playwright happy-path smoke over upload → analysing → results.                                                                                         | cross-cutting  | e2e (1 flow), gates                     | not started   | —                                                  |
+| 3   | Abuse & resource protection                 | Add server-side payload caps and rate limiting on the OpenRouter-backed routes, scope the vision route to an owned session, degrade gracefully on provider errors, and add a small dated adversarial probe on the vision boundary. | #3, #4         | integration, AI-native probe (optional) | complete      | context/changes/testing-abuse-resource-protection/ |
+| 4   | Quality-gates wiring + one e2e smoke        | Add typecheck and the new test suites as required CI gates and add a single Playwright happy-path smoke over upload → analysing → results.                                                                                         | cross-cutting  | e2e (1 flow), gates                     | change opened | context/changes/testing-quality-gates-e2e-smoke/   |
 
 **Status vocabulary** (fixed — parser literals): `not started` →
 `change opened` → `researched` → `planned` → `implementing` → `complete`.
@@ -168,17 +168,17 @@ The full set of gates that must pass before a change reaches production.
 "Required after §3 Phase N" means the gate is enforced once that rollout
 phase lands; before that, the gate is planned.
 
-| Gate                                       | Where                  | Required?                                                 | Catches                                                                                                                                                                                                                                                                                                                      |
-| ------------------------------------------ | ---------------------- | --------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| lint (eslint)                              | local + CI             | required (wired)                                          | syntactic drift, a11y-lint, deprecated-API lint                                                                                                                                                                                                                                                                              |
-| pre-commit gate (lefthook)                 | local                  | required (wired)                                          | manual edits and any change that skipped or predates the per-edit hook — full lint + full typecheck + related tests on every staged change, before it can be committed. See §6.8.                                                                                                                                            |
-| typecheck (`npx tsc --noEmit`)             | local (lefthook) + CI  | required locally (wired); required in CI after §3 Phase 4 | type drift; enforced on every commit via the pre-commit gate above, still not a CI step                                                                                                                                                                                                                                      |
-| unit + integration (Vitest)                | local + CI             | required (wired) — §3 Phase 2 complete 2026-09-04         | angle-math regressions, LLM-boundary regressions, ownership regressions, swallowed-error regressions                                                                                                                                                                                                                         |
-| mutation score (Stryker)                   | local + on-demand      | advisory (not gated)                                      | tests that execute a line without asserting its behaviour — tautological / oracle-problem tests that raise line coverage but would not fail on a real regression. Run when touching the pure-logic modules in `stryker.config.json`; treat a new survivor as a prompt to strengthen the test or record why it is acceptable. |
-| e2e smoke — happy path                     | CI on PR               | required after §3 Phase 4                                 | the upload → analysing → results flow being broken end to end                                                                                                                                                                                                                                                                |
-| post-edit hook (run related tests on save) | local (agent loop)     | configured, not enabled — recommended after §3 Phase 4    | regressions at edit time on `pose/angles.ts`; `.claude/settings.json.bkp` holds the config but is not the live `settings.json` (2026-09-04 refresh interview: intentional/experimental for now). Not a CI substitute even once active — the pre-commit gate above already covers what it would catch.                        |
-| multimodal visual review                   | CI on PR               | optional                                                  | visual regressions on the results screen only (1 screen); classic assertions cover the rest                                                                                                                                                                                                                                  |
-| pre-prod smoke                             | between merge and prod | optional                                                  | Cloudflare Workers environment-specific failures (`nodejs_compat`, adapter)                                                                                                                                                                                                                                                  |
+| Gate                                       | Where                  | Required?                                                                         | Catches                                                                                                                                                                                                                                                                                                                      |
+| ------------------------------------------ | ---------------------- | --------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| lint (eslint)                              | local + CI             | required (wired)                                                                  | syntactic drift, a11y-lint, deprecated-API lint                                                                                                                                                                                                                                                                              |
+| pre-commit gate (lefthook)                 | local                  | required (wired)                                                                  | manual edits and any change that skipped or predates the per-edit hook — full lint + full typecheck + related tests on every staged change, before it can be committed. See §6.8.                                                                                                                                            |
+| typecheck (`npx tsc --noEmit`)             | local (lefthook) + CI  | required locally (wired); required in CI after §3 Phase 4                         | type drift; enforced on every commit via the pre-commit gate above, still not a CI step                                                                                                                                                                                                                                      |
+| unit + integration (Vitest)                | local + CI             | required (wired) — §3 Phase 2 complete 2026-09-04, §3 Phase 3 complete 2026-09-05 | angle-math regressions, LLM-boundary regressions, ownership regressions, swallowed-error regressions, rate-limit bypass, oversized-payload, output-contract / prompt-injection regressions                                                                                                                                   |
+| mutation score (Stryker)                   | local + on-demand      | advisory (not gated)                                                              | tests that execute a line without asserting its behaviour — tautological / oracle-problem tests that raise line coverage but would not fail on a real regression. Run when touching the pure-logic modules in `stryker.config.json`; treat a new survivor as a prompt to strengthen the test or record why it is acceptable. |
+| e2e smoke — happy path                     | CI on PR               | required after §3 Phase 4                                                         | the upload → analysing → results flow being broken end to end                                                                                                                                                                                                                                                                |
+| post-edit hook (run related tests on save) | local (agent loop)     | configured, not enabled — recommended after §3 Phase 4                            | regressions at edit time on `pose/angles.ts`; `.claude/settings.json.bkp` holds the config but is not the live `settings.json` (2026-09-04 refresh interview: intentional/experimental for now). Not a CI substitute even once active — the pre-commit gate above already covers what it would catch.                        |
+| multimodal visual review                   | CI on PR               | optional                                                                          | visual regressions on the results screen only (1 screen); classic assertions cover the rest                                                                                                                                                                                                                                  |
+| pre-prod smoke                             | between merge and prod | optional                                                                          | Cloudflare Workers environment-specific failures (`nodejs_compat`, adapter)                                                                                                                                                                                                                                                  |
 
 ## 6. Cookbook Patterns
 
@@ -394,6 +394,21 @@ rejecting on it would be wrong.
 plain-language `{ error }` at `500`. No `err.message` in the response body
 (`git grep -n "err.message" src/pages/api/analyze.ts …` stays empty).
 
+**Output contract is a hard boundary, both call sites (Risk #4, added §3
+Phase 3).** `generateRecommendations` returns the Zod-`.data` value (not a
+pre-parse cast) exactly like `analyzeVideo` already did — an extra
+unschema'd property on a model-returned item (e.g. an injected
+`system_override` key) is stripped, never forwarded to the caller or the DB
+write. `llm.test.ts` carries a dated (`// checked: 2026-09-05`) adversarial
+corpus proving this holds under prompt-injection-styled input: free text
+instead of JSON, a well-formed `timestamps` array with an extra top-level
+field simulating a leaked instruction, and an injection string in place of a
+valid `type` enum value — all still resolve to (or throw on) exactly the
+validated shape, never free text. This is corpus-based mocked-response
+testing, not a model-judged AI-native layer; it is dated because the corpus
+itself — not a tool version — is what may need widening as new injection
+patterns surface.
+
 ### 6.4 Adding a test for a new API endpoint
 
 **Default to integration.** Assert request → response shape and the DB
@@ -450,6 +465,18 @@ mockedCreateAdminClient.mockClear(); })`) — the stub's own `calls` array is
 fresh per `makeSupabaseStub()`, but the `vi.mocked(...)` call _counts_
 persist across tests in the same file, so a later "no Supabase call at all"
 assertion sees a prior test's calls unless cleared first.
+
+**Rate-limit gate runs before the ownership pre-check, not after (Risk #3,
+added §3 Phase 3).** Both OpenRouter-backed routes (`analyze`, `recommend`)
+call `checkRateLimit(admin, context.locals.user.id, route)` immediately
+after the `locals.user` check, using two distinct Supabase client instances
+in the same handler — the admin client for the rate-limit RPC, the
+request-scoped client for the RLS-guarded ownership read that follows. An
+RPC error fails closed (500, "Could not verify request"), never "allow the
+request through" — the same convention as every other Supabase-error branch
+in these routes (Risk #7). See §6.6 Phase 3 for the RPC/migration pattern
+and the impl-review fix (RPC privileges must be explicitly locked down;
+Postgres grants `EXECUTE` to `PUBLIC` by default).
 
 **This is stub-level ordering, not a real cross-user RLS check.** The stub
 proves the handler _would_ scope correctly if `sessions_select_own` denies a
@@ -581,6 +608,79 @@ phase taught, e.g. a fixture directory later phases should reuse.)
   `session_id` binding + the `VideoAnalyzer` client change, the Step-7
   `postError` fix, and the `maybeSingle()` error/absent split). See §3's
   Phase 2 row for the scope-drift annotation.
+
+#### Phase 3 — Abuse & resource protection
+
+Established by §3 Phase 3 (`context/changes/testing-abuse-resource-protection/`).
+Unlike Phase 1, this phase was feature work first — rate limiting and
+server-side payload caps did not exist before it — so the mitigation and
+its test shipped together, per test-plan.md §3.
+
+- **Rate-limit RPC pattern.** A single atomic Postgres function,
+  `check_and_increment_rate_limit(p_user_id, p_route, p_window_minutes)`
+  (`supabase/migrations/20260905150000_add_rate_limits.sql`), does the
+  read-increment-return in one `INSERT ... ON CONFLICT DO UPDATE ...
+RETURNING` statement — no read-then-write race even across multiple
+  Worker instances with no shared clock. `rate_limits` has RLS enabled +
+  forced with **zero policies**, mirroring `analysis_results`' "no policy
+  = no direct access" convention: nothing but the RPC (invoked via the
+  admin client) can touch the table. `src/lib/services/rate-limit.ts`
+  wraps the RPC behind `checkRateLimit(supabase, userId, route)` →
+  `{ ok: true, allowed } | { ok: false }`, fails closed on an RPC error
+  (Risk #7's convention, applied to a new gate).
+- **First-ever RPC in this codebase — the privilege-lockdown lesson.**
+  Postgres grants `EXECUTE` on a new function to `PUBLIC` by default;
+  RLS on the underlying table is a _second_, independent gate, not a
+  substitute for locking down the function itself. The impl-review caught
+  this live (`authenticated` could call the RPC directly via PostgREST,
+  and would have been able to poison another user's rate-limit counter
+  the day any future migration adds so much as a permissive `SELECT`
+  policy to `rate_limits`). Fixed by a follow-up migration
+  (`20260905160000_lock_down_rate_limit_rpc.sql`):
+  `REVOKE EXECUTE ... FROM PUBLIC` + `GRANT EXECUTE ... TO service_role`.
+  **Any future RPC in this codebase needs this same explicit
+  REVOKE/GRANT pair as part of its own migration — it is not implied by
+  RLS on the tables it touches.**
+- **Capped-JSON-body-reader pattern.** `src/lib/capped-json-body.ts`
+  (`readJsonWithCap(request, maxBytes)`) closes the timing gap in a
+  schema-only `.max()` cap, which only rejects _after_
+  `context.request.json()` has already buffered the full body. Two
+  layers, cheapest first: a `Content-Length` header fast-check (rejects
+  without touching the body at all), then a streamed byte-count via
+  `request.body.getReader()` for chunked-encoding requests that carry no
+  `Content-Length`. Wired into `analyze.ts` in place of the naive
+  `context.request.json()` try/catch; the existing `.max(140_000_000)`
+  schema check on the parsed `video` field is unchanged and still runs as
+  a second gate.
+- **Stream-error handling — an impl-review fix, not in the original
+  plan.** The first version of the reader's `for (;;) { reader.read() }`
+  loop had no try/catch, so a genuine stream error (a dropped connection
+  mid-upload — a real possibility for a route whose whole purpose is
+  receiving a ~100MB base64 video body) propagated as an unhandled
+  rejection instead of the app's `{ error }` JSON convention, and never
+  released the reader. Fixed: the loop is wrapped in try/catch; on
+  catch, `await reader.cancel().catch(() => {})` then resolve to the
+  existing `{ ok: false, reason: "invalid-json" }` shape (no signature
+  change). Regression test: a `ReadableStream` whose puller calls
+  `controller.error(...)`, asserting the promise resolves rather than
+  rejects. **Lesson for any future manual stream-reading loop**: a
+  stream can fail mid-read as readily as it can produce oversized data —
+  both paths need the same cancel-and-report handling, not just the
+  size-limit path.
+- **Output-contract tightening + adversarial probe** — see §6.3's
+  "Output contract is a hard boundary" note for the `.data`-return change
+  and the dated corpus; not duplicated here.
+- **Test-stub extension.** `src/test/helpers/supabase-stub.ts` gained
+  `.rpc(name, args)` support, scripted via a `"rpc.<name>"` key and
+  recorded into the same shared `calls` array as `operation: "rpc"` — so
+  existing ordering assertions (`stub.calls.map((c) => c.operation)`)
+  keep working with `"rpc"` appearing alongside `"select"`/`"update"`.
+- **Uncommitted manual-verification scratch files.** The impl-review
+  flagged (and the team accepted, SKIPPED) leftover untracked files at
+  the repo root from manually verifying Phases 1–2 (spoofed
+  `Content-Length` curl payloads, a video fixture, etc.) — housekeeping
+  only, no functional impact. Clean these before considering the branch
+  fully done.
 
 ### 6.7 Checking a suite with mutation testing (StrykerJS)
 
