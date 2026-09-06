@@ -1,10 +1,10 @@
 ---
 change_id: test-plan-refresh-2026-09-03
 title: Test-plan refresh — mutation testing (StrykerJS) enters the stack
-status: complete
+status: archived
 created: 2026-09-03
-updated: 2026-09-03
-archived_at: null
+updated: 2026-09-06
+archived_at: 2026-09-06T19:31:22Z
 ---
 
 ## Notes
