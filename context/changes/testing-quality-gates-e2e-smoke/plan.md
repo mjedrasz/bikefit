@@ -595,26 +595,26 @@ real project and the e2e gate.
 
 #### Automated
 
-- [x] 2.1 `npx supabase db push` applies all four migrations, zero errors
-- [x] 2.2 REST health-check against the new project returns non-5xx
+- [x] 2.1 `npx supabase db push` applies all four migrations, zero errors — c787010
+- [x] 2.2 REST health-check against the new project returns non-5xx — c787010
 
 #### Manual
 
-- [x] 2.3 New project confirmed in Supabase dashboard
-- [x] 2.4 Five new secrets confirmed in repo Settings → Secrets (3 × `E2E_SUPABASE_*` + `SUPABASE_ACCESS_TOKEN` + `E2E_SUPABASE_DB_PASSWORD`)
+- [x] 2.3 New project confirmed in Supabase dashboard — c787010
+- [x] 2.4 Five new secrets confirmed in repo Settings → Secrets (3 × `E2E_SUPABASE_*` + `SUPABASE_ACCESS_TOKEN` + `E2E_SUPABASE_DB_PASSWORD`) — c787010
 
 ### Phase 3: Playwright scaffolding + deterministic OpenRouter stand-in
 
 #### Automated
 
-- [ ] 3.1 `npx playwright test --list` runs cleanly (0 tests)
-- [ ] 3.2 Both webServer entries boot; preview health-check passes
-- [ ] 3.3 Manual curl against the mock server returns the canned envelope
-- [ ] 3.4 `npm test` still green after the `llm.ts` + stub changes
+- [x] 3.1 `npx playwright test --list` runs cleanly (0 tests)
+- [x] 3.2 Both webServer entries boot; preview health-check passes
+- [x] 3.3 Manual curl against the mock server returns the canned envelope
+- [x] 3.4 `npm test` still green after the `llm.ts` + stub changes
 
 #### Manual
 
-- [ ] 3.5 Confirmed the workerd sandbox received `OPENROUTER_BASE_URL` and `SUPABASE_URL` resolved to the e2e project, not `.dev.vars`
+- [x] 3.5 Confirmed the workerd sandbox received `OPENROUTER_BASE_URL` and `SUPABASE_URL` resolved to the e2e project, not `.dev.vars`
 
 ### Phase 4: Seeding helper, video fixture, and the two e2e tests
 

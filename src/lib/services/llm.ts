@@ -1,4 +1,4 @@
-import { OPENROUTER_API_KEY } from "astro:env/server";
+import { OPENROUTER_API_KEY, OPENROUTER_BASE_URL } from "astro:env/server";
 import { z } from "zod";
 import type { BodyAngle, Recommendation } from "@/types";
 import { buildRecommendationsSystemPrompt } from "@/lib/recommendations-prompt";
@@ -7,7 +7,12 @@ import { stripJsonFence, timestampListSchema } from "@/lib/llm-response";
 
 const VISION_MODEL = "google/gemini-3.5-flash";
 const TEXT_MODEL = "google/gemini-2.5-flash";
-const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
+// Prod: `OPENROUTER_BASE_URL` is unset → the real endpoint, unchanged. e2e (Phase 3): the
+// var points at the local mock server, the only supported way to redirect this call
+// (the workerd sandbox never sees a Node `undici` dispatcher patch — see plan §Current State).
+// `??` not `||` per the repo's `prefer-nullish-coalescing` gate; the field is optional →
+// `string | undefined`, and an explicit empty string is a misconfiguration, not a signal.
+const OPENROUTER_URL = OPENROUTER_BASE_URL ?? "https://openrouter.ai/api/v1/chat/completions";
 
 // Every thrown message below is a FIXED string — no interpolation of upstream error text or
 // the model's `content`. A direct API caller must never see OpenRouter's body or the raw

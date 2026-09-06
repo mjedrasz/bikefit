@@ -8,6 +8,12 @@ dist/
 .stryker-tmp/
 reports/
 
+# playwright e2e
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+
 # dependencies
 node_modules/
 

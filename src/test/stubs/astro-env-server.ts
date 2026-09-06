@@ -14,3 +14,7 @@ export const SUPABASE_URL = "http://stub.supabase.local";
 export const SUPABASE_KEY = "stub-anon-key";
 export const SUPABASE_SERVICE_ROLE_KEY = "stub-service-role-key";
 export const OPENROUTER_API_KEY = "stub-openrouter-key";
+// `optional: true` in the real schema → `undefined` when unset. Keeps `llm.ts`'s
+// `OPENROUTER_BASE_URL || <real URL>` fallback on the real URL, so the undici
+// `installOpenRouterMock()` still intercepts every contract/route spec's fetch.
+export const OPENROUTER_BASE_URL = undefined;

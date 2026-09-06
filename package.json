@@ -12,6 +12,7 @@
     "format": "prettier --write .",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:e2e": "playwright test",
     "test:mutation": "stryker run",
     "prepare": "lefthook install"
   },
@@ -46,6 +47,7 @@
   "devDependencies": {
     "@eslint/compat": "^2.0.3",
     "@eslint/js": "^9.29.0",
+    "@playwright/test": "^1.63.0",
     "@stryker-mutator/core": "^10.0.0",
     "@stryker-mutator/vitest-runner": "^10.0.0",
     "eslint": "^9.29.0",
