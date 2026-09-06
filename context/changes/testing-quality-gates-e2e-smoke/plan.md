@@ -632,7 +632,7 @@ real project and the e2e gate.
 
 #### Automated
 
-- [x] 5.1 `.github/workflows/ci.yml` parses cleanly
+- [x] 5.1 `.github/workflows/ci.yml` parses cleanly — 98c47fa
 - [ ] 5.2 Test PR shows both `ci` and `e2e` checks
 - [ ] 5.3 `supabase db push` step reports the e2e project up to date
 
