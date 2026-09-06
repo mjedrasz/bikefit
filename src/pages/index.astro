@@ -1,8 +1,14 @@
 ---
-import Welcome from "@/components/Welcome.astro";
+import Landing from "@/components/Landing.astro";
 import Layout from "@/layouts/Layout.astro";
+
+// Authenticated visitors never see the landing page — send them straight to the app.
+// `Astro.locals.user` is resolved by `src/middleware.ts` on every request.
+if (Astro.locals.user) {
+  return Astro.redirect("/dashboard");
+}
 ---
 
-<Layout>
-  <Welcome />
+<Layout title="BikeFit — self-service gravel bike fitting">
+  <Landing />
 </Layout>
