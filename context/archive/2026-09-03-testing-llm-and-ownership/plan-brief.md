@@ -32,17 +32,17 @@ distinct "couldn't load" state. `npm test` is a required CI gate.
 
 ## Key Decisions Made
 
-| Decision | Choice | Why | Source |
-| --- | --- | --- | --- |
-| Risk #6 mechanism | Display-time staleness rule (pure fn + render), **no reaper** | Cheapest real terminal signal; `updated_at` already maintained; no new infra | Plan (research OQ-1) |
-| `/api/analyze` session binding | Bind to an owned `processing` session **in this phase** | It's an ownership fix (Risk #5); makes `/analyze` testable; small change | Plan (research OQ-3) |
-| LLM boundary depth | Full: per-item Zod + fence-strip + generic route 500s | Closes every Risk #2 gap research found; contract tests assert real behaviour | Plan (research OQ-4) |
-| `astro:env` in tests | Alias-stub the `astro:env/server` virtual module | Keeps the fast plain-config setup; no Astro build pipeline / adapter | Plan (research OQ-5) |
-| Risk #5 cross-user in CI | Stub logic-floor only; real two-user RLS check → §3 Phase 4 (Playwright) | One harness tier now; real-RLS proof consolidated with e2e | Plan (research OQ-2) |
-| OpenRouter mock | `undici` `MockAgent` (`setGlobalDispatcher`) | Zero new runtime deps; intercepts the exact global `fetch`; precise body control | Plan |
-| Route-handler exercise | Hand-built `APIContext` (call exported `POST`/`GET`) | Official Astro recipe; routes touch only 4 context fields | Plan (Context7) |
-| Risk #7 fix scope | Fix every site (5 routes + `recommend` + blank-card page) | Makes "distinct error state" the tested default; ends the reactive one-at-a-time pattern | Plan |
-| CI gate wiring | Phase 2 adds `npm test`; §3 Phase 4 adds typecheck + e2e | Gate goes live with the tests it gates; matches §5 "required after Phase 2" | Plan |
+| Decision                       | Choice                                                                   | Why                                                                                      | Source               |
+| ------------------------------ | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------- | -------------------- |
+| Risk #6 mechanism              | Display-time staleness rule (pure fn + render), **no reaper**            | Cheapest real terminal signal; `updated_at` already maintained; no new infra             | Plan (research OQ-1) |
+| `/api/analyze` session binding | Bind to an owned `processing` session **in this phase**                  | It's an ownership fix (Risk #5); makes `/analyze` testable; small change                 | Plan (research OQ-3) |
+| LLM boundary depth             | Full: per-item Zod + fence-strip + generic route 500s                    | Closes every Risk #2 gap research found; contract tests assert real behaviour            | Plan (research OQ-4) |
+| `astro:env` in tests           | Alias-stub the `astro:env/server` virtual module                         | Keeps the fast plain-config setup; no Astro build pipeline / adapter                     | Plan (research OQ-5) |
+| Risk #5 cross-user in CI       | Stub logic-floor only; real two-user RLS check → §3 Phase 4 (Playwright) | One harness tier now; real-RLS proof consolidated with e2e                               | Plan (research OQ-2) |
+| OpenRouter mock                | `undici` `MockAgent` (`setGlobalDispatcher`)                             | Zero new runtime deps; intercepts the exact global `fetch`; precise body control         | Plan                 |
+| Route-handler exercise         | Hand-built `APIContext` (call exported `POST`/`GET`)                     | Official Astro recipe; routes touch only 4 context fields                                | Plan (Context7)      |
+| Risk #7 fix scope              | Fix every site (5 routes + `recommend` + blank-card page)                | Makes "distinct error state" the tested default; ends the reactive one-at-a-time pattern | Plan                 |
+| CI gate wiring                 | Phase 2 adds `npm test`; §3 Phase 4 adds typecheck + e2e                 | Gate goes live with the tests it gates; matches §5 "required after Phase 2"              | Plan                 |
 
 ## Scope
 
@@ -70,14 +70,14 @@ OpenRouter is mocked at the HTTP edge only. SSR pages render through
 
 ## Phases at a Glance
 
-| Phase | What it delivers | Key risk |
-| --- | --- | --- |
-| 1. Harness foundation | `astro:env` alias-stub, OpenRouter mock, Supabase stub, context/page helpers, smoke tests, §6.2 | Alias-stub must mirror `env.schema`; Container API behaviour on Astro 6 |
-| 2. LLM boundary (Risk #2) | Per-item Zod + `stripJsonFence` in `llm.ts`; generic route 500s; contract corpus; §6.3 | Corpus completeness; fenced-body edge cases |
-| 3. DB-error states (Risk #7) | `.maybeSingle()` + error/absent split on 6 sites + blank-card page fix; error-branch tests | SSR-page test pattern must be solid from Phase 1 |
-| 4. Ownership (Risk #5) | `user_id` guard on `start`/`results`; `/analyze` bound to a session + client change; stub ordering tests; §6.4 | `/analyze` contract change touches the client; real RLS still unproven till Phase 4 |
-| 5. Stuck processing (Risk #6) | `effectiveSessionStatus` + both SSR pages; checked `UPDATE`s; Step-7 `postError`; unit + lifecycle tests; §6.6 | Threshold value (15 min) is a judgement call; orphan-results-row edge |
-| 6. CI gate + docs | `npm test` in `ci.yml`; §4 refresh note; §7 reaper entry; §6.6 wrap-up | Keeping frozen §4 strategy honest without rewriting it |
+| Phase                         | What it delivers                                                                                               | Key risk                                                                            |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| 1. Harness foundation         | `astro:env` alias-stub, OpenRouter mock, Supabase stub, context/page helpers, smoke tests, §6.2                | Alias-stub must mirror `env.schema`; Container API behaviour on Astro 6             |
+| 2. LLM boundary (Risk #2)     | Per-item Zod + `stripJsonFence` in `llm.ts`; generic route 500s; contract corpus; §6.3                         | Corpus completeness; fenced-body edge cases                                         |
+| 3. DB-error states (Risk #7)  | `.maybeSingle()` + error/absent split on 6 sites + blank-card page fix; error-branch tests                     | SSR-page test pattern must be solid from Phase 1                                    |
+| 4. Ownership (Risk #5)        | `user_id` guard on `start`/`results`; `/analyze` bound to a session + client change; stub ordering tests; §6.4 | `/analyze` contract change touches the client; real RLS still unproven till Phase 4 |
+| 5. Stuck processing (Risk #6) | `effectiveSessionStatus` + both SSR pages; checked `UPDATE`s; Step-7 `postError`; unit + lifecycle tests; §6.6 | Threshold value (15 min) is a judgement call; orphan-results-row edge               |
+| 6. CI gate + docs             | `npm test` in `ci.yml`; §4 refresh note; §7 reaper entry; §6.6 wrap-up                                         | Keeping frozen §4 strategy honest without rewriting it                              |
 
 **Prerequisites:** none beyond the Phase 1 harness (self-contained). A hosted Supabase project
 exists in `.dev.vars` but is not used this phase.

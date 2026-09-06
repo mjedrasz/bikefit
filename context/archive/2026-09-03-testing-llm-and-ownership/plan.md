@@ -35,7 +35,7 @@ inline in a route handler, so **a route test is a handler test**.
   DOM, no HTTP mock, no Supabase stub.**
 - `npm test` → `vitest run`; no `pretest`. Vitest `4.1.11` installed.
 - Cookbook §6.1 (pure logic) is the only filled pattern. §6.2–§6.4 all read `TBD — see §3
-  Phase 2`.
+Phase 2`.
 - `.github/workflows/ci.yml` runs `npm ci` → `astro sync` → `lint` → `build`. **No test step,
   no typecheck step.**
 
@@ -48,12 +48,12 @@ it.
 
 **Risk-by-risk starting point** (verified against `44438a1`):
 
-| Risk | Where it stands now |
-|---|---|
-| #2 | `llm.ts` parses `.json()`, null-checks `content`, `JSON.parse` in try/catch, `Array.isArray`-checks the top array — then `as`-casts items with **no per-item shape check**. No fence stripping. `analyze.ts:29` / `recommend.ts:48` return `{ error: err.message }` (full upstream text) on 500. `resultsPayloadSchema` re-validates `recommendations` + `body_angles` at `/results` (the one real per-item gate) but a reject there is a 400 the browser mishandles. |
-| #5 | RLS `SELECT` pre-check proves ownership on `start`, `results`, `recommend`, `GET [id]`, `DELETE [id]`, both SSR pages. `start.ts:30` and `results.ts:58,63` key the admin `UPDATE` on `params.id` **only**. `DELETE [id]` is the hardened template (pre-check `error`→500 + `.eq("user_id")` + `sessions_delete_own` policy). `POST /api/analyze` has **no session scope** (`analyzeRequestSchema` = `{ video }` only). |
-| #6 | No server-side reaper (`wrangler.jsonc` has no `triggers`/`crons`; no `pg_cron`; no sweep). `updated_at` is maintained by a `BEFORE UPDATE` trigger but nothing consumes it for staleness. `VideoAnalyzer` Step 7 (`:315-320`) catches a `/results` failure with **local state only — no `postError`**. `start.ts:30` and `results.ts:58,60-63` discard the `UPDATE` result. Results page (`[id].astro:101-108`) shows "Still processing — check back soon." forever; history shows a blue "Processing" pill forever. |
-| #7 | `const { data } = …` (dropping `error`) is live in: `GET /api/sessions/[id]:18`, `start.ts:18`, `results.ts:32` (pre-check), `sessions/[id].astro:15` (session) and `:33` (results — the blank-card path). `recommend.ts:25` does `if (error) → 404` (conflates error with not-found). `sessions/index.astro:21-26` (fixed, S-04 F1) and `DELETE [id]` (fixed, delete-session F3) are the two correct patterns to copy. |
+| Risk | Where it stands now                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| #2   | `llm.ts` parses `.json()`, null-checks `content`, `JSON.parse` in try/catch, `Array.isArray`-checks the top array — then `as`-casts items with **no per-item shape check**. No fence stripping. `analyze.ts:29` / `recommend.ts:48` return `{ error: err.message }` (full upstream text) on 500. `resultsPayloadSchema` re-validates `recommendations` + `body_angles` at `/results` (the one real per-item gate) but a reject there is a 400 the browser mishandles.                                                 |
+| #5   | RLS `SELECT` pre-check proves ownership on `start`, `results`, `recommend`, `GET [id]`, `DELETE [id]`, both SSR pages. `start.ts:30` and `results.ts:58,63` key the admin `UPDATE` on `params.id` **only**. `DELETE [id]` is the hardened template (pre-check `error`→500 + `.eq("user_id")` + `sessions_delete_own` policy). `POST /api/analyze` has **no session scope** (`analyzeRequestSchema` = `{ video }` only).                                                                                               |
+| #6   | No server-side reaper (`wrangler.jsonc` has no `triggers`/`crons`; no `pg_cron`; no sweep). `updated_at` is maintained by a `BEFORE UPDATE` trigger but nothing consumes it for staleness. `VideoAnalyzer` Step 7 (`:315-320`) catches a `/results` failure with **local state only — no `postError`**. `start.ts:30` and `results.ts:58,60-63` discard the `UPDATE` result. Results page (`[id].astro:101-108`) shows "Still processing — check back soon." forever; history shows a blue "Processing" pill forever. |
+| #7   | `const { data } = …` (dropping `error`) is live in: `GET /api/sessions/[id]:18`, `start.ts:18`, `results.ts:32` (pre-check), `sessions/[id].astro:15` (session) and `:33` (results — the blank-card path). `recommend.ts:25` does `if (error) → 404` (conflates error with not-found). `sessions/index.astro:21-26` (fixed, S-04 F1) and `DELETE [id]` (fixed, delete-session F3) are the two correct patterns to copy.                                                                                               |
 
 ## Desired End State
 
@@ -72,7 +72,7 @@ it.
 - Every route/page query error surfaces as a 500 or a distinct "couldn't load" state — never a
   404, an empty list, or a blank card.
 - Cookbook §6.2 / §6.3 / §6.4 are filled; §6.6 carries the Phase 2 notes; `.github/workflows/
-  ci.yml` runs `npm test` as a blocking step; a `/10x-test-plan --refresh` note is left for §4.
+ci.yml` runs `npm test` as a blocking step; a `/10x-test-plan --refresh` note is left for §4.
 
 ### Key Discoveries
 
@@ -109,14 +109,14 @@ it.
 
 ## What We're NOT Doing
 
-- **No server-side reaper / cron / TTL job.** Risk #6 is closed with a *display-time*
+- **No server-side reaper / cron / TTL job.** Risk #6 is closed with a _display-time_
   reconciliation rule (pure function + page render), not a DB write-back. The row literally
   stays `processing`; only its rendered status changes. A real sweep is out of scope (closer to
   Phase 3's feature-work character) and is not tracked as owed here.
 - **No real cross-user request against deployed RLS in this phase.** Deferred to §3 Phase 4 per
   the decision above. Phase 2 ships the stub-level ordering floor only.
 - **No rate limiting, payload-size caps, or provider-error-degradation work** — that is §3
-  Phase 3 (Risk #3). Phase 2 only *binds* `/analyze` to a session (an ownership fix).
+  Phase 3 (Risk #3). Phase 2 only _binds_ `/analyze` to a session (an ownership fix).
 - **No adversarial / prompt-injection probe** — §3 Phase 3 (Risk #4).
 - **No typecheck CI gate, no e2e, no Playwright** — §3 Phase 4. Phase 2 wires only `npm test`.
 - **No historical data backfill.** Existing `processing` rows that are actually stuck keep
@@ -137,7 +137,7 @@ finalisation (Phase 6).
 
 Every phase ships its tests **with** its code change in the same commit — no `.skip`, no
 "tests land later" (the Phase 1 rule from §6.6). Where a phase hardens a route, the test
-asserts the *new* behaviour and would fail against today's code.
+asserts the _new_ behaviour and would fail against today's code.
 
 ## Critical Implementation Details
 
@@ -147,7 +147,7 @@ name any route transitively imports: `SUPABASE_URL`, `SUPABASE_KEY`,
 `astro:env/server` field, the stub must gain it or that route's test throws at import. Keep the
 stub's export list annotated as mirroring `astro.config.mjs` `env.schema`. **Both** Vitest
 projects register this alias — the `pages` project needs it too, because `getViteConfig` wires
-the *real* `astro:env/server` virtual module, which throws on the missing required secrets.
+the _real_ `astro:env/server` virtual module, which throws on the missing required secrets.
 
 **`vi.mock` vs the alias.** The `astro:env/server` resolution is a static `resolve.alias` (not
 `vi.mock`) so it applies at import time for every test file unconditionally. `createClient` /
@@ -216,6 +216,7 @@ plugin, so importing `sessions/index.astro` / `[id].astro` into a spec fails at
 `vite:import-analysis` — the Container-API assertions in Phases 3 and 5 need this.
 
 **Contract**: Convert `vitest.config.ts` to the Vitest 4 `test.projects` API with two projects:
+
 - **`unit`** — an inline project carrying the current plain config (`environment: "node"`,
   `@/*` alias) plus `"astro:env/server"` →
   `fileURLToPath(new URL("./src/test/stubs/astro-env-server.ts", import.meta.url))` in
@@ -274,10 +275,11 @@ entries). `disableNetConnect()` on install; `restore()` in `afterEach`.
 wraps Astro's Container API for the two SSR pages.
 
 **Contract**:
+
 - `makeApiContext({ user, params, body, headers, cookies })` → object with `locals.user`
   (or `null`), `params`, `request` (a real `Request` with JSON body + headers), `cookies` (a
   minimal `AstroCookies`-shaped stub: `get`/`set`/`delete`/`has`). Returned shape is `as
-  unknown as APIContext` at the call site.
+unknown as APIContext` at the call site.
 - `renderPage(Component, { request, params, locals })` → uses
   `experimental_AstroContainer.create()` + `container.renderToResponse(Component, { … })`,
   returning the `Response` (so a test can assert `.status` and parse `.text()` for rendered
@@ -351,6 +353,7 @@ return a generic 500. Add the contract suite. Fill §6.3.
 downstream.
 
 **Contract**:
+
 - New `timestampItemSchema = z.object({ t: z.number(), f: z.number().optional(), type: z.enum(["BDC", "TDC"]) })` (defined in `llm.ts`, or in the pure `src/lib/llm-response.ts` from #2 if the shape checks are moved there for mutation coverage); `analyzeVideo` validates `z.array(timestampItemSchema).safeParse(result.timestamps)` and throws `new Error("Vision LLM returned a malformed timestamp list")` on failure. Return type unchanged.
 - `generateRecommendations` imports `recommendationSchema` from `@/lib/schemas` and validates
   `z.array(recommendationSchema).safeParse(result.recommendations)`; throws
@@ -370,10 +373,10 @@ pure, I/O-free module so its branches are unit-testable directly and Stryker can
 pattern and the Stryker `mutate` scope.
 
 **Contract**: New `src/lib/llm-response.ts` (no `astro:*` imports, no I/O) exporting
-`stripJsonFence(s: string): string` — trims, removes a leading `` ```json `` or `` ``` `` line
-and a trailing `` ``` ``, trims again; returns input unchanged if no fence. `llm.ts` imports it
+`stripJsonFence(s: string): string` — trims, removes a leading ` ```json ` or ` ``` ` line
+and a trailing ` ``` `, trims again; returns input unchanged if no fence. `llm.ts` imports it
 and applies it to `content` before `JSON.parse` in both `analyzeVideo` and
-`generateRecommendations`. A body that is *only* a fence with no JSON still throws the existing
+`generateRecommendations`. A body that is _only_ a fence with no JSON still throws the existing
 "invalid JSON" error. Optionally move the per-item schema constants from #1
 (`timestampItemSchema` and the `z.array(...).safeParse` helpers) here too, so the shape checks
 are mutation-covered as well; `llm.ts` re-imports them.
@@ -490,7 +493,7 @@ missing session.
 
 **File**: `src/pages/sessions/[id].astro`
 
-**Intent**: For a `completed` session, if the `analysis_results` query *errors*, the page today
+**Intent**: For a `completed` session, if the `analysis_results` query _errors_, the page today
 renders a blank card (no branch matches). It must render a readable error state instead.
 
 **Contract**: The `completed` branch captures `error` from the results query. Add a
@@ -584,6 +587,7 @@ comment.
 currently burn vision budget on any blob.
 
 **Contract**:
+
 - `analyzeRequestSchema` gains `session_id: z.string().uuid()`.
 - `analyze.ts` — after auth + parse, create the RLS client, run the sibling pre-check:
   `.from("fitting_sessions").select("id, status").eq("id", parsed.data.session_id).maybeSingle()`
@@ -604,7 +608,7 @@ currently burn vision budget on any blob.
 **File**: co-located `*.test.ts` for `start`, `results`, `recommend`, `analyze`,
 `GET`/`DELETE [id]`
 
-**Intent**: Assert the ownership *discipline* without a live DB: pre-check runs first, a
+**Intent**: Assert the ownership _discipline_ without a live DB: pre-check runs first, a
 no-row pre-check yields 404 with no admin write, the admin write carries `.eq("user_id")`, and
 an anonymous request is 401.
 
@@ -665,9 +669,10 @@ failed (research §4c — a transient error, or the Phase 4 `.eq("user_id")` gua
 0 rows, neither of which surfaces as an `error`); a normal `queued` row has
 `updated_at ≈ created_at` and the client fires `/start` on mount, so it never trips the
 threshold. Exported `STALE_PROCESSING_MS = 15 * 60_000` with a comment: "the browser pipeline (vision LLM
-+ CPU pose detection over 5 offsets/keyframe) runs single-digit minutes; 15 min is a safe
-'no client is coming back' threshold. Tune with real telemetry." A companion
-`STALE_PROCESSING_MESSAGE = "Analysis timed out — the browser tab may have been closed before it finished. Please try again."`
+
+- CPU pose detection over 5 offsets/keyframe) runs single-digit minutes; 15 min is a safe
+  'no client is coming back' threshold. Tune with real telemetry." A companion
+  `STALE_PROCESSING_MESSAGE = "Analysis timed out — the browser tab may have been closed before it finished. Please try again."`
 
 #### 2. Results page renders the effective status
 
@@ -737,6 +742,7 @@ backstopped by the staleness rule.
 **Intent**: Unit-cover the state map; integration-cover the lifecycle gaps.
 
 **Contract**:
+
 - Unit: fresh `processing` (age < threshold) → `processing`; stale `processing` → `failed`;
   fresh `queued` → `queued`; stale `queued` → `failed`; exactly-at-threshold boundary;
   `completed`/`failed` returned unchanged regardless of age; malformed `updated_at` → returns

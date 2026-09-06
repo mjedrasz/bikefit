@@ -1,4 +1,5 @@
 <!-- PLAN-REVIEW-REPORT -->
+
 # Plan Review: LLM boundary + API-route integration (test-plan Phase 2)
 
 - **Plan**: context/changes/testing-llm-and-ownership/plan.md
@@ -9,13 +10,13 @@
 
 ## Verdicts
 
-| Dimension | Verdict (as reviewed) | After triage |
-|-----------|-----------------------|--------------|
-| End-State Alignment | WARNING | PASS — F6 annotated in Phase 6 #5 |
-| Lean Execution | PASS | PASS |
-| Architectural Fitness | WARNING | PASS — F1 two-project config; F4 pure module |
-| Blind Spots | WARNING | PASS — F3 `queued` predicate; F4/F5 coverage |
-| Plan Completeness | FAIL | PASS — F1 contradiction resolved; F2 checkboxes fixed |
+| Dimension             | Verdict (as reviewed) | After triage                                          |
+| --------------------- | --------------------- | ----------------------------------------------------- |
+| End-State Alignment   | WARNING               | PASS — F6 annotated in Phase 6 #5                     |
+| Lean Execution        | PASS                  | PASS                                                  |
+| Architectural Fitness | WARNING               | PASS — F1 two-project config; F4 pure module          |
+| Blind Spots           | WARNING               | PASS — F3 `queued` predicate; F4/F5 coverage          |
+| Plan Completeness     | FAIL                  | PASS — F1 contradiction resolved; F2 checkboxes fixed |
 
 ## Grounding
 
@@ -83,7 +84,7 @@ graph (middleware not route-imported) ✓. brief↔plan consistent ✓.
 - **Impact**: 🏃 LOW — quick decision; fix is obvious and narrowly scoped
 - **Dimension**: Blind Spots (test coverage) + Architectural Fitness
 - **Location**: Phase 2 #2; Testing Strategy → Unit Tests
-- **Detail**: `stripJsonFence` is one of the two core Risk #2 behaviors, with real branching (leading ```json, bare ```, trailing ```, no-fence passthrough, fence-only→throw). The plan gives it one indirect case ("exercised indirectly through the contract suite (fenced-body case)"). As an un-exported local helper in `llm.ts` — which imports `astro:env/server` — it's also outside the §6.1 pure-unit pattern and the Stryker `mutate` scope (limited to `astro:env`-free modules).
+- **Detail**: `stripJsonFence` is one of the two core Risk #2 behaviors, with real branching (leading `json, bare `, trailing ```, no-fence passthrough, fence-only→throw). The plan gives it one indirect case ("exercised indirectly through the contract suite (fenced-body case)"). As an un-exported local helper in `llm.ts`— which imports`astro:env/server`— it's also outside the §6.1 pure-unit pattern and the Stryker`mutate`scope (limited to`astro:env`-free modules).
 - **Fix**: Extract fence-stripping (and optionally the per-item schema helpers) into a pure module e.g. `src/lib/llm-response.ts` (no I/O), unit-test the branch cases directly, and let Stryker mutate it. `llm.ts` imports from there.
 - **Decision**: FIXED — Phase 2 #2 rewritten to create pure `src/lib/llm-response.ts` (`stripJsonFence`, optionally the per-item schemas); Phase 2 #1, Testing Strategy → Unit Tests, Phase 2 success criteria + Progress 2.9 updated.
 
