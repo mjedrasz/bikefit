@@ -1,10 +1,10 @@
 ---
 change_id: landing-and-results-navigation
 title: Landing and results navigation
-status: implemented
+status: archived
 created: 2026-09-06
 updated: 2026-09-06
-archived_at: null
+archived_at: 2026-09-06T20:35:08Z
 ---
 
 ## Notes
