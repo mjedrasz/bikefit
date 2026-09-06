@@ -24,3 +24,37 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+
+  e2e:
+    runs-on: ubuntu-latest
+    env:
+      # playwright.config.ts reads these E2E_* names and remaps them to the SUPABASE_* names
+      # the workerd preview server expects (the E2E_* prefix is a Secrets-UI label only).
+      # e2e/helpers/seed-user.ts reads E2E_SUPABASE_URL / E2E_SUPABASE_SERVICE_ROLE_KEY directly.
+      E2E_SUPABASE_URL: ${{ secrets.E2E_SUPABASE_URL }}
+      E2E_SUPABASE_KEY: ${{ secrets.E2E_SUPABASE_KEY }}
+      E2E_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.E2E_SUPABASE_SERVICE_ROLE_KEY }}
+      # Non-secret placeholder — the OpenRouter call is served by the local mock
+      # (e2e/helpers/openrouter-mock-server.mjs); this value never reaches a real endpoint.
+      OPENROUTER_API_KEY: e2e-mock-unused
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx astro sync
+      # Keep the dedicated e2e Supabase project (bikefit-e2e) at schema HEAD: applies any
+      # migration added since Phase 2 so the gate never runs against a stale schema. A failing
+      # migration fails the e2e job, which is correct.
+      - run: npx supabase link --project-ref kdocdkibpdqaydrydwtd
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.E2E_SUPABASE_DB_PASSWORD }}
+      - run: npx supabase db push
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.E2E_SUPABASE_DB_PASSWORD }}
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test
