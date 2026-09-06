@@ -66,9 +66,15 @@ const bodyAngles =
 
 <Layout title="Fitting results">
   <div class="bg-cosmic flex min-h-screen flex-col items-center justify-center p-4">
-    <div class="mb-4 w-full max-w-2xl">
-      <a href="/dashboard" class="text-sm text-blue-100/70 hover:text-white">&larr; Back to dashboard</a>
-    </div>
+    <nav aria-label="Breadcrumb" class="mb-4 w-full max-w-2xl">
+      <ol class="flex flex-wrap items-center gap-2 text-sm text-blue-100/70">
+        <li><a href="/dashboard" class="hover:text-white">Dashboard</a></li>
+        <li aria-hidden="true" class="text-blue-100/40">/</li>
+        <li><a href="/sessions" class="hover:text-white">Session history</a></li>
+        <li aria-hidden="true" class="text-blue-100/40">/</li>
+        <li aria-current="page" class="min-w-0 truncate text-white">{session.video_filename ?? "Fitting results"}</li>
+      </ol>
+    </nav>
     <div class="w-full max-w-2xl rounded-2xl border border-white/10 bg-white/10 p-6 text-white backdrop-blur-xl">
       {
         session.status === "completed" && results && (

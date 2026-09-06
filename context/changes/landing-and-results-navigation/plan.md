@@ -238,31 +238,31 @@ None. No data, schema, or config changes. If `Welcome.astro` is renamed to `Land
 
 #### Automated
 
-- [x] 1.1 Type checking passes: `npx tsc --noEmit`
-- [x] 1.2 Linting passes: `npm run lint`
-- [x] 1.3 Unit/integration tests pass: `npm run test`
-- [x] 1.4 Build succeeds: `npm run build`
+- [x] 1.1 Type checking passes: `npx tsc --noEmit` — b747930
+- [x] 1.2 Linting passes: `npm run lint` — b747930
+- [x] 1.3 Unit/integration tests pass: `npm run test` — b747930
+- [x] 1.4 Build succeeds: `npm run build` — b747930
 
 #### Manual
 
-- [x] 1.5 `/` logged out shows the BikeFit landing page; no "10x Astro Starter" text; tab title "BikeFit"
-- [x] 1.6 Primary CTA → `/auth/signup`; secondary link → `/auth/signin`
-- [x] 1.7 "How it works" steps + gravel-only & privacy notes visible; no horizontal scroll on mobile
-- [x] 1.8 `/` logged in redirects to `/dashboard` with no flash of the landing page
-- [x] 1.9 `Topbar` auth-aware links still correct
+- [x] 1.5 `/` logged out shows the BikeFit landing page; no "10x Astro Starter" text; tab title "BikeFit" — b747930
+- [x] 1.6 Primary CTA → `/auth/signup`; secondary link → `/auth/signin` — b747930
+- [x] 1.7 "How it works" steps + gravel-only & privacy notes visible; no horizontal scroll on mobile — b747930
+- [x] 1.8 `/` logged in redirects to `/dashboard` with no flash of the landing page — b747930
+- [x] 1.9 `Topbar` auth-aware links still correct — b747930
 
 ### Phase 2: Session-detail breadcrumb navigation
 
 #### Automated
 
-- [ ] 2.1 Type checking passes: `npx tsc --noEmit`
-- [ ] 2.2 Linting passes: `npm run lint`
-- [ ] 2.3 Unit/integration tests pass: `npm run test` (including the new `_[id].test.ts` assertion)
-- [ ] 2.4 Existing `sessions/[id].astro` Risk #6 / Risk #7 tests still pass
+- [x] 2.1 Type checking passes: `npx tsc --noEmit`
+- [x] 2.2 Linting passes: `npm run lint`
+- [x] 2.3 Unit/integration tests pass: `npm run test` (including the new `_[id].test.ts` assertion)
+- [x] 2.4 Existing `sessions/[id].astro` Risk #6 / Risk #7 tests still pass
 
 #### Manual
 
-- [ ] 2.5 Completed session shows the breadcrumb; "Dashboard" and "Session history" links navigate correctly
-- [ ] 2.6 Processing / failed session shows the same breadcrumb
-- [ ] 2.7 e2e smoke (`npm run test:e2e`) still passes
-- [ ] 2.8 No visual regression to the results card layout
+- [x] 2.5 Completed session shows the breadcrumb; "Dashboard" and "Session history" links navigate correctly
+- [x] 2.6 Processing / failed session shows the same breadcrumb
+- [x] 2.7 e2e smoke (`npm run test:e2e`) still passes
+- [x] 2.8 No visual regression to the results card layout

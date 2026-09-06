@@ -116,3 +116,20 @@ describe("sessions/[id].astro — stuck-processing terminal state (Risk #6)", ()
     expect(html).not.toContain(STALE_PROCESSING_MESSAGE);
   });
 });
+
+describe("sessions/[id].astro — breadcrumb navigation", () => {
+  it("renders a breadcrumb to the dashboard and session history instead of the bare back-link", async () => {
+    stubReturns({
+      "fitting_sessions.select": { data: completedSession },
+      "analysis_results.select": { data: { recommendations: [], body_angles: [] } },
+    });
+
+    const res = await renderPage(SessionDetail, { params: { id: "s1" }, locals: { user } });
+
+    expect(res.status).toBe(200);
+    const html = await res.text();
+    expect(html).toContain('href="/dashboard"');
+    expect(html).toContain('href="/sessions"');
+    expect(html).not.toContain("Back to dashboard");
+  });
+});
