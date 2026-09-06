@@ -27,17 +27,17 @@ Amateur cyclists who notice discomfort or wonder whether their position is effic
 
 ## At a glance
 
-| ID   | Change ID                       | Outcome (user can …)                                                                                                  | Prerequisites    | PRD refs                              | Status  |
-| ---- | ------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ---------------- | ------------------------------------- | ------- |
-| F-01 | db-schema-and-privacy-design    | (foundation) session and result tables exist; schema enforces no-raw-video privacy                                    | —                | NFR-privacy, FR-001, FR-002           | done    |
-| F-02 | async-job-pipeline              | (foundation) analysis jobs can be queued, executed, and their status tracked                                          | F-01             | NFR-async                             | done    |
-| S-01 | video-upload-and-status         | upload a short MP4 cycling video and see live processing status                                                       | F-01, F-02       | FR-001, FR-002, FR-003, US-01         | done    |
-| S-02 | ai-analysis-pipeline            | have uploaded video fully processed — pose keypoints, angles, LLM recommendations                                     | F-01, F-02, S-01 | FR-004, FR-005, FR-006, FR-007, US-01 | done    |
-| S-03 | fitting-results-display         | view fitting recommendations and body angles for a completed session                                                  | F-01             | FR-008, US-01                         | done    |
-| S-04 | session-history-list            | browse all past fitting sessions and navigate to any completed result                                                 | S-01, F-01       | FR-009                                | done    |
-| S-05 | results-display-ux-improvements | see body angles rounded to a readable precision instead of raw floating-point values                                  | S-03             | FR-008                                | done    |
-| S-06 | delete-session                  | delete a selected past fitting session they own                                                                       | S-04             | FR-009, Access Control                | done    |
-| S-07 | landing-and-results-navigation  | land on a product landing page with a clear call to action, and jump from a session's details straight to its results | S-01, S-03       | US-01, FR-003, FR-008                 | backlog |
+| ID   | Change ID                       | Outcome (user can …)                                                                                                  | Prerequisites    | PRD refs                              | Status |
+| ---- | ------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ---------------- | ------------------------------------- | ------ |
+| F-01 | db-schema-and-privacy-design    | (foundation) session and result tables exist; schema enforces no-raw-video privacy                                    | —                | NFR-privacy, FR-001, FR-002           | done   |
+| F-02 | async-job-pipeline              | (foundation) analysis jobs can be queued, executed, and their status tracked                                          | F-01             | NFR-async                             | done   |
+| S-01 | video-upload-and-status         | upload a short MP4 cycling video and see live processing status                                                       | F-01, F-02       | FR-001, FR-002, FR-003, US-01         | done   |
+| S-02 | ai-analysis-pipeline            | have uploaded video fully processed — pose keypoints, angles, LLM recommendations                                     | F-01, F-02, S-01 | FR-004, FR-005, FR-006, FR-007, US-01 | done   |
+| S-03 | fitting-results-display         | view fitting recommendations and body angles for a completed session                                                  | F-01             | FR-008, US-01                         | done   |
+| S-04 | session-history-list            | browse all past fitting sessions and navigate to any completed result                                                 | S-01, F-01       | FR-009                                | done   |
+| S-05 | results-display-ux-improvements | see body angles rounded to a readable precision instead of raw floating-point values                                  | S-03             | FR-008                                | done   |
+| S-06 | delete-session                  | delete a selected past fitting session they own                                                                       | S-04             | FR-009, Access Control                | done   |
+| S-07 | landing-and-results-navigation  | land on a product landing page with a clear call to action, and jump from a session's details straight to its results | S-01, S-03       | US-01, FR-003, FR-008                 | done   |
 
 ## Streams
 
@@ -182,7 +182,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Unknowns:**
   - Dedicated landing page at `/` vs. promoting `/dashboard` to the site root? — Owner: user. Block: no. (Default to a dedicated landing page that routes logged-in users on to the dashboard; revisit if the dashboard already serves as an adequate entry point.)
 - **Risk:** UI-and-routing only, over flows that already exist — replace the starter index page and add one navigation link on the session details view. No schema, pipeline, or auth-model impact. Low risk; the one thing to get right is that the landing page's logged-in vs. logged-out states stay consistent with the existing middleware redirects.
-- **Status:** backlog
+- **Status:** done
 
 ## Backlog Handoff
 
@@ -227,3 +227,4 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **S-04: browse all past fitting sessions and navigate to any completed result** — Archived 2026-09-01 → `context/archive/2026-08-23-session-history-list/`. Lesson: —.
 - **S-05: see body angles rounded to a readable precision instead of raw floating-point values** — Archived 2026-09-01 → `context/archive/2026-09-01-results-display-ux-improvements/`. Lesson: —.
 - **S-06: delete a selected past fitting session they own** — Archived 2026-09-03 → `context/archive/2026-09-02-delete-session/`. Lesson: —.
+- **S-07: a visitor hitting the site root sees a BikeFit product landing page — not the generic "10x Astro Starter" — with a clear call to action to upload a video and start a fitting session; and from a fitting session's details page a user can navigate directly to that session's results, not only "Back to dashboard".** — Archived 2026-09-06 → `context/archive/2026-09-06-landing-and-results-navigation/`. Lesson: —.
