@@ -1,10 +1,10 @@
 ---
 change_id: test-plan-refresh-2026-09-04
 title: Test-plan refresh — Phase 2 reconciliation + local git-hook layer
-status: complete
+status: archived
 created: 2026-09-04
-updated: 2026-09-04
-archived_at: null
+updated: 2026-09-06
+archived_at: 2026-09-06T19:31:22Z
 ---
 
 ## Notes
