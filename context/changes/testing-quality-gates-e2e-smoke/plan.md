@@ -620,13 +620,13 @@ real project and the e2e gate.
 
 #### Automated
 
-- [x] 4.1 `npm run test:e2e` — both tests pass
-- [x] 4.2 Permissive `sessions_select_own` (`USING (true)`, then restored) makes the negative test fail red
+- [x] 4.1 `npm run test:e2e` — both tests pass — ceab321
+- [x] 4.2 Permissive `sessions_select_own` (`USING (true)`, then restored) makes the negative test fail red — ceab321
 
 #### Manual
 
-- [x] 4.3 Headed run confirms the upload UI moves through all states
-- [x] 4.4 Dashboard confirms seeded users/rows are gone post-run
+- [x] 4.3 Headed run confirms the upload UI moves through all states — ceab321
+- [x] 4.4 Dashboard confirms seeded users/rows are gone post-run — ceab321
 
 ### Phase 5: Wire the required `e2e` CI job
 
