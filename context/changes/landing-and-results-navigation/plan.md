@@ -255,14 +255,14 @@ None. No data, schema, or config changes. If `Welcome.astro` is renamed to `Land
 
 #### Automated
 
-- [x] 2.1 Type checking passes: `npx tsc --noEmit`
-- [x] 2.2 Linting passes: `npm run lint`
-- [x] 2.3 Unit/integration tests pass: `npm run test` (including the new `_[id].test.ts` assertion)
-- [x] 2.4 Existing `sessions/[id].astro` Risk #6 / Risk #7 tests still pass
+- [x] 2.1 Type checking passes: `npx tsc --noEmit` — 0d07fbd
+- [x] 2.2 Linting passes: `npm run lint` — 0d07fbd
+- [x] 2.3 Unit/integration tests pass: `npm run test` (including the new `_[id].test.ts` assertion) — 0d07fbd
+- [x] 2.4 Existing `sessions/[id].astro` Risk #6 / Risk #7 tests still pass — 0d07fbd
 
 #### Manual
 
-- [x] 2.5 Completed session shows the breadcrumb; "Dashboard" and "Session history" links navigate correctly
-- [x] 2.6 Processing / failed session shows the same breadcrumb
-- [x] 2.7 e2e smoke (`npm run test:e2e`) still passes
-- [x] 2.8 No visual regression to the results card layout
+- [x] 2.5 Completed session shows the breadcrumb; "Dashboard" and "Session history" links navigate correctly — 0d07fbd
+- [x] 2.6 Processing / failed session shows the same breadcrumb — 0d07fbd
+- [x] 2.7 e2e smoke (`npm run test:e2e`) still passes — 0d07fbd
+- [x] 2.8 No visual regression to the results card layout — 0d07fbd
