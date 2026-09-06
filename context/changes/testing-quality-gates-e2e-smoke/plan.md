@@ -583,25 +583,25 @@ real project and the e2e gate.
 
 #### Automated
 
-- [x] 1.1 `npx tsc --noEmit` passes locally
-- [x] 1.2 New step present in `.github/workflows/ci.yml`, after `astro sync`
+- [x] 1.1 `npx tsc --noEmit` passes locally — edc650a
+- [x] 1.2 New step present in `.github/workflows/ci.yml`, after `astro sync` — edc650a
 
 #### Manual
 
-- [ ] 1.3 PR shows the new step running and passing
-- [ ] 1.4 Deliberate type error confirmed to fail the step, then reverted
+- [x] 1.3 PR shows the new step running and passing — edc650a
+- [x] 1.4 Deliberate type error confirmed to fail the step, then reverted — edc650a
 
 ### Phase 2: Dedicated e2e Supabase project + secrets
 
 #### Automated
 
-- [ ] 2.1 `npx supabase db push` applies all four migrations, zero errors
-- [ ] 2.2 REST health-check against the new project returns non-5xx
+- [x] 2.1 `npx supabase db push` applies all four migrations, zero errors
+- [x] 2.2 REST health-check against the new project returns non-5xx
 
 #### Manual
 
-- [ ] 2.3 New project confirmed in Supabase dashboard
-- [ ] 2.4 Five new secrets confirmed in repo Settings → Secrets (3 × `E2E_SUPABASE_*` + `SUPABASE_ACCESS_TOKEN` + `E2E_SUPABASE_DB_PASSWORD`)
+- [x] 2.3 New project confirmed in Supabase dashboard
+- [x] 2.4 Five new secrets confirmed in repo Settings → Secrets (3 × `E2E_SUPABASE_*` + `SUPABASE_ACCESS_TOKEN` + `E2E_SUPABASE_DB_PASSWORD`)
 
 ### Phase 3: Playwright scaffolding + deterministic OpenRouter stand-in
 
