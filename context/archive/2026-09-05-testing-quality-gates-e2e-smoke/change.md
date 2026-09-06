@@ -1,10 +1,10 @@
 ---
 change_id: testing-quality-gates-e2e-smoke
 title: Testing quality gates e2e smoke
-status: impl_reviewed
+status: archived
 created: 2026-09-05
 updated: 2026-09-06
-archived_at: null
+archived_at: 2026-09-06T19:31:22Z
 ---
 
 ## Notes
