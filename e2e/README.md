@@ -1,17 +1,18 @@
 # e2e (Playwright)
 
 The one e2e smoke over `upload → analysing → results`, plus the deferred Risk #5 real
-cross-user RLS check. Scaffolding lands in §3 Phase 4 of the test-plan rollout
-(`context/changes/testing-quality-gates-e2e-smoke/`); the two `test()` cases land in Phase 4.
+cross-user RLS check — two `test()` cases in `upload-analysis-results.spec.ts`
+(`context/changes/testing-quality-gates-e2e-smoke/`, §3 Phase 4 of the test-plan rollout).
 
 ## Layout
 
-| Path                                     | What                                                                                                                                        |
-| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `playwright.config.ts` (repo root)       | Two-server boot: the OpenRouter mock (`:4319`) + `npm run build && npm run preview` (workerd, `:4321`). Cross-project + `.dev.vars` guards. |
-| `e2e/helpers/openrouter-mock-server.mjs` | Plain `node:http` stand-in for `openrouter.ai`. Branches on the request body's `model` field; unknown model → hard 500.                     |
-| `e2e/helpers/seed-user.ts`               | _(Phase 4)_ Supabase Auth admin-API user + real `/api/auth/signin` → `storageState`.                                                        |
-| `e2e/fixtures/`                          | _(Phase 4)_ the committed video fixture.                                                                                                    |
+| Path                                     | What                                                                                                                                           |
+| ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `playwright.config.ts` (repo root)       | Two-server boot: the OpenRouter mock (`:4319`) + `npm run build && npm run preview` (workerd, `:4321`). Cross-project + `.dev.vars` guards.    |
+| `e2e/helpers/openrouter-mock-server.mjs` | Plain `node:http` stand-in for `openrouter.ai`. Branches on the request body's `model` field; unknown model → hard 500.                        |
+| `e2e/helpers/seed-user.ts`               | `createUser` / `seedUser` — Supabase Auth admin-API user (+ real `/api/auth/signin` → `storageState`). Same cross-project guard as the config. |
+| `e2e/fixtures/bike-fit-sample.mp4`       | The committed upload fixture — H.264/AAC, 788×1146, 2.807 s, 502 KB (passes VideoUpload's mp4 / ≤100 MB / 2–15 s gates).                       |
+| `e2e/upload-analysis-results.spec.ts`    | The happy-path smoke + `user B cannot read user A's session` (a 404 against `sessions/[id].astro`, the one pure-RLS surface in the flow).      |
 
 ## Running locally
 
