@@ -3,7 +3,7 @@ project: "BikeFit"
 version: 1
 status: draft
 created: 2026-05-26
-updated: 2026-09-03
+updated: 2026-09-06
 prd_version: 1
 main_goal: market-feedback
 top_blocker: decisions
@@ -27,26 +27,28 @@ Amateur cyclists who notice discomfort or wonder whether their position is effic
 
 ## At a glance
 
-| ID   | Change ID                    | Outcome (user can …)                                                               | Prerequisites    | PRD refs                              | Status   |
-| ---- | ---------------------------- | ---------------------------------------------------------------------------------- | ---------------- | ------------------------------------- | -------- |
-| F-01 | db-schema-and-privacy-design | (foundation) session and result tables exist; schema enforces no-raw-video privacy | —                | NFR-privacy, FR-001, FR-002           | done     |
-| F-02 | async-job-pipeline           | (foundation) analysis jobs can be queued, executed, and their status tracked       | F-01             | NFR-async                             | done    |
-| S-01 | video-upload-and-status      | upload a short MP4 cycling video and see live processing status                    | F-01, F-02       | FR-001, FR-002, FR-003, US-01         | done  |
-| S-02 | ai-analysis-pipeline         | have uploaded video fully processed — pose keypoints, angles, LLM recommendations | F-01, F-02, S-01 | FR-004, FR-005, FR-006, FR-007, US-01 | done  |
-| S-03 | fitting-results-display      | view fitting recommendations and body angles for a completed session               | F-01             | FR-008, US-01                         | done |
-| S-04 | session-history-list         | browse all past fitting sessions and navigate to any completed result              | S-01, F-01       | FR-009                                | done |
-| S-05 | results-display-ux-improvements | see body angles rounded to a readable precision instead of raw floating-point values | S-03              | FR-008                                | done |
-| S-06 | delete-session               | delete a selected past fitting session they own                                    | S-04             | FR-009, Access Control               | done |
+| ID   | Change ID                       | Outcome (user can …)                                                                                                  | Prerequisites    | PRD refs                              | Status  |
+| ---- | ------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ---------------- | ------------------------------------- | ------- |
+| F-01 | db-schema-and-privacy-design    | (foundation) session and result tables exist; schema enforces no-raw-video privacy                                    | —                | NFR-privacy, FR-001, FR-002           | done    |
+| F-02 | async-job-pipeline              | (foundation) analysis jobs can be queued, executed, and their status tracked                                          | F-01             | NFR-async                             | done    |
+| S-01 | video-upload-and-status         | upload a short MP4 cycling video and see live processing status                                                       | F-01, F-02       | FR-001, FR-002, FR-003, US-01         | done    |
+| S-02 | ai-analysis-pipeline            | have uploaded video fully processed — pose keypoints, angles, LLM recommendations                                     | F-01, F-02, S-01 | FR-004, FR-005, FR-006, FR-007, US-01 | done    |
+| S-03 | fitting-results-display         | view fitting recommendations and body angles for a completed session                                                  | F-01             | FR-008, US-01                         | done    |
+| S-04 | session-history-list            | browse all past fitting sessions and navigate to any completed result                                                 | S-01, F-01       | FR-009                                | done    |
+| S-05 | results-display-ux-improvements | see body angles rounded to a readable precision instead of raw floating-point values                                  | S-03             | FR-008                                | done    |
+| S-06 | delete-session                  | delete a selected past fitting session they own                                                                       | S-04             | FR-009, Access Control                | done    |
+| S-07 | landing-and-results-navigation  | land on a product landing page with a clear call to action, and jump from a session's details straight to its results | S-01, S-03       | US-01, FR-003, FR-008                 | backlog |
 
 ## Streams
 
 Navigation aid — groups items that share a Prerequisites chain. Canonical ordering still lives in the dependency graph below; this table is the proposed reading order across parallel tracks.
 
-| Stream | Theme                  | Chain                              | Note                                                                                      |
-| ------ | ---------------------- | ---------------------------------- | ----------------------------------------------------------------------------------------- |
-| A      | Core analysis pipeline | `F-01` → `F-02` → `S-01` → `S-02` | North star lives at S-02; entire analysis path flows here; blocked by 3 open decisions    |
-| B      | Results display        | `S-03` → `S-05`                    | Branches from Stream A at F-01; parallel with F-02, S-01, S-02 — build with mock data while pipeline is unblocked; S-05 polishes the display once S-03 ships |
-| C      | Session history        | `S-04` → `S-06`                    | Branches from Stream A at S-01; opens once video upload is working; S-06 (delete a session) extends the history view once S-04 ships |
+| Stream | Theme                  | Chain                             | Note                                                                                                                                                         |
+| ------ | ---------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| A      | Core analysis pipeline | `F-01` → `F-02` → `S-01` → `S-02` | North star lives at S-02; entire analysis path flows here; blocked by 3 open decisions                                                                       |
+| B      | Results display        | `S-03` → `S-05`                   | Branches from Stream A at F-01; parallel with F-02, S-01, S-02 — build with mock data while pipeline is unblocked; S-05 polishes the display once S-03 ships |
+| C      | Session history        | `S-04` → `S-06`                   | Branches from Stream A at S-01; opens once video upload is working; S-06 (delete a session) extends the history view once S-04 ships                         |
+| D      | Entry & navigation UX  | `S-07`                            | Branches from S-01 (product landing page) and S-03 (session-details → results link); pure UI/routing polish once both ship                                   |
 
 ## Baseline
 
@@ -54,7 +56,7 @@ What's already in place in the codebase as of 2026-05-26 (auto-researched + user
 Foundations below assume these are present and do NOT re-scaffold them.
 
 - **Frontend:** present — Astro 6 + React 19, file-based routing; pages: index, dashboard, auth pages (astro.config.mjs)
-- **Backend / API:** partial — Astro API routes wired; only auth routes exist (src/pages/api/auth/*); no video upload, analysis, or session routes
+- **Backend / API:** partial — Astro API routes wired; only auth routes exist (src/pages/api/auth/\*); no video upload, analysis, or session routes
 - **Data:** partial — Supabase SDK configured (src/lib/supabase.ts); no migrations or domain models
 - **Auth:** present — Supabase auth fully wired: middleware, signin/signup/signout, session management (src/middleware.ts)
 - **Deploy / infra:** present — Cloudflare Workers (wrangler.jsonc), GitHub Actions CI (.github/workflows/ci.yml)
@@ -169,18 +171,32 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Risk:** Lightweight slice over data and a list view that already exist once S-04 ships — a delete endpoint plus a confirm action in the history UI. The one real correctness concern is the ownership check: a user must never delete another user's session, so the delete must be scoped to the authenticated user and enforced by RLS, not just the UI.
 - **Status:** done
 
+### S-07: Landing page and session-to-results navigation
+
+- **Outcome:** a visitor hitting the site root sees a BikeFit product landing page — not the generic "10x Astro Starter" — with a clear call to action to upload a video and start a fitting session; and from a fitting session's details page a user can navigate directly to that session's results, not only "Back to dashboard".
+- **Change ID:** landing-and-results-navigation
+- **PRD refs:** US-01 (the landing page is the entry point to the analysis user story), FR-003 (upload a video — the landing-page call to action), FR-008 (a session's results, now reachable from the session itself)
+- **Prerequisites:** S-01, S-03
+- **Parallel with:** —
+- **Blockers:** —
+- **Unknowns:**
+  - Dedicated landing page at `/` vs. promoting `/dashboard` to the site root? — Owner: user. Block: no. (Default to a dedicated landing page that routes logged-in users on to the dashboard; revisit if the dashboard already serves as an adequate entry point.)
+- **Risk:** UI-and-routing only, over flows that already exist — replace the starter index page and add one navigation link on the session details view. No schema, pipeline, or auth-model impact. Low risk; the one thing to get right is that the landing page's logged-in vs. logged-out states stay consistent with the existing middleware redirects.
+- **Status:** backlog
+
 ## Backlog Handoff
 
-| Roadmap ID | Change ID                    | Suggested issue title                                    | Ready for `/10x-plan` | Notes                                                            |
-| ---------- | ---------------------------- | -------------------------------------------------------- | --------------------- | ---------------------------------------------------------------- |
-| F-01       | db-schema-and-privacy-design | Design session + result schema with privacy-first RLS    | done                  | Implemented 2026-05-29                                           |
-| F-02       | async-job-pipeline           | Wire async analysis job queue and status tracking        | done                  | F-01 done; run `/10x-plan async-job-pipeline`                    |
-| S-01       | video-upload-and-status      | Build video upload flow with processing-status indicator | done                  | Blocked: resolve OQ-1 (min duration) and OQ-3 (tool) first      |
-| S-02       | ai-analysis-pipeline         | Integrate pose estimation + angle calc + LLM pipeline    | done                  | Was blocked on OQ-2 (reference ranges — RESOLVED 2026-09-02, see context/foundation/reference-angles.md) and OQ-3 (tool) |
-| S-03       | fitting-results-display      | Build results display: recommendations + angles + ranges | done                   | F-01 done; run `/10x-plan fitting-results-display`               |
-| S-04       | session-history-list         | Build session history list and navigation                | done                   | Depends on S-01 completing                                       |
-| S-05       | results-display-ux-improvements | Round over-precise body angle values in results display  | no                     | Depends on S-03 completing; run `/10x-new results-display-ux-improvements` once ready |
-| S-06       | delete-session               | Let users delete their own past fitting sessions         | yes                   | S-04 done; run `/10x-new delete-session` to open the change     |
+| Roadmap ID | Change ID                       | Suggested issue title                                    | Ready for `/10x-plan` | Notes                                                                                                                    |
+| ---------- | ------------------------------- | -------------------------------------------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| F-01       | db-schema-and-privacy-design    | Design session + result schema with privacy-first RLS    | done                  | Implemented 2026-05-29                                                                                                   |
+| F-02       | async-job-pipeline              | Wire async analysis job queue and status tracking        | done                  | F-01 done; run `/10x-plan async-job-pipeline`                                                                            |
+| S-01       | video-upload-and-status         | Build video upload flow with processing-status indicator | done                  | Blocked: resolve OQ-1 (min duration) and OQ-3 (tool) first                                                               |
+| S-02       | ai-analysis-pipeline            | Integrate pose estimation + angle calc + LLM pipeline    | done                  | Was blocked on OQ-2 (reference ranges — RESOLVED 2026-09-02, see context/foundation/reference-angles.md) and OQ-3 (tool) |
+| S-03       | fitting-results-display         | Build results display: recommendations + angles + ranges | done                  | F-01 done; run `/10x-plan fitting-results-display`                                                                       |
+| S-04       | session-history-list            | Build session history list and navigation                | done                  | Depends on S-01 completing                                                                                               |
+| S-05       | results-display-ux-improvements | Round over-precise body angle values in results display  | no                    | Depends on S-03 completing; run `/10x-new results-display-ux-improvements` once ready                                    |
+| S-06       | delete-session                  | Let users delete their own past fitting sessions         | yes                   | S-04 done; run `/10x-new delete-session` to open the change                                                              |
+| S-07       | landing-and-results-navigation  | Add a product landing page and a session-to-results link | yes                   | S-01, S-03 done; run `/10x-new landing-and-results-navigation` to open the change                                        |
 
 ## Open Roadmap Questions
 
