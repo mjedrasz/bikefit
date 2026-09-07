@@ -359,17 +359,17 @@ None. No schema migration, no persisted limit, no data backfill. Existing `fitti
 
 #### Automated
 
-- [x] 3.1 Type checks pass: `npx tsc --noEmit`
-- [x] 3.2 Lint passes: `npx eslint src/lib/services/rate-limit.ts src/lib/services/rate-limit.test.ts src/pages/api/_analyze.test.ts "src/pages/api/sessions/[id]/_recommend.test.ts"`
-- [x] 3.3 Rate-limit suite passes: `npm run test -- src/lib/services/rate-limit.test.ts`
-- [x] 3.4 Both route suites pass: `npm run test -- src/pages/api/_analyze.test.ts "src/pages/api/sessions/[id]/_recommend.test.ts"`
-- [x] 3.5 Full unit suite green: `npm run test`
-- [x] 3.6 Prettier clean: `npx prettier --check README.md`
-- [x] 3.7 No stale figure: `rg -n "= 10;|10 requests / 10|10th request|toBe\(10\)" src/lib/services/rate-limit.ts src/lib/services/rate-limit.test.ts README.md` returns only the `RATE_LIMIT_WINDOW_MINUTES` line
+- [x] 3.1 Type checks pass: `npx tsc --noEmit` — 9cea406
+- [x] 3.2 Lint passes: `npx eslint src/lib/services/rate-limit.ts src/lib/services/rate-limit.test.ts src/pages/api/_analyze.test.ts "src/pages/api/sessions/[id]/_recommend.test.ts"` — 9cea406
+- [x] 3.3 Rate-limit suite passes: `npm run test -- src/lib/services/rate-limit.test.ts` — 9cea406
+- [x] 3.4 Both route suites pass: `npm run test -- src/pages/api/_analyze.test.ts "src/pages/api/sessions/[id]/_recommend.test.ts"` — 9cea406
+- [x] 3.5 Full unit suite green: `npm run test` — 9cea406
+- [x] 3.6 Prettier clean: `npx prettier --check README.md` — 9cea406
+- [x] 3.7 No stale figure: `rg -n "= 10;|10 requests / 10|10th request|toBe\(10\)" src/lib/services/rate-limit.ts src/lib/services/rate-limit.test.ts README.md` returns only the `RATE_LIMIT_WINDOW_MINUTES` line — 9cea406
 
 #### Manual
 
-- [x] 3.8 4 analyses within 10 min on one fresh account → 4th `/api/analyze` returns 429 (`"Too many requests. Please try again later."`), surfaced as a clean pipeline error
-- [x] 3.9 4th `POST /api/sessions/[id]/recommend` within the window → 429
-- [x] 3.10 After the window rolls over → a new request is allowed
-- [x] 3.11 e2e smoke (`e2e/upload-analysis-results.spec.ts`) still passes (1 analyze + 1 recommend per user, under the ceiling)
+- [x] 3.8 4 analyses within 10 min on one fresh account → 4th `/api/analyze` returns 429 (`"Too many requests. Please try again later."`), surfaced as a clean pipeline error — 9cea406
+- [x] 3.9 4th `POST /api/sessions/[id]/recommend` within the window → 429 — 9cea406
+- [x] 3.10 After the window rolls over → a new request is allowed — 9cea406
+- [x] 3.11 e2e smoke (`e2e/upload-analysis-results.spec.ts`) still passes (1 analyze + 1 recommend per user, under the ceiling) — 9cea406
