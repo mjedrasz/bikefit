@@ -21,9 +21,9 @@ interface ErrorResponse {
   error?: string;
 }
 
-const MAX_SIZE = 104_857_600;
+const MAX_SIZE = 3_145_728;
 const MIN_DURATION = 2;
-const MAX_DURATION = 15;
+const MAX_DURATION = 5;
 
 function extractDuration(file: File): Promise<number> {
   return new Promise((resolve, reject) => {
@@ -57,7 +57,7 @@ export default function VideoUpload() {
       return;
     }
     if (file.size > MAX_SIZE) {
-      setState({ kind: "error", message: "File must be 100 MB or smaller" });
+      setState({ kind: "error", message: "File must be 3 MB or smaller" });
       return;
     }
 
@@ -75,7 +75,7 @@ export default function VideoUpload() {
       return;
     }
     if (duration > MAX_DURATION) {
-      setState({ kind: "error", message: "Video must be 15 seconds or shorter" });
+      setState({ kind: "error", message: "Video must be 5 seconds or shorter" });
       return;
     }
 
@@ -152,7 +152,7 @@ export default function VideoUpload() {
     <div className="flex flex-col items-center gap-4 p-8">
       <h2 className="text-xl font-semibold">Upload your riding video</h2>
       <p className="text-muted-foreground max-w-sm text-center text-sm">
-        Select an MP4 file between 3 and 15 seconds. Maximum size 100 MB.
+        Select an MP4 file 2–5 seconds long. Maximum size 3 MB.
       </p>
       <Button
         onClick={() => inputRef.current?.click()}
