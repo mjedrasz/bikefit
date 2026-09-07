@@ -14,16 +14,16 @@ function stubWithRpc(entry: ScriptEntry) {
 }
 
 describe("checkRateLimit", () => {
-  it("allows the request when the returned count is at the boundary (10th request)", async () => {
-    const supabase = stubWithRpc({ data: 10 });
+  it("allows the request when the returned count is at the boundary (3rd request)", async () => {
+    const supabase = stubWithRpc({ data: 3 });
 
     const result = await checkRateLimit(supabase, "user-1", "analyze");
 
     expect(result).toEqual({ ok: true, allowed: true });
   });
 
-  it("rejects the request when the returned count exceeds the max (11th request)", async () => {
-    const supabase = stubWithRpc({ data: 11 });
+  it("rejects the request when the returned count exceeds the max (4th request)", async () => {
+    const supabase = stubWithRpc({ data: 4 });
 
     const result = await checkRateLimit(supabase, "user-1", "analyze");
 
@@ -61,7 +61,7 @@ describe("checkRateLimit", () => {
   });
 
   it("exports the documented policy constants", () => {
-    expect(RATE_LIMIT_MAX_REQUESTS).toBe(10);
+    expect(RATE_LIMIT_MAX_REQUESTS).toBe(3);
     expect(RATE_LIMIT_WINDOW_MINUTES).toBe(10);
   });
 });

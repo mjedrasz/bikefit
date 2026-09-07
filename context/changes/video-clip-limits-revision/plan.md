@@ -340,36 +340,36 @@ None. No schema migration, no persisted limit, no data backfill. Existing `fitti
 
 #### Automated
 
-- [x] 2.1 Type checks pass: `npx tsc --noEmit`
-- [x] 2.2 Lint passes: `npx eslint src/lib/schemas.ts src/pages/api/analyze.ts`
-- [x] 2.3 `/api/analyze` route tests pass: `npm run test -- src/pages/api/_analyze.test.ts`
-- [x] 2.4 Capped-body tests pass: `npm run test -- src/lib/capped-json-body.test.ts`
-- [x] 2.5 Full unit suite green: `npm run test`
-- [x] 2.6 Prettier clean: `npx prettier --check src/lib/schemas.ts src/pages/api/analyze.ts README.md`
-- [x] 2.7 No stale figures: `rg -n "140_000_000|140_100_000|104_857_600|100 ?MB|100MB|2–15|2-15" src/ README.md context/foundation/test-plan.md` returns nothing
+- [x] 2.1 Type checks pass: `npx tsc --noEmit` — d876d0c
+- [x] 2.2 Lint passes: `npx eslint src/lib/schemas.ts src/pages/api/analyze.ts` — d876d0c
+- [x] 2.3 `/api/analyze` route tests pass: `npm run test -- src/pages/api/_analyze.test.ts` — d876d0c
+- [x] 2.4 Capped-body tests pass: `npm run test -- src/lib/capped-json-body.test.ts` — d876d0c
+- [x] 2.5 Full unit suite green: `npm run test` — d876d0c
+- [x] 2.6 Prettier clean: `npx prettier --check src/lib/schemas.ts src/pages/api/analyze.ts README.md` — d876d0c
+- [x] 2.7 No stale figures: `rg -n "140_000_000|140_100_000|104_857_600|100 ?MB|100MB|2–15|2-15" src/ README.md context/foundation/test-plan.md` returns nothing — d876d0c
 
 #### Manual
 
-- [x] 2.8 `POST /api/analyze` with a genuine ~3 MiB clip's base64 (~4.19 M chars) → succeeds end-to-end
-- [x] 2.9 `POST /api/analyze` with a ~5 M-char `video` string → 400 with Zod error
-- [x] 2.10 `POST /api/analyze` with spoofed `Content-Length: 10000000` → 413 before any DB/LLM call
-- [x] 2.11 Full dashboard happy path with a valid 3 s clip → recommendations render, no regression
+- [x] 2.8 `POST /api/analyze` with a genuine ~3 MiB clip's base64 (~4.19 M chars) → succeeds end-to-end — d876d0c
+- [x] 2.9 `POST /api/analyze` with a ~5 M-char `video` string → 400 with Zod error — d876d0c
+- [x] 2.10 `POST /api/analyze` with spoofed `Content-Length: 10000000` → 413 before any DB/LLM call — d876d0c
+- [x] 2.11 Full dashboard happy path with a valid 3 s clip → recommendations render, no regression — d876d0c
 
 ### Phase 3: Tighten the OpenRouter-route rate limit
 
 #### Automated
 
-- [ ] 3.1 Type checks pass: `npx tsc --noEmit`
-- [ ] 3.2 Lint passes: `npx eslint src/lib/services/rate-limit.ts src/lib/services/rate-limit.test.ts src/pages/api/_analyze.test.ts "src/pages/api/sessions/[id]/_recommend.test.ts"`
-- [ ] 3.3 Rate-limit suite passes: `npm run test -- src/lib/services/rate-limit.test.ts`
-- [ ] 3.4 Both route suites pass: `npm run test -- src/pages/api/_analyze.test.ts "src/pages/api/sessions/[id]/_recommend.test.ts"`
-- [ ] 3.5 Full unit suite green: `npm run test`
-- [ ] 3.6 Prettier clean: `npx prettier --check README.md`
-- [ ] 3.7 No stale figure: `rg -n "= 10;|10 requests / 10|10th request|toBe\(10\)" src/lib/services/rate-limit.ts src/lib/services/rate-limit.test.ts README.md` returns only the `RATE_LIMIT_WINDOW_MINUTES` line
+- [x] 3.1 Type checks pass: `npx tsc --noEmit`
+- [x] 3.2 Lint passes: `npx eslint src/lib/services/rate-limit.ts src/lib/services/rate-limit.test.ts src/pages/api/_analyze.test.ts "src/pages/api/sessions/[id]/_recommend.test.ts"`
+- [x] 3.3 Rate-limit suite passes: `npm run test -- src/lib/services/rate-limit.test.ts`
+- [x] 3.4 Both route suites pass: `npm run test -- src/pages/api/_analyze.test.ts "src/pages/api/sessions/[id]/_recommend.test.ts"`
+- [x] 3.5 Full unit suite green: `npm run test`
+- [x] 3.6 Prettier clean: `npx prettier --check README.md`
+- [x] 3.7 No stale figure: `rg -n "= 10;|10 requests / 10|10th request|toBe\(10\)" src/lib/services/rate-limit.ts src/lib/services/rate-limit.test.ts README.md` returns only the `RATE_LIMIT_WINDOW_MINUTES` line
 
 #### Manual
 
-- [ ] 3.8 4 analyses within 10 min on one fresh account → 4th `/api/analyze` returns 429 (`"Too many requests. Please try again later."`), surfaced as a clean pipeline error
-- [ ] 3.9 4th `POST /api/sessions/[id]/recommend` within the window → 429
-- [ ] 3.10 After the window rolls over → a new request is allowed
-- [ ] 3.11 e2e smoke (`e2e/upload-analysis-results.spec.ts`) still passes (1 analyze + 1 recommend per user, under the ceiling)
+- [x] 3.8 4 analyses within 10 min on one fresh account → 4th `/api/analyze` returns 429 (`"Too many requests. Please try again later."`), surfaced as a clean pipeline error
+- [x] 3.9 4th `POST /api/sessions/[id]/recommend` within the window → 429
+- [x] 3.10 After the window rolls over → a new request is allowed
+- [x] 3.11 e2e smoke (`e2e/upload-analysis-results.spec.ts`) still passes (1 analyze + 1 recommend per user, under the ceiling)

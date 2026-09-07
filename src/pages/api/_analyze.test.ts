@@ -67,7 +67,7 @@ describe("POST /api/analyze", () => {
   });
 
   it("429 when the rate limit is exceeded, before any ownership query or OpenRouter call", async () => {
-    stubAdminRpc({ "rpc.check_and_increment_rate_limit": { data: 11 } });
+    stubAdminRpc({ "rpc.check_and_increment_rate_limit": { data: 4 } });
 
     const res = await POST(makeApiContext({ user, body: validBody }));
 

@@ -181,7 +181,7 @@ on staged `*.{ts,tsx}`.
   route returns `401` when `context.locals.user` is absent, and the pipeline
   routes carry a belt-and-braces `.eq("user_id", …)` on every service-role write.
 - `POST /api/analyze` and `POST /api/sessions/[id]/recommend` are rate-limited per
-  user per route (10 requests / 10 min) via an atomic Postgres counter
+  user per route (3 requests / 10 min) via an atomic Postgres counter
   ([`src/lib/services/rate-limit.ts`](src/lib/services/rate-limit.ts)); `/api/analyze`
   also rejects an oversized body with `413` before buffering it.
 

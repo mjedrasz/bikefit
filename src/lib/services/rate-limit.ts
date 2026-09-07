@@ -6,7 +6,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 // may run as multiple Worker instances with no shared clock guarantee (see plan's Critical
 // Implementation Details).
 
-export const RATE_LIMIT_MAX_REQUESTS = 10;
+export const RATE_LIMIT_MAX_REQUESTS = 3;
 export const RATE_LIMIT_WINDOW_MINUTES = 10;
 
 export type RateLimitRoute = "analyze" | "recommend";
