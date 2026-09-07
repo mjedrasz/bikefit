@@ -3,7 +3,7 @@ project: "BikeFit"
 version: 1
 status: draft
 created: 2026-05-26
-updated: 2026-09-06
+updated: 2026-09-07
 prd_version: 1
 main_goal: market-feedback
 top_blocker: decisions
@@ -38,6 +38,7 @@ Amateur cyclists who notice discomfort or wonder whether their position is effic
 | S-05 | results-display-ux-improvements | see body angles rounded to a readable precision instead of raw floating-point values                                  | S-03             | FR-008                                | done   |
 | S-06 | delete-session                  | delete a selected past fitting session they own                                                                       | S-04             | FR-009, Access Control                | done   |
 | S-07 | landing-and-results-navigation  | land on a product landing page with a clear call to action, and jump from a session's details straight to its results | S-01, S-03       | US-01, FR-003, FR-008                 | done   |
+| S-08 | video-clip-limits-revision      | upload a clip validated against the revised MVP limits — 2–5 s long, 3 MB max                                         | S-01             | FR-003                                | done   |
 
 ## Streams
 
@@ -49,6 +50,7 @@ Navigation aid — groups items that share a Prerequisites chain. Canonical orde
 | B      | Results display        | `S-03` → `S-05`                   | Branches from Stream A at F-01; parallel with F-02, S-01, S-02 — build with mock data while pipeline is unblocked; S-05 polishes the display once S-03 ships |
 | C      | Session history        | `S-04` → `S-06`                   | Branches from Stream A at S-01; opens once video upload is working; S-06 (delete a session) extends the history view once S-04 ships                         |
 | D      | Entry & navigation UX  | `S-07`                            | Branches from S-01 (product landing page) and S-03 (session-details → results link); pure UI/routing polish once both ship                                   |
+| E      | Upload constraints     | `S-08`                            | Branches from S-01; tightens the clip duration and file-size limits for MVP once real uploads have been observed                                             |
 
 ## Baseline
 
@@ -184,6 +186,19 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Risk:** UI-and-routing only, over flows that already exist — replace the starter index page and add one navigation link on the session details view. No schema, pipeline, or auth-model impact. Low risk; the one thing to get right is that the landing page's logged-in vs. logged-out states stay consistent with the existing middleware redirects.
 - **Status:** done
 
+### S-08: Revise video clip limits
+
+- **Outcome:** a user uploading a clip has it validated against the revised MVP limits — 2–5 seconds duration and 3 MB maximum file size — with a clear rejection message when a file falls outside either bound; this replaces the arbitrary ≤10s, size-unbounded rule from S-01.
+- **Change ID:** video-clip-limits-revision
+- **PRD refs:** FR-003 (short side-view video upload with duration validation — limits tightened for MVP)
+- **Prerequisites:** S-01
+- **Parallel with:** —
+- **Blockers:** —
+- **Unknowns:**
+  - Does the pipeline still extract reliable angles from a 2-second clip (roughly one crank rotation at 60 rpm)? — Owner: user. Block: no. (Resolves OQ-1; default to the 2–5s window and raise the floor if angle accuracy drops on the short end.)
+- **Risk:** Narrows an existing validation rule — a constants-and-error-message change over the S-01 upload path, no schema or pipeline impact. Verify the 3 MB cap does not reject a legitimate 5-second SD clip and that S-02 still meets the ±10° criterion at the 2-second floor. Planning folded in a paired abuse-hardening pass: the two stale `/api/analyze` payload caps are re-derived from 3 MiB and the OpenRouter-route rate limit drops 10→3 per 10-min window.
+- **Status:** done
+
 ## Backlog Handoff
 
 | Roadmap ID | Change ID                       | Suggested issue title                                    | Ready for `/10x-plan` | Notes                                                                                                                    |
@@ -197,6 +212,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 | S-05       | results-display-ux-improvements | Round over-precise body angle values in results display  | no                    | Depends on S-03 completing; run `/10x-new results-display-ux-improvements` once ready                                    |
 | S-06       | delete-session                  | Let users delete their own past fitting sessions         | yes                   | S-04 done; run `/10x-new delete-session` to open the change                                                              |
 | S-07       | landing-and-results-navigation  | Add a product landing page and a session-to-results link | yes                   | S-01, S-03 done; run `/10x-new landing-and-results-navigation` to open the change                                        |
+| S-08       | video-clip-limits-revision      | Tighten video clip limits to 2–5 s and 3 MB for MVP      | yes                   | S-01 done; run `/10x-new video-clip-limits-revision` to open the change                                                  |
 
 ## Open Roadmap Questions
 
@@ -228,3 +244,4 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **S-05: see body angles rounded to a readable precision instead of raw floating-point values** — Archived 2026-09-01 → `context/archive/2026-09-01-results-display-ux-improvements/`. Lesson: —.
 - **S-06: delete a selected past fitting session they own** — Archived 2026-09-03 → `context/archive/2026-09-02-delete-session/`. Lesson: —.
 - **S-07: a visitor hitting the site root sees a BikeFit product landing page — not the generic "10x Astro Starter" — with a clear call to action to upload a video and start a fitting session; and from a fitting session's details page a user can navigate directly to that session's results, not only "Back to dashboard".** — Archived 2026-09-06 → `context/archive/2026-09-06-landing-and-results-navigation/`. Lesson: —.
+- **S-08: a user uploading a clip has it validated against the revised MVP limits — 2–5 seconds duration and 3 MB maximum file size — with a clear rejection message when a file falls outside either bound; this replaces the arbitrary ≤10s, size-unbounded rule from S-01.** — Archived 2026-09-07 → `context/archive/2026-09-07-video-clip-limits-revision/`. Lesson: —.
