@@ -649,14 +649,14 @@ RETURNING` statement — no read-then-write race even across multiple
   without touching the body at all), then a streamed byte-count via
   `request.body.getReader()` for chunked-encoding requests that carry no
   `Content-Length`. Wired into `analyze.ts` in place of the naive
-  `context.request.json()` try/catch; the existing `.max(140_000_000)`
+  `context.request.json()` try/catch; the existing `.max(4_500_000)`
   schema check on the parsed `video` field is unchanged and still runs as
   a second gate.
 - **Stream-error handling — an impl-review fix, not in the original
   plan.** The first version of the reader's `for (;;) { reader.read() }`
   loop had no try/catch, so a genuine stream error (a dropped connection
   mid-upload — a real possibility for a route whose whole purpose is
-  receiving a ~100MB base64 video body) propagated as an unhandled
+  receiving a ~3 MB base64 video body) propagated as an unhandled
   rejection instead of the app's `{ error }` JSON convention, and never
   released the reader. Fixed: the loop is wrapped in try/catch; on
   catch, `await reader.cancel().catch(() => {})` then resolve to the

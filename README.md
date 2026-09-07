@@ -116,7 +116,7 @@ together.
    ```
 
    Open `http://localhost:4321`, sign up at `/auth/signup`, then upload a
-   2–15 s side-view MP4 (≤100 MB) from `/dashboard`.
+   2–5 s side-view MP4 (≤3 MB) from `/dashboard`.
 
 ## Available Scripts
 
@@ -246,7 +246,7 @@ risk map, phased rollout, and per-risk test mapping — is in
 MVP is deliberately narrow (full list in `context/foundation/prd.md` → Non-Goals):
 
 - **Gravel geometry only** — reference bands are not calibrated for road or MTB.
-- **MP4 only**, side-view, 2–15 s, ≤100 MB, one rider in frame.
+- **MP4 only**, side-view, 2–5 s, ≤3 MB, one rider in frame.
 - No own pose model (third-party MoveNet), no mobile app, no live/real-time
   analysis, no equipment recommendations, no sharing or coach access, no medical
   advice.

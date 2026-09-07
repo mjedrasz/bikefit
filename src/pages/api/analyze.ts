@@ -9,9 +9,10 @@ import { analyzeRequestSchema } from "@/lib/schemas";
 
 export const prerender = false;
 
-// Sized just above the existing 140,000,000-char schema cap on `video` plus JSON-envelope
-// overhead (field names, `session_id`) — see plan Definitions for the exact math.
-const MAX_ANALYZE_BODY_BYTES = 140_100_000;
+// Sized just above the existing 4,500,000-char schema cap on `video` (≈3 MiB video,
+// base64-encoded — 4,194,304 chars) plus JSON-envelope overhead (field names,
+// `session_id`) — see plan Definitions for the exact math.
+const MAX_ANALYZE_BODY_BYTES = 4_600_000;
 
 export const POST: APIRoute = async (context) => {
   if (!context.locals.user) {
@@ -31,7 +32,7 @@ export const POST: APIRoute = async (context) => {
   }
 
   // Reject an oversized body before it's buffered (test-plan §3 Phase 3, Risk #3) — the
-  // existing `.max(140_000_000)` schema check below still runs unchanged as a second gate.
+  // existing `.max(4_500_000)` schema check below still runs unchanged as a second gate.
   const capped = await readJsonWithCap(context.request, MAX_ANALYZE_BODY_BYTES);
   if (!capped.ok) {
     if (capped.reason === "too-large") {

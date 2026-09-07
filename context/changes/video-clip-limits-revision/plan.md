@@ -321,39 +321,39 @@ None. No schema migration, no persisted limit, no data backfill. Existing `fitti
 
 #### Automated
 
-- [x] 1.1 Type checks pass: `npx tsc --noEmit`
-- [x] 1.2 Lint passes: `npx eslint src/components/VideoUpload.tsx`
-- [x] 1.3 Prettier clean: `npx prettier --check src/components/VideoUpload.tsx`
-- [x] 1.4 Full unit suite still green: `npm run test`
-- [x] 1.5 No stale client numbers: `rg -n "104_857_600|100 MB|15 seconds|between 3 and 15" src/components/VideoUpload.tsx` returns nothing
+- [x] 1.1 Type checks pass: `npx tsc --noEmit` — 844e9cc
+- [x] 1.2 Lint passes: `npx eslint src/components/VideoUpload.tsx` — 844e9cc
+- [x] 1.3 Prettier clean: `npx prettier --check src/components/VideoUpload.tsx` — 844e9cc
+- [x] 1.4 Full unit suite still green: `npm run test` — 844e9cc
+- [x] 1.5 No stale client numbers: `rg -n "104_857_600|100 MB|15 seconds|between 3 and 15" src/components/VideoUpload.tsx` returns nothing — 844e9cc
 
 #### Manual
 
-- [x] 1.6 ~4 s / ~2 MB MP4 → validation passes, session created, analysis starts
-- [x] 1.7 ~6 s MP4 → "Video must be 5 seconds or shorter", no session created
-- [x] 1.8 ~4 MB MP4 (2–5 s) → "File must be 3 MB or smaller", no API call
-- [x] 1.9 ~1 s MP4 → "Video must be at least 2 seconds"
-- [x] 1.10 ≈2.0 s and ≈5.0 s clips (≤3 MB) → accepted
-- [x] 1.11 Dashboard helper text reads "Select an MP4 file 2–5 seconds long. Maximum size 3 MB."
+- [x] 1.6 ~4 s / ~2 MB MP4 → validation passes, session created, analysis starts — 844e9cc
+- [x] 1.7 ~6 s MP4 → "Video must be 5 seconds or shorter", no session created — 844e9cc
+- [x] 1.8 ~4 MB MP4 (2–5 s) → "File must be 3 MB or smaller", no API call — 844e9cc
+- [x] 1.9 ~1 s MP4 → "Video must be at least 2 seconds" — 844e9cc
+- [x] 1.10 ≈2.0 s and ≈5.0 s clips (≤3 MB) → accepted — 844e9cc
+- [x] 1.11 Dashboard helper text reads "Select an MP4 file 2–5 seconds long. Maximum size 3 MB." — 844e9cc
 
 ### Phase 2: Retighten server `/api/analyze` payload caps + refresh docs
 
 #### Automated
 
-- [ ] 2.1 Type checks pass: `npx tsc --noEmit`
-- [ ] 2.2 Lint passes: `npx eslint src/lib/schemas.ts src/pages/api/analyze.ts`
-- [ ] 2.3 `/api/analyze` route tests pass: `npm run test -- src/pages/api/_analyze.test.ts`
-- [ ] 2.4 Capped-body tests pass: `npm run test -- src/lib/capped-json-body.test.ts`
-- [ ] 2.5 Full unit suite green: `npm run test`
-- [ ] 2.6 Prettier clean: `npx prettier --check src/lib/schemas.ts src/pages/api/analyze.ts README.md`
-- [ ] 2.7 No stale figures: `rg -n "140_000_000|140_100_000|104_857_600|100 ?MB|100MB|2–15|2-15" src/ README.md context/foundation/test-plan.md` returns nothing
+- [x] 2.1 Type checks pass: `npx tsc --noEmit`
+- [x] 2.2 Lint passes: `npx eslint src/lib/schemas.ts src/pages/api/analyze.ts`
+- [x] 2.3 `/api/analyze` route tests pass: `npm run test -- src/pages/api/_analyze.test.ts`
+- [x] 2.4 Capped-body tests pass: `npm run test -- src/lib/capped-json-body.test.ts`
+- [x] 2.5 Full unit suite green: `npm run test`
+- [x] 2.6 Prettier clean: `npx prettier --check src/lib/schemas.ts src/pages/api/analyze.ts README.md`
+- [x] 2.7 No stale figures: `rg -n "140_000_000|140_100_000|104_857_600|100 ?MB|100MB|2–15|2-15" src/ README.md context/foundation/test-plan.md` returns nothing
 
 #### Manual
 
-- [ ] 2.8 `POST /api/analyze` with a genuine ~3 MiB clip's base64 (~4.19 M chars) → succeeds end-to-end
-- [ ] 2.9 `POST /api/analyze` with a ~5 M-char `video` string → 400 with Zod error
-- [ ] 2.10 `POST /api/analyze` with spoofed `Content-Length: 10000000` → 413 before any DB/LLM call
-- [ ] 2.11 Full dashboard happy path with a valid 3 s clip → recommendations render, no regression
+- [x] 2.8 `POST /api/analyze` with a genuine ~3 MiB clip's base64 (~4.19 M chars) → succeeds end-to-end
+- [x] 2.9 `POST /api/analyze` with a ~5 M-char `video` string → 400 with Zod error
+- [x] 2.10 `POST /api/analyze` with spoofed `Content-Length: 10000000` → 413 before any DB/LLM call
+- [x] 2.11 Full dashboard happy path with a valid 3 s clip → recommendations render, no regression
 
 ### Phase 3: Tighten the OpenRouter-route rate limit
 
