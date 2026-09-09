@@ -84,6 +84,9 @@ const astroConfig = tseslint.config({
 
 export default tseslint.config(
   includeIgnoreFile(gitignorePath),
+  // Sub-packages under packages/* are self-contained: each ships its own eslint/tsconfig/prettier
+  // config and is linted in its own workspace. Keep the root gates off them entirely.
+  { ignores: ["packages/**"] },
   baseConfig,
   reactConfig,
   eslintPluginAstro.configs["flat/recommended"],

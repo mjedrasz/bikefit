@@ -1,0 +1,5 @@
+dist
+node_modules
+
+# Sub-packages manage their own formatting (own .prettierrc.json / .prettierignore)
+packages
