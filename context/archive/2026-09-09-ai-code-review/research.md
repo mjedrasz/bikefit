@@ -589,7 +589,7 @@ options:
 - `packages/code-reviewer/src/tools.ts:17-23` — `resolveInside` lexical path-escape guard (no `realpath`)
 - `packages/code-reviewer/src/tools.ts:25` — `IGNORED` regex (applied to `listFiles` only)
 - `packages/code-reviewer/src/tools.ts:30-43` — `listFiles` recursion walks `node_modules` before filtering (bug)
-- `packages/code-reviewer/src/cli.ts:38-48` — CLI flags; `:93`/`:98-109` exit codes (1 = request_changes _or_ error)
+- `packages/code-reviewer/src/cli.ts:38-48` — CLI flags; `:93`/`:98-109` exit codes (1 = request*changes \_or* error)
 - `packages/code-reviewer/src/format.ts:1-73` — terminal renderer, tied to the old schema
 - `packages/code-reviewer/test/reviewer.test.ts:44-51` — `fakeClient` seam; `:16-42` `cannedReview` (old shape); `:170-190` opt-in integration test
 - `packages/code-reviewer/package.json:33-43` — deps (`@openrouter/agent ^0.11.0`, `zod ^4.5.4`), devDeps (`typescript ^7.0.2`, `vitest ^5.0.0`)

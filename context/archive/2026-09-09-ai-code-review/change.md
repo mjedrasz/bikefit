@@ -1,10 +1,10 @@
 ---
 change_id: ai-code-review
 title: Add agent-based CI/CD workflow for code review
-status: implemented
+status: archived
 created: 2026-09-09
 updated: 2026-09-10
-archived_at: null
+archived_at: 2026-09-10T19:38:18Z
 ---
 
 ## Notes
