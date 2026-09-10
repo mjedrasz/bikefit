@@ -794,18 +794,18 @@ pause here for manual confirmation. This is the last phase.
 
 #### Automated
 
-- [ ] 1.1 Build passes: `npm --prefix packages/code-reviewer run build`
-- [ ] 1.2 Typecheck passes: `npm --prefix packages/code-reviewer run typecheck`
-- [ ] 1.3 Package tests pass: `npm --prefix packages/code-reviewer test`
-- [ ] 1.4 Prettier clean: `npm --prefix packages/code-reviewer exec prettier -- --check .`
-- [ ] 1.5 `node packages/code-reviewer/dist/cli.js --help` prints the new usage and exits 0
-- [ ] 1.6 `grep -rn "verdict\|findings\b\|Severity\|createFileReader" packages/code-reviewer/src` returns nothing outside `tools.ts`
+- [x] 1.1 Build passes: `npm --prefix packages/code-reviewer run build`
+- [x] 1.2 Typecheck passes: `npm --prefix packages/code-reviewer run typecheck`
+- [x] 1.3 Package tests pass: `npm --prefix packages/code-reviewer test`
+- [x] 1.4 Prettier clean: `npm --prefix packages/code-reviewer exec prettier -- --check .`
+- [x] 1.5 `node packages/code-reviewer/dist/cli.js --help` prints the new usage and exits 0
+- [x] 1.6 `grep -rn "verdict\|findings\b\|Severity\|createFileReader" packages/code-reviewer/src` returns nothing outside `tools.ts`
 
 #### Manual
 
-- [ ] 1.7 `toJsonSchemaFormat` output eyeballed as strict-`json_schema`-acceptable
-- [ ] 1.8 `.describe()` guidance on `score` and criteria reads as usable model guidance
-- [ ] 1.9 Local CLI smoke: readable review to stdout, `--out` file well-formed; exit 0 clean / 1 fail / 3 under `--timeout-ms 1`
+- [x] 1.7 `toJsonSchemaFormat` output eyeballed as strict-`json_schema`-acceptable
+- [x] 1.8 `.describe()` guidance on `score` and criteria reads as usable model guidance
+- [x] 1.9 Local CLI smoke: readable review to stdout, `--out` file well-formed; exit 0 clean / 1 fail / 3 under `--timeout-ms 1`
 
 ### Phase 2: Remove agent tooling, diff-fixture integration test, package docs
 

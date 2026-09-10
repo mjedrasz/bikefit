@@ -1,7 +1,5 @@
-import { fileURLToPath } from "node:url";
 import { describe, expect, it, vi } from "vitest";
 import {
-  createFileReader,
   createReviewer,
   parseReview,
   reviewSchema,
@@ -11,106 +9,133 @@ import {
   type ReviewerClient,
 } from "../src/index.js";
 
-const fixturesDir = fileURLToPath(new URL("./fixtures", import.meta.url));
-
 const cannedReview: Review = {
   summary:
-    "login() builds SQL by string interpolation and compares passwords in plaintext. Both must be fixed before merge.",
-  verdict: "request_changes",
-  findings: [
-    {
-      file: "insecure-login.ts",
-      line: 10,
-      severity: "critical",
-      category: "security",
-      title: "SQL injection via string interpolation",
-      description:
-        "username and password are concatenated straight into the query, so any caller can inject SQL.",
-      suggestion:
-        "Use parameterised queries (db.query(sql, [username, password])).",
+    "Adds a login endpoint with a SQL-injection sink and a hardcoded token.",
+  assessment:
+    "The change adds one endpoint but introduces two serious security defects: an interpolated SQL query and a hardcoded session token. There are no tests. Do not merge until the query is parameterized and the token is removed.",
+  criteria: {
+    pr_clarity: {
+      score: 6,
+      rationale: "Title states the change; no test instructions.",
+      notes: [],
     },
-    {
-      file: "insecure-login.ts",
-      line: 15,
-      severity: "high",
-      category: "security",
-      title: "Plaintext password comparison",
-      description: "Passwords are stored and compared without hashing.",
-      suggestion: "Hash with argon2/bcrypt and compare digests.",
+    minimal_readable: {
+      score: 7,
+      rationale: "Small, focused diff.",
+      notes: [],
     },
-  ],
+    tested: {
+      score: 3,
+      rationale: "No tests for the new endpoint.",
+      notes: [],
+    },
+    input_safety: {
+      score: 2,
+      rationale: "SQL built by string interpolation.",
+      notes: [
+        {
+          file: "src/pages/api/login.ts",
+          line: 12,
+          observation: "username is interpolated straight into the SQL string.",
+          suggestion: "Use a parameterized query.",
+        },
+      ],
+    },
+    secrets_authz: {
+      score: 2,
+      rationale: "Session token is a hardcoded literal.",
+      notes: [
+        {
+          file: "src/pages/api/login.ts",
+          line: 20,
+          observation: "The session token is a constant string.",
+          suggestion: "Issue a signed token; read secrets from env.",
+        },
+      ],
+    },
+  },
+};
+
+const request = {
+  prTitle: "Add login endpoint",
+  prDescription: "Adds POST /api/login for username + password auth.",
+  diff: [
+    "diff --git a/src/pages/api/login.ts b/src/pages/api/login.ts",
+    "+++ b/src/pages/api/login.ts",
+    "+const rows = await db.query(`SELECT * FROM users WHERE name = '${username}'`);",
+  ].join("\n"),
 };
 
 /** A fake OpenRouter client whose callModel returns a fixed response string. */
 function fakeClient(responseText: string) {
   const callModel = vi.fn((_request: Record<string, unknown>) => ({
     getText: async () => responseText,
-    getResponse: async () => ({ output: [], usage: {} }),
+    getUsage: async () => ({
+      modelCalls: 1,
+      inputTokens: 100,
+      outputTokens: 50,
+      totalTokens: 150,
+      cachedTokens: 0,
+      reasoningTokens: 0,
+    }),
   }));
   return { client: { callModel } as unknown as ReviewerClient, callModel };
 }
 
 describe("createReviewer", () => {
-  it("runs the agent flow and returns a schema-validated review", async () => {
+  it("makes one tool-less structured call and returns a validated review + usage", async () => {
     const { client, callModel } = fakeClient(JSON.stringify(cannedReview));
     const reviewer = createReviewer({ client, model: "test/model" });
 
-    const review = await reviewer.review({
-      rootDir: fixturesDir,
-      files: ["insecure-login.ts"],
-      context: "PR #123: new auth endpoint",
-    });
+    const { review, usage } = await reviewer.review(request);
 
     expect(callModel).toHaveBeenCalledOnce();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const request = callModel.mock.calls[0]![0] as any;
-    expect(request.model).toBe("test/model");
-    expect(request.instructions).toContain("code review");
-    expect(request.input).toContain("insecure-login.ts");
-    expect(request.input).toContain("PR #123");
-    expect(request.tools).toHaveLength(2);
-    expect(request.stopWhen).toBeDefined();
-    expect(request.text.format.type).toBe("json_schema");
-    expect(request.text.format.schema.type).toBe("object");
-    expect(request.text.format.schema.$schema).toBeUndefined();
+    const sent = callModel.mock.calls[0]![0] as any;
+    expect(sent.model).toBe("test/model");
+    expect(sent.input).toContain("Add login endpoint");
+    expect(sent.input).toContain("SELECT * FROM users");
+    expect(sent.tools).toBeUndefined();
+    expect(sent.provider).toEqual({ requireParameters: true });
+    expect(sent.maxOutputTokens).toBe(8000);
+    expect(sent.text.format.type).toBe("json_schema");
+    expect(sent.text.format.schema.$schema).toBeUndefined();
 
-    expect(review.verdict).toBe("request_changes");
-    expect(review.findings).toHaveLength(2);
-    expect(review.findings[0]!.severity).toBe("critical");
+    expect(review.criteria.input_safety.score).toBe(2);
+    expect(usage.modelCalls).toBe(1);
   });
 
   it("recovers a JSON review wrapped in markdown fences and prose", async () => {
-    const wrapped = `Sure — here is my review:\n\n\`\`\`json\n${JSON.stringify(
+    const wrapped = `Sure — here is the review:\n\n\`\`\`json\n${JSON.stringify(
       cannedReview,
     )}\n\`\`\`\n`;
     const { client } = fakeClient(wrapped);
     const reviewer = createReviewer({ client });
 
-    const review = await reviewer.review({
-      rootDir: fixturesDir,
-      files: ["insecure-login.ts"],
-    });
+    const { review } = await reviewer.review(request);
 
-    expect(review.findings).toHaveLength(2);
+    expect(review.criteria.secrets_authz.score).toBe(2);
   });
 
   it("throws ReviewParseError when the model output breaks the schema", async () => {
     const { client } = fakeClient(
-      JSON.stringify({ summary: "ok", verdict: "lgtm", findings: [] }),
+      JSON.stringify({ summary: "ok", assessment: "ok", criteria: {} }),
     );
     const reviewer = createReviewer({ client });
 
-    await expect(
-      reviewer.review({ rootDir: fixturesDir, files: ["insecure-login.ts"] }),
-    ).rejects.toBeInstanceOf(ReviewParseError);
+    await expect(reviewer.review(request)).rejects.toBeInstanceOf(
+      ReviewParseError,
+    );
   });
 
-  it("rejects an empty file list", async () => {
+  it("rejects an empty diff", async () => {
     const { client } = fakeClient("{}");
     const reviewer = createReviewer({ client });
+
     await expect(
-      reviewer.review({ rootDir: fixturesDir, files: [] }),
-    ).rejects.toThrow(/at least one file/);
+      reviewer.review({ ...request, diff: "   \n  " }),
+    ).rejects.toThrow(/diff/);
   });
 });
 
@@ -129,7 +154,9 @@ describe("toJsonSchemaFormat", () => {
 
 describe("parseReview", () => {
   it("parses a clean JSON string", () => {
-    expect(parseReview(JSON.stringify(cannedReview)).findings).toHaveLength(2);
+    expect(
+      parseReview(JSON.stringify(cannedReview)).criteria.tested.score,
+    ).toBe(3);
   });
 
   it("attaches the raw response to the error", () => {
@@ -143,48 +170,16 @@ describe("parseReview", () => {
   });
 });
 
-describe("createFileReader", () => {
-  it("reads files inside the root with line numbers", async () => {
-    const files = createFileReader(fixturesDir);
-    const { content } = await files.readFile("insecure-login.ts");
-    expect(content).toContain("SELECT id, name, password FROM users");
-    expect(content).toMatch(/^1\t/);
-  });
-
-  it("lists files under the root", async () => {
-    const files = createFileReader(fixturesDir);
-    expect(await files.listFiles()).toEqual(
-      expect.arrayContaining(["db.ts", "insecure-login.ts"]),
-    );
-  });
-
-  it("blocks path traversal outside the root", async () => {
-    const files = createFileReader(fixturesDir);
-    await expect(files.readFile("../../package.json")).rejects.toThrow(
-      /escapes/,
-    );
-  });
-});
-
 // Real end-to-end call. Opt in with: OPENROUTER_RUN_INTEGRATION=1 npm test
 describe.skipIf(!process.env.OPENROUTER_RUN_INTEGRATION)("integration", () => {
-  it("finds the planted SQL-injection bug via a real model call", async () => {
+  it("returns a schema-valid scored review of a real diff with low input_safety", async () => {
     const reviewer = createReviewer({
       model: process.env.CODE_REVIEWER_MODEL ?? "anthropic/claude-sonnet-4.5",
     });
 
-    const review = await reviewer.review({
-      rootDir: fixturesDir,
-      files: ["insecure-login.ts"],
-    });
+    const { review } = await reviewer.review(request);
 
     expect(reviewSchema.parse(review)).toEqual(review);
-    expect(review.verdict).toBe("request_changes");
-    expect(
-      review.findings.some(
-        (f) =>
-          f.category === "security" && /inject/i.test(f.title + f.description),
-      ),
-    ).toBe(true);
+    expect(review.criteria.input_safety.score).toBeLessThanOrEqual(4);
   });
 });

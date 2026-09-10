@@ -1,16 +1,16 @@
 export {
-  severitySchema,
-  categorySchema,
-  findingSchema,
-  verdictSchema,
+  criterionNoteSchema,
+  criterionScoreSchema,
   reviewSchema,
+  CRITERION_IDS,
+  CRITERION_LABELS,
+  CRITERION_GROUPS,
 } from "./schemas.js";
 export type {
-  Severity,
-  Category,
-  Finding,
-  Verdict,
   Review,
+  CriterionScore,
+  CriterionNote,
+  CriterionId,
 } from "./schemas.js";
 
 export {
@@ -23,9 +23,11 @@ export type {
   ReviewerClient,
   ReviewerOptions,
   ReviewRequest,
+  ReviewResult,
+  ReviewUsage,
 } from "./reviewer.js";
 
-export { createFileReader, createFileTools } from "./tools.js";
-export type { FileReader } from "./tools.js";
+export { decide } from "./decide.js";
+export type { Decision } from "./decide.js";
 
-export { formatReview } from "./format.js";
+export { formatReviewMarkdown, formatReviewTerminal } from "./format.js";
