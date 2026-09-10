@@ -7,7 +7,7 @@ angles, and a second LLM turns those angles into plain-language adjustment advic
 ("raise saddle ~5 mm"). Every analysis is saved to the user's session history so
 they can track changes across fittings.
 
-**Status:** MVP. Every roadmap slice through S-07 has shipped (see
+**Status:** MVP. Every roadmap slice through S-08 has shipped (see
 [`context/foundation/roadmap.md`](context/foundation/roadmap.md)). Gravel geometry
 only — see [Scope](#scope). Full product spec in
 [`context/foundation/prd.md`](context/foundation/prd.md).
@@ -139,35 +139,36 @@ on staged `*.{ts,tsx}`.
 
 ## Project Structure
 
-| Path                                                       | What's there                                          |
-| ---------------------------------------------------------- | ----------------------------------------------------- |
-| `src/pages/index.astro`                                    | Landing page (redirects signed-in users to dashboard) |
-| `src/pages/api/analyze.ts`                                 | Vision-LLM keyframe (BDC/TDC) detection               |
-| `src/pages/api/auth/`                                      | `signin` / `signup` / `signout` endpoints             |
-| `src/pages/api/sessions/index.ts`                          | `POST` — create a session                             |
-| `src/pages/api/sessions/[id].ts`                           | `GET` status poll, `DELETE` (ownership-checked)       |
-| `src/pages/api/sessions/[id]/{start,recommend,results}.ts` | Workflow transitions + LLM recommend + persist        |
-| `src/pages/auth/*.astro`                                   | `signin` / `signup` / `confirm-email` pages           |
-| `src/pages/dashboard.astro`                                | Upload + run analysis (protected)                     |
-| `src/pages/sessions/{index,[id]}.astro`                    | History list + session detail (protected)             |
-| `src/components/VideoUpload.tsx` / `VideoAnalyzer.tsx`     | Upload/validation UI + the client-side pipeline       |
-| `src/components/{Landing,Topbar,Banner}.astro`             | Marketing page, nav bar, missing-config banner        |
-| `src/components/auth/`                                     | Sign-in / sign-up form islands                        |
-| `src/lib/pose/angles.ts`                                   | Joint-angle geometry + `ANGLE_REFS`                   |
-| `src/lib/schemas.ts`                                       | zod schemas for every API payload                     |
-| `src/lib/angle-verdict.ts`                                 | In / out-of-range decision on a measurement           |
-| `src/lib/recommendations-prompt.ts`                        | Fitter system prompt built from `ANGLE_REFS`          |
-| `src/lib/session-display-status.ts`                        | Display-time "timed out" reconciliation               |
-| `src/lib/config-status.ts`                                 | Detects missing Supabase config for the banner        |
-| `src/lib/services/llm.ts`                                  | OpenRouter vision + text calls                        |
-| `src/lib/services/rate-limit.ts`                           | Per-user, per-route request counter                   |
-| `src/lib/supabase.ts`                                      | Cookie-session SSR Supabase client                    |
-| `src/middleware.ts`                                        | Resolves the user, guards `PROTECTED_ROUTES`          |
-| `src/types.ts`                                             | Shared entities + DTOs                                |
-| `supabase/migrations/`                                     | Schema + RLS policies                                 |
-| `e2e/`                                                     | Playwright smoke + cross-user RLS check               |
-| `src/test/helpers/`                                        | Vitest stubs (Supabase, OpenRouter, API context)      |
-| `context/foundation/`                                      | PRD, roadmap, test plan, reference angles             |
+| Path                                                       | What's there                                                              |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------- |
+| `src/pages/index.astro`                                    | Landing page (redirects signed-in users to dashboard)                     |
+| `src/pages/api/analyze.ts`                                 | Vision-LLM keyframe (BDC/TDC) detection                                   |
+| `src/pages/api/auth/`                                      | `signin` / `signup` / `signout` endpoints                                 |
+| `src/pages/api/sessions/index.ts`                          | `POST` — create a session                                                 |
+| `src/pages/api/sessions/[id].ts`                           | `GET` status poll, `DELETE` (ownership-checked)                           |
+| `src/pages/api/sessions/[id]/{start,recommend,results}.ts` | Workflow transitions + LLM recommend + persist                            |
+| `src/pages/auth/*.astro`                                   | `signin` / `signup` / `confirm-email` pages                               |
+| `src/pages/dashboard.astro`                                | Upload + run analysis (protected)                                         |
+| `src/pages/sessions/{index,[id]}.astro`                    | History list + session detail (protected)                                 |
+| `src/components/VideoUpload.tsx` / `VideoAnalyzer.tsx`     | Upload/validation UI + the client-side pipeline                           |
+| `src/components/{Landing,Topbar,Banner}.astro`             | Marketing page, nav bar, missing-config banner                            |
+| `src/components/auth/`                                     | Sign-in / sign-up form islands                                            |
+| `src/lib/pose/angles.ts`                                   | Joint-angle geometry + `ANGLE_REFS`                                       |
+| `src/lib/schemas.ts`                                       | zod schemas for every API payload                                         |
+| `src/lib/angle-verdict.ts`                                 | In / out-of-range decision on a measurement                               |
+| `src/lib/recommendations-prompt.ts`                        | Fitter system prompt built from `ANGLE_REFS`                              |
+| `src/lib/session-display-status.ts`                        | Display-time "timed out" reconciliation                                   |
+| `src/lib/config-status.ts`                                 | Detects missing Supabase config for the banner                            |
+| `src/lib/services/llm.ts`                                  | OpenRouter vision + text calls                                            |
+| `src/lib/services/rate-limit.ts`                           | Per-user, per-route request counter                                       |
+| `src/lib/supabase.ts`                                      | Cookie-session SSR Supabase client                                        |
+| `src/middleware.ts`                                        | Resolves the user, guards `PROTECTED_ROUTES`                              |
+| `src/types.ts`                                             | Shared entities + DTOs                                                    |
+| `supabase/migrations/`                                     | Schema + RLS policies                                                     |
+| `e2e/`                                                     | Playwright smoke + cross-user RLS check                                   |
+| `src/test/helpers/`                                        | Vitest stubs (Supabase, OpenRouter, API context)                          |
+| `context/foundation/`                                      | PRD, roadmap, test plan, reference angles                                 |
+| `packages/code-reviewer/`                                  | Standalone AI PR-review CLI (own deps/tsconfig; excluded from root gates) |
 
 ## Auth & Access Control
 
@@ -237,7 +238,7 @@ confirmation there (Studio → Authentication → Providers → Email).
 runs on every PR to `master` (separate from `ci.yml`). It computes the PR diff
 (byte-capped at ~300 KB), then hands off to the
 [`ai-code-review`](.github/actions/ai-code-review/action.yml) composite action,
-which builds + tests [`packages/code-reviewer/`](packages/code-reviewer/) and
+which builds [`packages/code-reviewer/`](packages/code-reviewer/) and
 makes **one** OpenRouter call scoring the change against five criteria
 (`pr_clarity`, `minimal_readable`, `tested`, `input_safety`, `secrets_authz`) on a
 1–10 scale. The rendered review lands in the **job log**, the **run summary**, and
