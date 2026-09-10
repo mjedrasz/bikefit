@@ -1,0 +1,56 @@
+name: AI code review
+
+on:
+  pull_request:
+    branches: [master]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ai-cr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - id: diff
+        shell: bash
+        env:
+          # Passed via env, never interpolated into the script body.
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          set -euo pipefail
+          # LC_ALL=C so bash substring counts bytes, not code points — the
+          # truncation and the "N of M bytes shown" marker stay byte-accurate.
+          export LC_ALL=C
+          git fetch --no-tags origin "$BASE_REF"
+          DELIM="OCR_$(openssl rand -hex 12)"
+          # ~75K input tokens; keeps per-review cost near $0.20 and the --diff
+          # argv value well under ARG_MAX and the 1 MB $GITHUB_OUTPUT cap.
+          BUDGET=300000
+          FULL="$(git diff --merge-base "origin/$BASE_REF" HEAD)"
+          TOTAL=${#FULL}
+          BODY="${FULL:0:BUDGET}"
+          if [ "$TOTAL" -gt "$BUDGET" ]; then
+            BODY="${BODY}"$'\n\n'"[diff truncated — ${BUDGET} of ${TOTAL} bytes shown]"
+          fi
+          {
+            echo "diff<<$DELIM"
+            printf '%s\n' "$BODY"
+            echo "$DELIM"
+          } >> "$GITHUB_OUTPUT"
+
+      - uses: ./.github/actions/ai-code-review
+        with:
+          openrouter-api-key: ${{ secrets.OPENROUTER_API_KEY }}
+          pr-title: ${{ github.event.pull_request.title }}
+          pr-description: ${{ github.event.pull_request.body }}
+          diff: ${{ steps.diff.outputs.diff }}

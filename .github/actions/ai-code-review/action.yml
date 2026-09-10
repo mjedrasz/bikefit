@@ -1,0 +1,120 @@
+name: AI code review
+description: >-
+  Build and test packages/code-reviewer, run one OpenRouter review of a PR diff,
+  and decide the job outcome (blocking on review quality, fail-open on infra).
+
+inputs:
+  openrouter-api-key:
+    description: OpenRouter API key. Passed to the CLI as OPENROUTER_API_KEY on the review step only.
+    required: true
+  pr-title:
+    description: PR title — drives the pr_clarity criterion.
+    required: true
+  pr-description:
+    description: PR description / body.
+    required: false
+    default: ""
+  diff:
+    description: The (possibly truncated) unified diff to review.
+    required: true
+  fail-below:
+    description: Fail the job if any criterion scores below this integer (1..10).
+    required: false
+    default: "5"
+  model:
+    description: OpenRouter model slug.
+    required: false
+    default: "anthropic/claude-sonnet-4.5"
+  max-output-tokens:
+    description: Generation ceiling for the single model call.
+    required: false
+    default: "8000"
+  max-cost:
+    description: Passed to stopWhen; inert for this single-call design (kept for a future tools variant).
+    required: false
+    default: "0.5"
+  timeout-ms:
+    description: Wall-clock deadline for the model call, in milliseconds.
+    required: false
+    default: "300000"
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v5
+      with:
+        node-version: 24
+        cache: npm
+        cache-dependency-path: packages/code-reviewer/package-lock.json
+
+    - name: Install code-reviewer deps
+      shell: bash
+      working-directory: packages/code-reviewer
+      run: npm ci
+
+    - name: Build code-reviewer
+      shell: bash
+      working-directory: packages/code-reviewer
+      run: npm run build
+
+    - name: Test code-reviewer
+      shell: bash
+      working-directory: packages/code-reviewer
+      run: npm test
+
+    - name: Run review
+      id: review
+      shell: bash
+      env:
+        OPENROUTER_API_KEY: ${{ inputs.openrouter-api-key }}
+        DIFF: ${{ inputs.diff }}
+        PR_TITLE: ${{ inputs.pr-title }}
+        PR_DESCRIPTION: ${{ inputs.pr-description }}
+        MODEL: ${{ inputs.model }}
+        FAIL_BELOW: ${{ inputs.fail-below }}
+        MAX_OUTPUT_TOKENS: ${{ inputs.max-output-tokens }}
+        MAX_COST: ${{ inputs.max-cost }}
+        TIMEOUT_MS: ${{ inputs.timeout-ms }}
+      run: |
+        set +e +o pipefail
+        node packages/code-reviewer/dist/cli.js \
+          --pr-title "$PR_TITLE" \
+          --pr-description "$PR_DESCRIPTION" \
+          --diff "$DIFF" \
+          --model "$MODEL" \
+          --fail-below "$FAIL_BELOW" \
+          --max-output-tokens "$MAX_OUTPUT_TOKENS" \
+          --max-cost "$MAX_COST" \
+          --timeout-ms "$TIMEOUT_MS" \
+          --format markdown \
+          --out "$RUNNER_TEMP/review.json" \
+          | tee -a "$GITHUB_STEP_SUMMARY"
+        rc=${PIPESTATUS[0]}
+        echo "code=${rc}" >> "$GITHUB_OUTPUT"
+
+    - name: Dump review.json
+      shell: bash
+      run: cat "$RUNNER_TEMP/review.json" || true
+
+    - name: Gate on review outcome
+      shell: bash
+      env:
+        CODE: ${{ steps.review.outputs.code }}
+        FAIL_BELOW: ${{ inputs.fail-below }}
+      run: |
+        set -euo pipefail
+        case "${CODE}" in
+          0)
+            echo "AI code review passed (every criterion >= fail-below=${FAIL_BELOW})."
+            ;;
+          1)
+            echo "::error::AI code review failed — a criterion scored below fail-below=${FAIL_BELOW}"
+            exit 1
+            ;;
+          2 | 3)
+            echo "::error::AI code review could not run (CLI exit ${CODE}); not blocking the PR (fail-open on infra)"
+            ;;
+          *)
+            echo "::error::AI code review returned an unexpected CLI exit '${CODE}'; not blocking the PR"
+            ;;
+        esac

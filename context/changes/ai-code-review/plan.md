@@ -811,26 +811,26 @@ pause here for manual confirmation. This is the last phase.
 
 #### Automated
 
-- [x] 2.1 Build passes: `npm --prefix packages/code-reviewer run build`
-- [x] 2.2 Typecheck passes: `npm --prefix packages/code-reviewer run typecheck`
-- [x] 2.3 Package tests pass: `npm --prefix packages/code-reviewer test`
-- [x] 2.4 Prettier clean: `npm --prefix packages/code-reviewer exec prettier -- --check .`
-- [x] 2.5 No dangling references: `grep -rn "createFileTools\|createFileReader\|tools\.js\|verdict\|findings\b" packages/code-reviewer/src` returns nothing
+- [x] 2.1 Build passes: `npm --prefix packages/code-reviewer run build` — 39cbf0b
+- [x] 2.2 Typecheck passes: `npm --prefix packages/code-reviewer run typecheck` — 39cbf0b
+- [x] 2.3 Package tests pass: `npm --prefix packages/code-reviewer test` — 39cbf0b
+- [x] 2.4 Prettier clean: `npm --prefix packages/code-reviewer exec prettier -- --check .` — 39cbf0b
+- [x] 2.5 No dangling references: `grep -rn "createFileTools\|createFileReader\|tools\.js\|verdict\|findings\b" packages/code-reviewer/src` returns nothing — 39cbf0b
 
 #### Manual
 
-- [x] 2.6 `test:integration` passes with a real key — scored review of the diff fixture, low `input_safety`
-- [x] 2.7 Local CLI run against `insecure-login.diff` → readable review, `--out` well-formed, exit 1 (fail) not 3
+- [x] 2.6 `test:integration` passes with a real key — scored review of the diff fixture, low `input_safety` — 39cbf0b
+- [x] 2.7 Local CLI run against `insecure-login.diff` → readable review, `--out` well-formed, exit 1 (fail) not 3 — 39cbf0b
 
 ### Phase 3: CI wiring — composite action + workflow
 
 #### Automated
 
-- [ ] 3.1 Workflow + action YAML valid (`@action-validator/cli`) exits 0
-- [ ] 3.2 Action YAML parses as valid YAML (`python3 -c "import yaml; yaml.safe_load(...)"`)
-- [ ] 3.3 `actionlint` clean on the workflow + action (shellcheck on embedded scripts), if available
-- [ ] 3.4 Root CI still green: `npm run lint && npx tsc --noEmit && npm test`
-- [ ] 3.5 `git grep -n "ai-cr:" .github/` returns nothing
+- [x] 3.1 Workflow + action YAML valid (`@action-validator/cli`) exits 0
+- [x] 3.2 Action YAML parses as valid YAML (`python3 -c "import yaml; yaml.safe_load(...)"`)
+- [x] 3.3 `actionlint` clean on the workflow + action (shellcheck on embedded scripts), if available
+- [x] 3.4 Root CI still green: `npm run lint && npx tsc --noEmit && npm test`
+- [x] 3.5 `git grep -n "ai-cr:" .github/` returns nothing
 
 #### Manual
 

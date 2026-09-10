@@ -231,6 +231,47 @@ confirmation there (Studio → Authentication → Providers → Email).
   `E2E_SUPABASE_DB_PASSWORD`, `E2E_SUPABASE_URL`, `E2E_SUPABASE_KEY`, and
   `E2E_SUPABASE_SERVICE_ROLE_KEY`.
 
+## AI code review
+
+[`.github/workflows/ai-code-review.yml`](.github/workflows/ai-code-review.yml)
+runs on every PR to `master` (separate from `ci.yml`). It computes the PR diff
+(byte-capped at ~300 KB), then hands off to the
+[`ai-code-review`](.github/actions/ai-code-review/action.yml) composite action,
+which builds + tests [`packages/code-reviewer/`](packages/code-reviewer/) and
+makes **one** OpenRouter call scoring the change against five criteria
+(`pr_clarity`, `minimal_readable`, `tested`, `input_safety`, `secrets_authz`) on a
+1–10 scale. The rendered review lands in the **job log** and the **run summary** —
+nothing is posted to the PR.
+
+One-time setup — add the repo secret (value from <https://openrouter.ai/keys>):
+
+```bash
+gh secret set OPENROUTER_API_KEY
+```
+
+Until the secret is set the job still runs, annotates "could not run", and passes.
+
+Make it a **required check** once a couple of PRs have exercised it — Settings →
+Branches → `master` protection → add the `review` status check, or:
+
+```bash
+gh api -X PATCH \
+  repos/mjedrasz/bikefit/branches/master/protection/required_status_checks \
+  --input -
+```
+
+Gate behaviour:
+
+- **Blocking on review quality** — any criterion below `--fail-below` (default 5)
+  makes the CLI exit non-zero, fails the `review` job, and (once the check is
+  required) blocks the merge.
+- **Fail-open on infra** — an OpenRouter outage, a missing key, or a hard parse
+  failure is annotated on the checks surface but does **not** block; the PR author
+  cannot fix a third-party outage.
+- **Fork PRs are not supported** — `pull_request` gives forks no repo secrets.
+
+PR comments, labels, and on-demand retry are a planned follow-up.
+
 ## Testing
 
 `npm test` runs the Vitest suite (currently 18 files / 171 tests — joint-angle
