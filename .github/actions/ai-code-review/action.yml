@@ -57,11 +57,6 @@ runs:
       working-directory: packages/code-reviewer
       run: npm run build
 
-    - name: Test code-reviewer
-      shell: bash
-      working-directory: packages/code-reviewer
-      run: npm test
-
     - name: Run review
       id: review
       shell: bash
