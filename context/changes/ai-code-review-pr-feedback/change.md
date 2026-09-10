@@ -1,7 +1,7 @@
 ---
 change_id: ai-code-review-pr-feedback
 title: AI code review — PR comment, verdict labels, on-demand retry
-status: implementing
+status: implemented
 created: 2026-09-10
 updated: 2026-09-10
 archived_at: null
