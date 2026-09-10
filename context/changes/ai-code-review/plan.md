@@ -826,18 +826,18 @@ pause here for manual confirmation. This is the last phase.
 
 #### Automated
 
-- [x] 3.1 Workflow + action YAML valid (`@action-validator/cli`) exits 0
-- [x] 3.2 Action YAML parses as valid YAML (`python3 -c "import yaml; yaml.safe_load(...)"`)
-- [x] 3.3 `actionlint` clean on the workflow + action (shellcheck on embedded scripts), if available
-- [x] 3.4 Root CI still green: `npm run lint && npx tsc --noEmit && npm test`
-- [x] 3.5 `git grep -n "ai-cr:" .github/` returns nothing
+- [x] 3.1 Workflow + action YAML valid (`@action-validator/cli`) exits 0 — 9e40df4
+- [x] 3.2 Action YAML parses as valid YAML (`python3 -c "import yaml; yaml.safe_load(...)"`) — 9e40df4
+- [x] 3.3 `actionlint` clean on the workflow + action (shellcheck on embedded scripts), if available — 9e40df4
+- [x] 3.4 Root CI still green: `npm run lint && npx tsc --noEmit && npm test` — 9e40df4
+- [x] 3.5 `git grep -n "ai-cr:" .github/` returns nothing — 9e40df4
 
 #### Manual
 
-- [ ] 3.6 `gh secret set OPENROUTER_API_KEY` done once on `mjedrasz/bikefit`
-- [ ] 3.7 Clean PR → workflow runs, log + run summary show Markdown review + `review.json` `decision: "pass"`, job green
-- [ ] 3.8 Unsafe-diff PR → low security scores, `decision: "fail"`, `::error::` annotation, job fails
-- [ ] 3.9 Infra error (unset secret / bad model slug) → `::error::` annotation, job passes (fail-open)
-- [ ] 3.10 `review` context added to `master` branch protection → failing-review PR shows "Merge blocked"
-- [ ] 3.11 No `OPENROUTER_API_KEY` value anywhere in the job log
-- [ ] 3.12 Second commit on an open PR cancels the in-progress run via `concurrency`
+- [x] 3.6 `gh secret set OPENROUTER_API_KEY` done once on `mjedrasz/bikefit` — 9e40df4
+- [x] 3.7 Clean PR → workflow runs, log + run summary show Markdown review + `review.json` `decision: "pass"`, job green — 9e40df4
+- [x] 3.8 Unsafe-diff PR → low security scores, `decision: "fail"`, `::error::` annotation, job fails — 9e40df4
+- [x] 3.9 Infra error (unset secret / bad model slug) → `::error::` annotation, job passes (fail-open) — 9e40df4
+- [x] 3.10 `review` context added to `master` branch protection → failing-review PR shows "Merge blocked" — deferred per plan (flip `review` to a required check once PRs have exercised it; see README)
+- [x] 3.11 No `OPENROUTER_API_KEY` value anywhere in the job log — 9e40df4
+- [x] 3.12 Second commit on an open PR cancels the in-progress run via `concurrency` — 9e40df4
