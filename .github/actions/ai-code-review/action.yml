@@ -1,6 +1,6 @@
 name: AI code review
 description: >-
-  Build and test packages/code-reviewer, run one OpenRouter review of a PR diff,
+  Build packages/code-reviewer, run one OpenRouter review of a PR diff,
   and decide the job outcome (blocking on review quality, fail-open on infra).
 
 inputs:
