@@ -7,6 +7,9 @@ inputs:
   openrouter-api-key:
     description: OpenRouter API key. Passed to the CLI as OPENROUTER_API_KEY on the review step only.
     required: true
+  pr-number:
+    description: PR number — used to address `gh pr comment` / `gh pr edit` for the comment and verdict labels.
+    required: true
   pr-title:
     description: PR title — drives the pr_clarity criterion.
     required: true
@@ -83,13 +86,81 @@ runs:
           --timeout-ms "$TIMEOUT_MS" \
           --format markdown \
           --out "$RUNNER_TEMP/review.json" \
-          | tee -a "$GITHUB_STEP_SUMMARY"
+          | tee "$RUNNER_TEMP/review.md" | tee -a "$GITHUB_STEP_SUMMARY"
         rc=${PIPESTATUS[0]}
         echo "code=${rc}" >> "$GITHUB_OUTPUT"
 
     - name: Dump review.json
       shell: bash
       run: cat "$RUNNER_TEMP/review.json" || true
+
+    - name: Build PR comment body
+      id: comment
+      shell: bash
+      env:
+        RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      run: |
+        set -euo pipefail
+        # LC_ALL=C so `wc -c` / `head -c` count bytes, matching the diff step.
+        export LC_ALL=C
+        REVIEW_JSON="$RUNNER_TEMP/review.json"
+        REVIEW_MD="$RUNNER_TEMP/review.md"
+        BODY="$RUNNER_TEMP/comment.md"
+        DECISION="$(jq -r '.decision // "error"' "$REVIEW_JSON" 2>/dev/null || echo error)"
+        {
+          echo "🤖 AI code review · [run]($RUN_URL)"
+          echo
+        } > "$BODY"
+        if [ "$DECISION" = "error" ]; then
+          ERR="$(jq -r '.error // "unknown error"' "$REVIEW_JSON" 2>/dev/null || echo "unknown error")"
+          {
+            echo "### ⚠️ AI code review could not run"
+            echo
+            echo "\`${ERR}\`"
+            echo
+            echo "_Not blocking the PR (fail-open on infra); verdict labels left unchanged._"
+          } >> "$BODY"
+        elif [ -f "$REVIEW_MD" ] && [ "$(wc -c < "$REVIEW_MD")" -gt 60000 ]; then
+          head -c 60000 "$REVIEW_MD" >> "$BODY"
+          {
+            echo
+            echo
+            echo "_…truncated — full review in the [run summary]($RUN_URL)._"
+          } >> "$BODY"
+        else
+          cat "$REVIEW_MD" >> "$BODY" 2>/dev/null \
+            || echo "_(review output unavailable — see the [run summary]($RUN_URL).)_" >> "$BODY"
+        fi
+        echo "decision=${DECISION}" >> "$GITHUB_OUTPUT"
+
+    - name: Post PR comment
+      if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        GH_REPO: ${{ github.repository }}
+        PR_NUMBER: ${{ inputs.pr-number }}
+      run: |
+        gh pr comment "$PR_NUMBER" --body-file "$RUNNER_TEMP/comment.md" \
+          || echo "::warning::failed to post the AI code review PR comment"
+
+    - name: Set verdict label
+      if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        GH_REPO: ${{ github.repository }}
+        PR_NUMBER: ${{ inputs.pr-number }}
+        DECISION: ${{ steps.comment.outputs.decision }}
+      run: |
+        set -euo pipefail
+        case "$DECISION" in
+          pass) gh pr edit "$PR_NUMBER" --add-label "ai-cr:passed" --remove-label "ai-cr:failed" \
+                  || echo "::warning::failed to set ai-cr:passed" ;;
+          fail) gh pr edit "$PR_NUMBER" --add-label "ai-cr:failed" --remove-label "ai-cr:passed" \
+                  || echo "::warning::failed to set ai-cr:failed" ;;
+          *)    echo "decision=$DECISION — leaving verdict labels unchanged" ;;
+        esac
 
     - name: Gate on review outcome
       shell: bash

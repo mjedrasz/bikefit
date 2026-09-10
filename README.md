@@ -240,14 +240,21 @@ runs on every PR to `master` (separate from `ci.yml`). It computes the PR diff
 which builds + tests [`packages/code-reviewer/`](packages/code-reviewer/) and
 makes **one** OpenRouter call scoring the change against five criteria
 (`pr_clarity`, `minimal_readable`, `tested`, `input_safety`, `secrets_authz`) on a
-1–10 scale. The rendered review lands in the **job log** and the **run summary** —
-nothing is posted to the PR.
+1–10 scale. The rendered review lands in the **job log**, the **run summary**, and
+a **fresh PR comment** posted on every completed run.
 
-One-time setup — add the repo secret (value from <https://openrouter.ai/keys>):
+One-time setup — add the repo secret (value from <https://openrouter.ai/keys>)
+and create the three `ai-cr:*` labels the workflow assumes exist:
 
 ```bash
 gh secret set OPENROUTER_API_KEY
+gh label create "ai-cr:passed" --color 0E8A16 --force
+gh label create "ai-cr:failed" --color D73A4A --force
+gh label create "ai-cr:review" --color FBCA04 --force
 ```
+
+The workflow/action never create these labels — a missing label degrades to a
+`::warning::` on the run, not a hard failure.
 
 Until the secret is set the job still runs, annotates "could not run", and passes.
 
@@ -270,7 +277,19 @@ Gate behaviour:
   cannot fix a third-party outage.
 - **Fork PRs are not supported** — `pull_request` gives forks no repo secrets.
 
-PR comments, labels, and on-demand retry are a planned follow-up.
+PR feedback:
+
+- **A fresh PR comment** with the full rendered review (PASS/FAIL header, score
+  table, per-criterion notes, model + cost footer) is posted on every completed
+  run — no marker, no editing, one comment per review.
+- **`ai-cr:passed` / `ai-cr:failed`** track the latest verdict — the matching
+  label is added and the other removed.
+- **On an infra error** the comment reads "could not run" and the verdict labels
+  are left unchanged (mirrors the fail-open gate).
+- Comment / label failures degrade to `::warning::` annotations and **never**
+  block the PR — the gate step stays the sole authority on job outcome.
+
+On-demand retry via `ai-cr:review` is a planned follow-up.
 
 ## Testing
 
