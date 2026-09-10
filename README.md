@@ -288,8 +288,9 @@ PR feedback:
   are left unchanged (mirrors the fail-open gate).
 - Comment / label failures degrade to `::warning::` annotations and **never**
   block the PR — the gate step stays the sole authority on job outcome.
-
-On-demand retry via `ai-cr:review` is a planned follow-up.
+- **On-demand retry** — adding the `ai-cr:review` label to a PR re-runs the
+  review; the label is removed automatically when the run finishes, so re-adding
+  it triggers another run. A retry cancels any in-progress run for that PR.
 
 ## Testing
 

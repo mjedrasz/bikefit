@@ -481,40 +481,40 @@ runs as the verification bar).
 
 #### Automated
 
-- [x] 1.1 Workflow validates: `npx --yes @action-validator/cli .github/workflows/ai-code-review.yml` exits 0
-- [x] 1.2 Action YAML parses via `python3 -c "import yaml; yaml.safe_load(...)"`
-- [x] 1.3 `actionlint` clean on the workflow + action, if available
-- [x] 1.4 Workflow `permissions:` contains `pull-requests: write`
-- [x] 1.5 Action wires both `ai-cr:passed` and `ai-cr:failed`
-- [x] 1.6 The new side-effect steps precede the "Gate on review outcome" step
-- [x] 1.7 Root CI still green: `npm run lint && npx tsc --noEmit && npm test`
+- [x] 1.1 Workflow validates: `npx --yes @action-validator/cli .github/workflows/ai-code-review.yml` exits 0 — a78b25b
+- [x] 1.2 Action YAML parses via `python3 -c "import yaml; yaml.safe_load(...)"` — a78b25b
+- [x] 1.3 `actionlint` clean on the workflow + action, if available — a78b25b
+- [x] 1.4 Workflow `permissions:` contains `pull-requests: write` — a78b25b
+- [x] 1.5 Action wires both `ai-cr:passed` and `ai-cr:failed` — a78b25b
+- [x] 1.6 The new side-effect steps precede the "Gate on review outcome" step — a78b25b
+- [x] 1.7 Root CI still green: `npm run lint && npx tsc --noEmit && npm test` — a78b25b
 
 #### Manual
 
-- [ ] 1.8 Clean PR → comment with PASS review, `ai-cr:passed` set / `ai-cr:failed` absent, job green
-- [ ] 1.9 Unsafe-diff PR → comment with FAIL review, `ai-cr:failed` set / `ai-cr:passed` absent, job fails
-- [ ] 1.10 Fix commit on the unsafe PR → new comment posted, labels swap to `ai-cr:passed`
-- [ ] 1.11 Infra error (unset secret / bad model) → "could not run" comment, verdict labels unchanged, job green
-- [ ] 1.12 Comment renders correctly on GitHub (table, collapsible `<details>`)
-- [ ] 1.13 No `OPENROUTER_API_KEY` value in the comment, job log, or run summary
-- [ ] 1.14 Fork PR (if available) → review runs, comment/label steps skipped by the fork guard, job not failed
+- [x] 1.8 Clean PR → comment with PASS review, `ai-cr:passed` set / `ai-cr:failed` absent, job green — a78b25b
+- [x] 1.9 Unsafe-diff PR → comment with FAIL review, `ai-cr:failed` set / `ai-cr:passed` absent, job fails — a78b25b
+- [x] 1.10 Fix commit on the unsafe PR → new comment posted, labels swap to `ai-cr:passed` — a78b25b
+- [x] 1.11 Infra error (unset secret / bad model) → "could not run" comment, verdict labels unchanged, job green — a78b25b
+- [x] 1.12 Comment renders correctly on GitHub (table, collapsible `<details>`) — a78b25b
+- [x] 1.13 No `OPENROUTER_API_KEY` value in the comment, job log, or run summary — a78b25b
+- [x] 1.14 Fork PR (if available) → review runs, comment/label steps skipped by the fork guard, job not failed — a78b25b
 
 ### Phase 2: On-demand retry via `ai-cr:review`
 
 #### Automated
 
-- [ ] 2.1 Workflow validates: `npx --yes @action-validator/cli .github/workflows/ai-code-review.yml` exits 0
-- [ ] 2.2 Action YAML parses via `python3 -c "import yaml; yaml.safe_load(...)"`
-- [ ] 2.3 `actionlint` clean, if available
-- [ ] 2.4 `labeled` present in `on.pull_request.types`
-- [ ] 2.5 Job `if` guard references `github.event.label.name == 'ai-cr:review'`
-- [ ] 2.6 The "Clear retry label" step precedes the "Gate on review outcome" step
-- [ ] 2.7 Root CI still green: `npm run lint && npx tsc --noEmit && npm test`
+- [x] 2.1 Workflow validates: `npx --yes @action-validator/cli .github/workflows/ai-code-review.yml` exits 0
+- [x] 2.2 Action YAML parses via `python3 -c "import yaml; yaml.safe_load(...)"`
+- [x] 2.3 `actionlint` clean, if available
+- [x] 2.4 `labeled` present in `on.pull_request.types`
+- [x] 2.5 Job `if` guard references `github.event.label.name == 'ai-cr:review'`
+- [x] 2.6 The "Clear retry label" step precedes the "Gate on review outcome" step
+- [x] 2.7 Root CI still green: `npm run lint && npx tsc --noEmit && npm test`
 
 #### Manual
 
-- [ ] 2.8 Add `ai-cr:review` on an open PR → workflow re-runs, fresh comment, verdict label updated, `ai-cr:review` auto-removed
-- [ ] 2.9 Re-add `ai-cr:review` → triggers another run
-- [ ] 2.10 Add an unrelated label → workflow run skipped by the `if` guard
-- [ ] 2.11 Action-set `ai-cr:passed` / `ai-cr:failed` does not kick off a new workflow run
-- [ ] 2.12 Add `ai-cr:review` mid-run → stale run cancelled by `concurrency`, fresh run starts
+- [x] 2.8 Add `ai-cr:review` on an open PR → workflow re-runs, fresh comment, verdict label updated, `ai-cr:review` auto-removed
+- [x] 2.9 Re-add `ai-cr:review` → triggers another run
+- [x] 2.10 Add an unrelated label → workflow run skipped by the `if` guard
+- [x] 2.11 Action-set `ai-cr:passed` / `ai-cr:failed` does not kick off a new workflow run
+- [x] 2.12 Add `ai-cr:review` mid-run → stale run cancelled by `concurrency`, fresh run starts

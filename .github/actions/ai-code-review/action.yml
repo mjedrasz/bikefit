@@ -162,6 +162,17 @@ runs:
           *)    echo "decision=$DECISION — leaving verdict labels unchanged" ;;
         esac
 
+    - name: Clear retry label
+      if: ${{ always() && github.event.pull_request.head.repo.full_name == github.repository }}
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        GH_REPO: ${{ github.repository }}
+        PR_NUMBER: ${{ inputs.pr-number }}
+      run: |
+        gh pr edit "$PR_NUMBER" --remove-label "ai-cr:review" \
+          || echo "::warning::failed to clear ai-cr:review"
+
     - name: Gate on review outcome
       shell: bash
       env:

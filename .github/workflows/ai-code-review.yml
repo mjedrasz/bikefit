@@ -3,7 +3,7 @@ name: AI code review
 on:
   pull_request:
     branches: [master]
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize, reopened, labeled]
 
 permissions:
   contents: read
@@ -15,6 +15,11 @@ concurrency:
 
 jobs:
   review:
+    # Runs on opened/synchronize/reopened unconditionally; on `labeled` only when
+    # the added label is `ai-cr:review` (the on-demand retry trigger).
+    if: >-
+      github.event.action != 'labeled' ||
+      github.event.label.name == 'ai-cr:review'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
