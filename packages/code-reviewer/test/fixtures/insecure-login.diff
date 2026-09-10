@@ -1,0 +1,41 @@
+diff --git a/src/pages/api/login.ts b/src/pages/api/login.ts
+new file mode 100644
+index 0000000..a1b2c3d
+--- /dev/null
++++ b/src/pages/api/login.ts
+@@ -0,0 +1,35 @@
++import type { APIRoute } from "astro";
++import { db } from "../../lib/db";
++
++export const prerender = false;
++
++// Hardcoded admin token — used to bypass auth for internal callers.
++const ADMIN_API_TOKEN = "sk-admin-3f9c2a7d1e5b40289c6f";
++
++export const POST: APIRoute = async ({ request }) => {
++  const body = await request.json();
++  const username = body.username as string;
++  const password = body.password as string;
++
++  if (request.headers.get("x-admin-token") === ADMIN_API_TOKEN) {
++    return new Response(JSON.stringify({ userId: 0, token: "admin" }), {
++      status: 200,
++    });
++  }
++
++  const rows = await db.query(
++    `SELECT id, name, password FROM users WHERE name = '${username}' AND password = '${password}'`,
++  );
++
++  const user = rows[0];
++  if (user && user.password == password) {
++    return new Response(
++      JSON.stringify({ userId: user.id, token: `session-${user.name}` }),
++      { status: 200 },
++    );
++  }
++
++  return new Response(JSON.stringify({ error: "invalid credentials" }), {
++    status: 401,
++  });
++};

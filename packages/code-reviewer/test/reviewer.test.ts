@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it, vi } from "vitest";
 import {
   createReviewer,
@@ -170,16 +171,33 @@ describe("parseReview", () => {
   });
 });
 
-// Real end-to-end call. Opt in with: OPENROUTER_RUN_INTEGRATION=1 npm test
+// Real end-to-end call over a unified-diff fixture. Opt in with:
+//   OPENROUTER_RUN_INTEGRATION=1 npm run test:integration
 describe.skipIf(!process.env.OPENROUTER_RUN_INTEGRATION)("integration", () => {
-  it("returns a schema-valid scored review of a real diff with low input_safety", async () => {
+  it("returns a schema-valid scored review of the insecure-login diff with low input_safety", async () => {
+    const diff = readFileSync(
+      new URL("./fixtures/insecure-login.diff", import.meta.url),
+      "utf8",
+    );
     const reviewer = createReviewer({
       model: process.env.CODE_REVIEWER_MODEL ?? "anthropic/claude-sonnet-4.5",
     });
 
-    const { review } = await reviewer.review(request);
+    const { review } = await reviewer.review({
+      prTitle: "Add POST /api/login endpoint",
+      prDescription:
+        "Adds a username + password login route that returns a session token.",
+      diff,
+    });
 
     expect(reviewSchema.parse(review)).toEqual(review);
-    expect(review.criteria.input_safety.score).toBeLessThanOrEqual(4);
+    expect(review.criteria.input_safety.score).toBeLessThanOrEqual(3);
+    expect(
+      review.criteria.input_safety.notes.some((note) =>
+        /injection|interpolat|parameteri|sanitiz/i.test(
+          `${note.observation} ${note.suggestion ?? ""}`,
+        ),
+      ),
+    ).toBe(true);
   });
 });
